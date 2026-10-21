@@ -1,15 +1,21 @@
 import type { Metadata, Viewport } from 'next';
 import './globals.css';
+import { PwaRegistration } from '@/components/PwaRegistration';
 
 export const runtime = 'edge';
 
 export const metadata: Metadata = {
+  manifest: '/manifest.webmanifest',
+  icons: {
+    icon: [{ url: '/icons/icon-192.png', sizes: '192x192', type: 'image/png' }],
+    apple: [{ url: '/icons/apple-touch-icon.png', sizes: '180x180', type: 'image/png' }],
+  },
   title: 'SC5 - MĐ1 | Ôn tập trắc nghiệm',
   description: 'Nền tảng ôn tập trắc nghiệm thông minh, tối ưu trải nghiệm học tập trên thiết bị di động.',
   appleWebApp: {
     capable: true,
     statusBarStyle: 'default',
-    title: 'SC5 QnA',
+    title: 'QnA Learning',
   },
 };
 
@@ -55,6 +61,7 @@ export default function RootLayout({
       </head>
       <body className="min-h-screen bg-base-100 text-base-content antialiased select-none sm:select-auto">
         {children}
+        <PwaRegistration />
       </body>
     </html>
   );

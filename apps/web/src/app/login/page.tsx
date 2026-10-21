@@ -4,6 +4,7 @@ import React, { useState, Suspense } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { signIn } from '../actions/auth';
 import { ThemeToggle } from '@qna/ui';
+import { InstallApp } from '@/components/InstallApp';
 import { Lock, User, ShieldAlert, Sparkles, BookOpen } from 'lucide-react';
 
 function LoginForm() {
@@ -104,6 +105,7 @@ function LoginForm() {
           )}
         </button>
       </form>
+      <div className="mt-4"><InstallApp /></div>
 
       <div className="divider my-4 text-[11px] text-base-content/40">LƯU Ý</div>
 

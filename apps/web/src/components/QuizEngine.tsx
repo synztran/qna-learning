@@ -28,6 +28,7 @@ import { motion, AnimatePresence } from "motion/react";
 import { saveQuizAttempt } from "../app/actions/quiz";
 import { signOut } from "../app/actions/auth";
 import Link from "next/link";
+import { InstallApp } from './InstallApp';
 
 const OPTION_KEYS: OptionKey[] = ["A", "B", "C", "D"];
 
@@ -462,6 +463,7 @@ export function QuizEngine({
 
 				{/* Start Button */}
 				<footer>
+					<div className="mb-3"><InstallApp /></div>
 					<p className="text-center text-[11px] text-base-content/60 mb-2">
 						Câu hỏi và 4 phương án được trộn ngẫu nhiên mỗi lượt ôn
 						tập
