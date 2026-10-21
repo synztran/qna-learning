@@ -3,27 +3,101 @@
 import { useEffect, useState } from 'react';
 import { Download, Share, SquarePlus } from 'lucide-react';
 
+interface InstallPromptEvent extends Event {
+  prompt(): Promise<void>;
+  userChoice: Promise<{ outcome: 'accepted' | 'dismissed' }>;
+}
+
 export function InstallApp() {
   const [visible, setVisible] = useState(false);
   const [safari, setSafari] = useState(false);
+  const [android, setAndroid] = useState(false);
+  const [installPrompt, setInstallPrompt] = useState<InstallPromptEvent | null>(null);
+  const [installing, setInstalling] = useState(false);
+  const [installError, setInstallError] = useState('');
 
   useEffect(() => {
     const displayMode = window.matchMedia('(display-mode: standalone)');
     const nav = navigator as Navigator & { standalone?: boolean };
     const ios = /iPad|iPhone|iPod/.test(nav.userAgent) ||
       (nav.platform === 'MacIntel' && nav.maxTouchPoints > 1);
+    const isAndroid = /Android/i.test(nav.userAgent);
+    let installed = false;
+    setAndroid(isAndroid);
     setSafari(/Safari/.test(nav.userAgent) && !/CriOS|FxiOS|EdgiOS|OPiOS|GSA/.test(nav.userAgent));
-    const update = () => setVisible(ios && !nav.standalone && !displayMode.matches);
+    const update = () => setVisible((ios || isAndroid) && !installed && !nav.standalone && !displayMode.matches);
+    const beforeInstall = (event: Event) => {
+      if (!isAndroid) return;
+      event.preventDefault();
+      setInstallPrompt(event as InstallPromptEvent);
+    };
+    const onInstalled = () => {
+      installed = true;
+      setInstallPrompt(null);
+      update();
+    };
     update();
     displayMode.addEventListener('change', update);
-    return () => displayMode.removeEventListener('change', update);
+    window.addEventListener('beforeinstallprompt', beforeInstall);
+    window.addEventListener('appinstalled', onInstalled);
+    return () => {
+      displayMode.removeEventListener('change', update);
+      window.removeEventListener('beforeinstallprompt', beforeInstall);
+      window.removeEventListener('appinstalled', onInstalled);
+    };
   }, []);
+
+  const install = async () => {
+    if (!installPrompt || installing) return;
+    setInstalling(true);
+    setInstallError('');
+    // Each browser event can only be prompted once, including after dismissal.
+    const prompt = installPrompt;
+    setInstallPrompt(null);
+    try {
+      await prompt.prompt();
+      const choice = await prompt.userChoice;
+      if (choice.outcome === 'accepted') setVisible(false);
+    } catch {
+      setInstallError('Không thể mở cửa sổ cài đặt. Hãy dùng menu Chrome theo hướng dẫn bên dưới.');
+    } finally {
+      setInstalling(false);
+    }
+  };
 
   if (!visible) return null;
 
+  if (android) return (
+    <div className="rounded-xl border border-base-300 bg-base-200/50 text-sm">
+      {(installPrompt || installing) && (
+        <button type="button" onClick={install} disabled={installing} aria-busy={installing}
+          className="btn btn-ghost w-full justify-start gap-2 text-primary normal-case">
+          <Download aria-hidden="true" className="h-4 w-4" />
+          {installing ? 'Đang mở cài đặt…' : 'Cài ứng dụng trên Android'}
+        </button>
+      )}
+      {installError && <p role="alert" className="px-4 pt-3 text-error">{installError}</p>}
+      <details>
+        <summary className="list-none [&::-webkit-details-marker]:hidden cursor-pointer p-3 font-semibold text-primary focus-visible:outline focus-visible:outline-2 focus-visible:outline-primary rounded-xl">
+          <span className="inline-flex items-center gap-2"><Download aria-hidden="true" className="h-4 w-4" />
+            {installPrompt || installing ? 'Hướng dẫn cài đặt thủ công' : 'Cài ứng dụng trên Android'}
+          </span>
+        </summary>
+        <div className="px-4 pb-4 space-y-3 text-base-content">
+          <ol className="list-decimal pl-5 space-y-2">
+            <li>Mở trang này bằng Chrome trên Android.</li>
+            <li>Nhấn menu <b>⋮</b>, chọn <b>Cài đặt ứng dụng</b> hoặc <b>Thêm vào màn hình chính</b>.</li>
+            <li>Làm theo hướng dẫn của trình duyệt để xác nhận cài đặt.</li>
+          </ol>
+          <p className="text-xs text-base-content/70">Nếu chưa thấy tùy chọn cài đặt, hãy thử lại bằng Chrome ngoài trình duyệt trong ứng dụng. Ứng dụng vẫn cần mạng để đăng nhập, tải bộ đề và lưu kết quả.</p>
+        </div>
+      </details>
+    </div>
+  );
+
   return (
     <details className="rounded-xl border border-base-300 bg-base-200/50 text-sm">
-      <summary className="cursor-pointer p-3 font-semibold text-primary focus-visible:outline focus-visible:outline-2 focus-visible:outline-primary rounded-xl">
+      <summary className="list-none [&::-webkit-details-marker]:hidden cursor-pointer p-3 font-semibold text-primary focus-visible:outline focus-visible:outline-2 focus-visible:outline-primary rounded-xl">
         <span className="inline-flex items-center gap-2"><Download aria-hidden="true" className="h-4 w-4" />Cài ứng dụng trên iPhone / iPad</span>
       </summary>
       <div className="px-4 pb-4 space-y-3 text-base-content">
@@ -33,7 +107,7 @@ export function InstallApp() {
           <li>Cuộn xuống, chọn <span className="inline-flex items-center gap-1 font-semibold"><SquarePlus aria-hidden="true" className="h-4 w-4" />Thêm vào Màn hình chính</span>.</li>
           <li>Nếu có, bật <b>Mở dưới dạng ứng dụng web</b>, sau đó nhấn <b>Thêm</b>.</li>
         </ol>
-        <p className="text-xs text-base-content/70">Mở biểu tượng QnA Learning trên Màn hình chính để học. Ứng dụng vẫn cần mạng để đăng nhập, tải bộ đề và lưu kết quả. iOS không cho trang web tự cài đặt bằng một lần nhấn.</p>
+        <p className="text-xs text-base-content/70">Mở biểu tượng QnA Learning trên Màn hình chính để học. Ứng dụng vẫn cần mạng để đăng nhập, tải bộ đề và lưu kết quả.</p>
       </div>
     </details>
   );

@@ -387,11 +387,28 @@ export interface AdminQuizSet {
 
 export async function listQuestionSets(): Promise<{ sets: AdminQuizSet[]; error?: string }> {
   try {
-    const { data, error } = await getAdmin().from('quiz_sets').select('id, title, is_active').order('title').order('id');
+    const { data, error } = await getAdmin().from('quiz_sets').select('id, title, is_active').eq('is_active', true).order('title').order('id');
     if (error) return { sets: [], error: error.message };
     return { sets: (data || []).map(set => ({ id: set.id, title: set.title, isActive: set.is_active })) };
   } catch (error) {
     return { sets: [], error: error instanceof Error ? error.message : 'Không thể tải bộ đề.' };
+  }
+}
+
+export async function renameQuizSet(setId: string, title: string): Promise<{ success: boolean; title?: string; error?: string }> {
+  if (typeof setId !== 'string' || !/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(setId)) {
+    return { success: false, error: 'Bộ đề không hợp lệ.' };
+  }
+  if (typeof title !== 'string' || !title.trim() || title.trim().length > 200) {
+    return { success: false, error: 'Tên bộ đề phải có từ 1 đến 200 ký tự.' };
+  }
+  try {
+    const { data, error } = await getAdmin().from('quiz_sets')
+      .update({ title: title.trim() }).eq('id', setId).select('title').single();
+    if (error) return { success: false, error: 'Không thể đổi tên bộ đề. Vui lòng thử lại.' };
+    return { success: true, title: data.title };
+  } catch {
+    return { success: false, error: 'Không thể đổi tên bộ đề. Vui lòng thử lại.' };
   }
 }
 

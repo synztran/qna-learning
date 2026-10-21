@@ -1,6 +1,7 @@
 import { getCurrentUser } from './actions/auth';
 import { getQuizData } from './actions/quiz';
 import { QuizEngine } from '@/components/QuizEngine';
+import { SessionGuard } from '@/components/SessionGuard';
 import { SafeContainer } from '@qna/ui';
 import { redirect } from 'next/navigation';
 
@@ -17,6 +18,7 @@ export default async function HomePage() {
 
   return (
     <SafeContainer>
+      {user && <SessionGuard />}
       {error && sets.length === 0 ? <div className="py-4 space-y-4">
         <div role="alert" className="alert alert-warning">{error}</div>
         <a href="/" className="btn btn-outline">Thử lại</a>

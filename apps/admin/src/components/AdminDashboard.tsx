@@ -17,6 +17,7 @@ import {
 	listUsers,
 	listQuestions,
 	listQuestionSets,
+	renameQuizSet,
 	type AdminQuizSet,
 	convertUploadedDocAction,
 	type FolderQuestionSource,
@@ -75,6 +76,10 @@ export function AdminDashboard({
 	const [sets, setSets] = useState(initialSets);
 	const [questionsLoading, setQuestionsLoading] = useState(false);
 	const [qSetFilter, setQSetFilter] = useState('all');
+	const [renamingSetId, setRenamingSetId] = useState<string | null>(null);
+	const [setTitleDraft, setSetTitleDraft] = useState('');
+	const [renameLoading, setRenameLoading] = useState(false);
+	const [renameError, setRenameError] = useState('');
 
 	// Folder Sources State
 	const [folderPath, setFolderPath] = useState(initialFolderPath);
@@ -137,7 +142,11 @@ export function AdminDashboard({
 	});
 
 	// Filtered Questions
-	const filteredQuestions = questions.filter((q) => {
+	const activeSets = sets.filter(set => set.isActive);
+	const activeQuestions = questions.filter(q => q.setId
+		? activeSets.some(set => set.id === q.setId)
+		: !hasEnv);
+	const filteredQuestions = activeQuestions.filter((q) => {
 		const matchLesson =
 			qLessonFilter === "all" || q.lesson === qLessonFilter;
 		const matchSearch =
@@ -150,7 +159,7 @@ export function AdminDashboard({
 	});
 
 	// Unique Lessons
-	const lessonList = Array.from(new Set(questions.filter(q => qSetFilter === 'all' || q.setId === qSetFilter).map((q) => q.lesson))).sort(
+	const lessonList = Array.from(new Set(activeQuestions.filter(q => qSetFilter === 'all' || q.setId === qSetFilter).map((q) => q.lesson))).sort(
 		(a, b) => a - b,
 	);
 
@@ -370,6 +379,27 @@ export function AdminDashboard({
 		}
 	};
 
+	const handleRenameSet = async (event: React.FormEvent) => {
+		event.preventDefault();
+		if (!renamingSetId || renameLoading) return;
+		setRenameLoading(true);
+		setRenameError('');
+		try {
+			const result = await renameQuizSet(renamingSetId, setTitleDraft);
+			if (!result.success || !result.title) {
+				setRenameError(result.error || 'Không thể đổi tên bộ đề.');
+				return;
+			}
+			setSets(previous => previous.map(set => set.id === renamingSetId ? { ...set, title: result.title! } : set));
+			setRenamingSetId(null);
+			setUserActionMsg({ type: 'ok', text: `Đã đổi tên bộ đề thành "${result.title}".` });
+		} catch {
+			setRenameError('Không thể đổi tên bộ đề. Kiểm tra kết nối và thử lại.');
+		} finally {
+			setRenameLoading(false);
+		}
+	};
+
 	const handleRefreshQuestions = async () => {
 		setQuestionsLoading(true);
 		try {
@@ -564,7 +594,7 @@ export function AdminDashboard({
 								: ""
 						}`}>
 						<FileQuestion className="w-4 h-4" />
-						Biên tập câu hỏi ({questions.length})
+						Biên tập câu hỏi ({activeQuestions.length})
 					</button>
 				</div>
 
@@ -1155,9 +1185,9 @@ export function AdminDashboard({
 							<label className="text-sm font-semibold" htmlFor="question-set-filter">Bộ đề</label>
 							<select id="question-set-filter" value={qSetFilter} onChange={event => { setQSetFilter(event.target.value); setQLessonFilter('all'); }} className="select select-sm select-bordered max-w-full">
 								<option value="all">Tất cả bộ đề</option>
-								{sets.map(set => <option key={set.id} value={set.id}>{set.title}</option>)}
+								{activeSets.map(set => <option key={set.id} value={set.id}>{set.title}</option>)}
 							</select>
-              <p role="status" className="text-xs text-base-content/70 ml-auto">Hiển thị {filteredQuestions.length}/{questions.length} câu hỏi</p>
+              <p role="status" className="text-xs text-base-content/70 ml-auto">Hiển thị {filteredQuestions.length}/{activeQuestions.length} câu hỏi</p>
 							<button type="button" disabled={questionsLoading} onClick={handleRefreshQuestions} className="btn btn-outline btn-sm " style={{marginLeft: "auto"}}>
 								<RefreshCw className={`w-4 h-4 ${questionsLoading ? 'animate-spin' : ''}`} />
 								{questionsLoading ? 'Đang tải…' : 'Nạp lại dữ liệu'}
@@ -1235,6 +1265,26 @@ export function AdminDashboard({
 											{' · '}{filteredQuestions.filter(q => (q.setId || 'preview') === groupId).length}/{questions.filter(q => (q.setId || 'preview') === groupId).length} câu
 										</summary>
 										<div className="mt-4 space-y-3">
+											{groupId !== 'preview' && (renamingSetId === groupId ? (
+												<form onSubmit={handleRenameSet} className="space-y-2">
+													<label htmlFor={`set-title-${groupId}`} className="block text-xs font-semibold">Tên bộ đề</label>
+													<div className="flex flex-wrap items-center gap-2">
+														<input id={`set-title-${groupId}`} autoFocus required maxLength={200}
+															value={setTitleDraft} onChange={event => setSetTitleDraft(event.target.value)}
+															disabled={renameLoading} aria-invalid={Boolean(renameError)} aria-describedby={renameError ? `set-title-error-${groupId}` : undefined}
+															className="input input-sm input-bordered min-w-0 flex-1" />
+														<button type="submit" disabled={renameLoading || !setTitleDraft.trim()} className="btn btn-primary btn-sm">{renameLoading ? 'Đang lưu…' : 'Lưu'}</button>
+														<button type="button" disabled={renameLoading} onClick={() => setRenamingSetId(null)} className="btn btn-ghost btn-sm">Hủy</button>
+													</div>
+													{renameError && <p id={`set-title-error-${groupId}`} role="alert" className="text-xs text-error">{renameError}</p>}
+												</form>
+											) : (
+												<button type="button" disabled={renameLoading} onClick={() => {
+													setRenamingSetId(groupId);
+													setSetTitleDraft(sets.find(set => set.id === groupId)?.title || '');
+													setRenameError('');
+												}} className="btn btn-ghost btn-sm gap-2"><Edit aria-hidden="true" className="h-3.5 w-3.5" />Đổi tên</button>
+											))}
 								{filteredQuestions.filter(q => (q.setId || 'preview') === groupId).map((q, idx) => (
 									<div
 										key={q.id || idx}

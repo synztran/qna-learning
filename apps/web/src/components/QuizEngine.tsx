@@ -28,6 +28,8 @@ import { motion, AnimatePresence, useReducedMotion } from "motion/react";
 import { getQuizData, saveQuizAttempt } from "../app/actions/quiz";
 import { signOut } from "../app/actions/auth";
 import { InstallApp } from './InstallApp';
+import { LearningActions } from './LearningActions';
+import type { QuizSubmission } from '@/lib/submissions';
 
 const OPTION_KEYS: OptionKey[] = ["A", "B", "C", "D"];
 
@@ -95,6 +97,11 @@ export function QuizEngine({
 	const [items, setItems] = useState<QuizSessionItem[]>([]);
 	const [startTime, setStartTime] = useState<number>(0);
 	const [endTime, setEndTime] = useState<number | null>(null);
+	const submissionId = useRef('');
+	const pendingSubmission = useRef<QuizSubmission | null>(null);
+	const savingRef = useRef(false);
+	const [saveState, setSaveState] = useState<'idle' | 'saving' | 'saved' | 'error'>('idle');
+	const [saveError, setSaveError] = useState('');
 	const [isRetryWrong, setIsRetryWrong] = useState(false);
 	const [showGridModal, setShowGridModal] = useState(false);
 	const [resultFilter, setResultFilter] = useState<"all" | "bad" | "ok">(
@@ -113,7 +120,7 @@ export function QuizEngine({
 
 	// Start Quiz
 	const startQuiz = async (customQuestions?: Question[], retryMode = false) => {
-		if (startingRef.current) return;
+		if (startingRef.current || savingRef.current) return;
 		startingRef.current = true;
 		setStarting(true);
 		setStartError("");
@@ -148,6 +155,10 @@ export function QuizEngine({
 		}));
 
 		setItems(sessionItems);
+		submissionId.current = crypto.randomUUID();
+		pendingSubmission.current = null;
+		setSaveState('idle');
+		setSaveError('');
 		setStartTime(Date.now());
 		setEndTime(null);
 		setIsRetryWrong(retryMode);
@@ -205,27 +216,40 @@ export function QuizEngine({
 		return { total, doneCount, okCount, badCount, score };
 	}, [items]);
 
+	const persistSubmission = async () => {
+		if (savingRef.current || !pendingSubmission.current) return;
+		savingRef.current = true;
+		setSaveState('saving');
+		try {
+			const result = await saveQuizAttempt(pendingSubmission.current);
+			if (result.success) setSaveState('saved');
+			else { setSaveState('error'); setSaveError(result.error || 'Không thể lưu bài nộp. Vui lòng thử lại.'); }
+		} catch {
+			setSaveState('error');
+			setSaveError('Không thể lưu bài nộp. Kiểm tra kết nối và thử lại.');
+		} finally {
+			savingRef.current = false;
+		}
+	};
+
 	// Finish quiz
 	const handleFinishQuiz = async () => {
-		if (stats.doneCount < stats.total) return;
+		if (stats.doneCount < stats.total || savingRef.current) return;
 		const finishMs = Date.now();
 		setEndTime(finishMs);
 		setView("result");
 		window.scrollTo({ top: 0, behavior: reduceMotion ? "auto" : "smooth" });
 
-		// Save attempt record
-		const wrongIds = items
-			.filter((it) => it.first !== it.q.ans && it.q.id)
-			.map((it) => it.q.id as string);
-
-		await saveQuizAttempt({
-			setId,
-			totalQuestions: stats.total,
-			correctCount: stats.okCount,
-			score: stats.score,
-			durationMs: finishMs - startTime,
-			wrongQuestionIds: wrongIds,
-		});
+		if (!setId || items.some(item => !item.q.id || !item.first)) {
+			setSaveState('error');
+			setSaveError('Chế độ xem thử không lưu lịch sử.');
+			return;
+		}
+		pendingSubmission.current = {
+			submissionId: submissionId.current, setId, durationMs: finishMs - startTime, isRetry: isRetryWrong,
+			answers: items.map(item => ({ questionId: item.q.id!, first: item.first! })),
+		};
+		await persistSubmission();
 	};
 
 	// Retry Wrong Only
@@ -244,8 +268,8 @@ export function QuizEngine({
 		return (
 			<div className="flex flex-1 flex-col justify-between gap-4">
 				{/* Header */}
-				<header className="flex justify-between items-center gap-3 pb-3 border-b border-base-300">
-					<div className="flex items-center gap-3">
+				<header className="flex flex-wrap justify-between items-center gap-3 pb-3 border-b border-base-300">
+					<div className="flex min-w-0 items-center gap-3">
 						<div className="w-10 h-10 rounded-2xl bg-primary/10 flex items-center justify-center text-primary shadow-sm">
 							<BookOpen className="w-5 h-5" />
 						</div>
@@ -260,7 +284,8 @@ export function QuizEngine({
 							</p>
 						</div>
 					</div>
-					<div className="flex items-center gap-1">
+					<div className="ml-auto flex shrink-0 items-center gap-1">
+						<LearningActions />
 						<ThemeToggle />
 						<button
 							onClick={() => signOut()}
@@ -776,6 +801,14 @@ export function QuizEngine({
 				<h2 className="font-display text-2xl font-bold tracking-tight">
 					Kết quả ôn tập
 				</h2>
+				<div className="my-3 text-sm" aria-live="polite">
+					{saveState === 'saving' && <p role="status">Đang lưu bài nộp…</p>}
+					{saveState === 'saved' && <p role="status">Đã lưu bài nộp vào lịch sử.</p>}
+					{saveState === 'error' && <div className="space-y-2"><p role="alert" className="text-error">{saveError}</p>
+						{pendingSubmission.current && <button type="button" onClick={persistSubmission} className="btn btn-outline btn-sm">Thử lưu lại</button>}
+						<p className="text-xs text-base-content/70">Giữ trang này để thử lưu lại trước khi bắt đầu lượt mới.</p>
+					</div>}
+				</div>
 				<p className="text-xs text-base-content/60 mt-0.5">
 					{setTitle || "Ngân hàng câu hỏi trắc nghiệm"}
 				</p>
@@ -863,7 +896,7 @@ export function QuizEngine({
 			<div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
 				<button
 					type="button"
-					disabled={stats.badCount === 0}
+					disabled={stats.badCount === 0 || saveState === 'saving' || starting}
 					onClick={handleRetryWrong}
 					className="btn btn-warning rounded-2xl font-display font-bold text-xs sm:text-sm shadow-sm">
 					<RotateCcw className="w-4 h-4 mr-1.5" />
@@ -873,6 +906,7 @@ export function QuizEngine({
 				<button
 					type="button"
 					onClick={() => startQuiz()}
+					disabled={saveState === 'saving' || starting}
 					className="btn btn-primary rounded-2xl font-display font-bold text-xs sm:text-sm text-primary-content shadow-sm">
 					<RefreshCw className="w-4 h-4 mr-1.5" />
 					Làm lại toàn bộ lượt này

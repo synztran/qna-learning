@@ -25,19 +25,30 @@ export async function signIn(formData: FormData) {
   });
 
   if (error) {
-    return { error: error.message };
+    return { error: error.code === 'invalid_credentials' || error.message === 'Invalid login credentials'
+      ? 'Sai thông tin đăng nhập'
+      : error.message };
+  }
+
+  // Activation checks the profile without requiring an already-active session.
+  const { data: activated, error: activationError } = await supabase.rpc('activate_login_session');
+  if (activationError || activated !== true) {
+    await supabase.auth.signOut({ scope: 'local' });
+    return { error: activationError
+      ? 'Không thể xác thực phiên đăng nhập. Vui lòng thử lại hoặc liên hệ quản trị viên.'
+      : 'Phiên đăng nhập đã bị thay thế hoặc tài khoản bị khóa. Vui lòng đăng nhập lại.' };
   }
 
   // Check if soft banned
   if (data.user) {
-    const { data: profile } = await supabase
+    const { data: profile, error: profileError } = await supabase
       .from('profiles')
       .select('is_banned')
       .eq('id', data.user.id)
       .single();
 
-    if (profile?.is_banned) {
-      await supabase.auth.signOut();
+    if (profileError || !profile || profile.is_banned) {
+      await supabase.auth.signOut({ scope: 'local' });
       return { error: 'Tài khoản của bạn đã bị tạm khoá (banned). Vui lòng liên hệ quản trị viên.' };
     }
   }
@@ -50,7 +61,7 @@ export async function signOut() {
   const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
   if (supabaseUrl) {
     const supabase = await createClient();
-    await supabase.auth.signOut();
+    await supabase.auth.signOut({ scope: 'local' });
   }
   revalidatePath('/', 'layout');
   redirect('/login');
@@ -74,11 +85,16 @@ export async function getCurrentUser() {
 
   if (!user) return null;
 
-  const { data: profile } = await supabase
+  const { data: active, error: sessionError } = await supabase.rpc('is_active_user');
+  if (sessionError || active !== true) return null;
+
+  const { data: profile, error: profileError } = await supabase
     .from('profiles')
     .select('*')
     .eq('id', user.id)
     .single();
+
+  if (profileError || !profile || profile.is_banned) return null;
 
   return {
     id: user.id,

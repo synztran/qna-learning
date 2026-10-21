@@ -17,7 +17,11 @@ function LoginForm() {
   const [errorMessage, setErrorMessage] = useState(
     errorParam === 'banned'
       ? 'Tài khoản của bạn đã bị tạm khoá. Vui lòng liên hệ quản trị viên.'
-      : ''
+      : errorParam === 'session_replaced'
+        ? 'Tài khoản đã đăng nhập trên thiết bị khác hoặc phiên đã hết hạn. Vui lòng đăng nhập lại.'
+        : errorParam === 'session_unavailable'
+          ? 'Không thể kiểm tra phiên đăng nhập. Vui lòng thử lại.'
+          : ''
   );
 
   const handleSubmit = async (e: React.FormEvent) => {

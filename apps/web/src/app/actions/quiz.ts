@@ -2,7 +2,8 @@
 
 import { createClient } from '@/lib/supabase/server';
 import { DEFAULT_SEED_DATA, parseQuizJson } from '@qna/database';
-import type { Lesson, Question, QuizAttemptRecord } from '@qna/types';
+import type { Lesson, Question } from '@qna/types';
+import { validSubmission, type QuizSubmission } from '@/lib/submissions';
 
 export async function getQuizData(setId?: string): Promise<{
   lessons: Lesson[]; questions: Question[];
@@ -17,6 +18,9 @@ export async function getQuizData(setId?: string): Promise<{
 
   try {
     const supabase = await createClient();
+
+    const { data: active, error: sessionError } = await supabase.rpc('is_active_user');
+    if (sessionError || active !== true) return { lessons: [], questions: [], sets: [], error: 'Phiên đăng nhập không hợp lệ. Vui lòng đăng nhập lại.' };
 
     // Query active sets, lessons, and questions
     const { data: sets, error: setsError } = await supabase
@@ -89,9 +93,10 @@ export async function getQuizData(setId?: string): Promise<{
   }
 }
 
-export async function saveQuizAttempt(record: QuizAttemptRecord) {
+export async function saveQuizAttempt(record: QuizSubmission) {
   const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
-  if (!supabaseUrl) return { success: true };
+  if (!supabaseUrl) return { success: false, error: 'Chế độ xem thử không lưu lịch sử.' };
+  if (!validSubmission(record)) return { success: false, error: 'Bài nộp không hợp lệ. Vui lòng kiểm tra bộ đề và thử lại.' };
 
   try {
     const supabase = await createClient();
@@ -101,19 +106,16 @@ export async function saveQuizAttempt(record: QuizAttemptRecord) {
 
     if (!user) return { success: false, error: 'Unauthorized' };
 
-    const { error } = await supabase.from('quiz_attempts').insert({
-      user_id: user.id,
-      set_id: record.setId || null,
-      total_questions: record.totalQuestions,
-      correct_count: record.correctCount,
-      score: record.score,
-      duration_ms: record.durationMs,
-      wrong_question_ids: record.wrongQuestionIds || [],
+    const { error } = await supabase.rpc('submit_quiz_attempt', {
+      p_submission_id: record.submissionId,
+      p_set_id: record.setId,
+      p_answers: record.answers,
+      p_duration_ms: record.durationMs,
+      p_is_retry: record.isRetry,
     });
 
     if (error) {
-      console.error('Error saving attempt:', error);
-      return { success: false, error: error.message };
+      return { success: false, error: 'Không thể lưu bài nộp. Kiểm tra kết nối hoặc liên hệ quản trị viên, rồi thử lưu lại.' };
     }
 
     return { success: true };
