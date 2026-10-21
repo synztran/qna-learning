@@ -295,7 +295,7 @@ export function QuizEngine({
 							<p className="text-[11px] text-base-content/60">
 								{user?.displayName
 									? `Học viên: ${user.displayName}`
-									: "Study with Ms. Nhung"}
+									: "Study with QNA Learning"}
 							</p>
 						</div>
 					</div>
