@@ -24,10 +24,9 @@ import {
 	Sparkles,
 	X,
 } from "lucide-react";
-import { motion, AnimatePresence } from "motion/react";
-import { saveQuizAttempt } from "../app/actions/quiz";
+import { motion, AnimatePresence, useReducedMotion } from "motion/react";
+import { getQuizData, saveQuizAttempt } from "../app/actions/quiz";
 import { signOut } from "../app/actions/auth";
-import Link from "next/link";
 import { InstallApp } from './InstallApp';
 
 const OPTION_KEYS: OptionKey[] = ["A", "B", "C", "D"];
@@ -62,32 +61,30 @@ interface QuizEngineProps {
 }
 
 export function QuizEngine({
-	initialLessons,
-	initialQuestions,
+	initialLessons: loadedLessons,
+	initialQuestions: loadedQuestions,
 	user,
-	setId,
-	setTitle,
+	setId: initialSetId,
+	setTitle: initialSetTitle,
 	availableSets = [],
 }: QuizEngineProps) {
 	// Navigation State
 	const [view, setView] = useState<"setup" | "quiz" | "result">("setup");
 
 	// Setup State
-	const [selectedLessonNums, setSelectedLessonNums] = useState<number[]>(
-		() => {
-			try {
-				const saved = localStorage.getItem(
-					`qna-lessons-${setId || "preview"}`,
-				);
-				if (saved) {
-					const parsed = JSON.parse(saved);
-					if (Array.isArray(parsed) && parsed.length > 0)
-						return parsed;
-				}
-			} catch {}
-			return initialLessons.map((l) => l.n);
-		},
-	);
+	const [selectedSetId, setSelectedSetId] = useState(initialSetId);
+	const [setId, setSetId] = useState(initialSetId);
+	const [initialLessons, setLessons] = useState(loadedLessons);
+	const [pool, setPool] = useState(loadedQuestions);
+	const [starting, setStarting] = useState(false);
+	const startingRef = useRef(false);
+	const [startError, setStartError] = useState("");
+	const reduceMotion = useReducedMotion();
+	const selectedLessonNums = initialLessons.map(lesson => lesson.n);
+	const setTitle = availableSets.find(set => set.id === setId)?.title || initialSetTitle;
+	const poolCount = availableSets.length
+		? availableSets.find(set => set.id === selectedSetId)?.questionCount || 0
+		: pool.length;
 
 	const [countMode, setCountMode] = useState<"20" | "25" | "all" | "custom">(
 		"20",
@@ -105,54 +102,42 @@ export function QuizEngine({
 	);
 	const [quitConfirm, setQuitConfirm] = useState(false);
 
-	// Question Pool calculation
-	const pool = useMemo(() => {
-		return initialQuestions.filter((q) =>
-			selectedLessonNums.includes(q.lesson),
-		);
-	}, [initialQuestions, selectedLessonNums]);
-
 	const targetCount = useMemo(() => {
-		const pLen = pool.length;
+		const pLen = poolCount;
 		if (pLen === 0) return 0;
 		if (countMode === "all") return pLen;
 		if (countMode === "custom")
 			return Math.max(1, Math.min(customCount, pLen));
 		return Math.min(parseInt(countMode, 10), pLen);
-	}, [pool.length, countMode, customCount]);
-
-	// Persist settings
-	useEffect(() => {
-		try {
-			localStorage.setItem(
-				`qna-lessons-${setId || "preview"}`,
-				JSON.stringify(selectedLessonNums),
-			);
-		} catch {}
-	}, [selectedLessonNums, setId]);
-
-	// Handle lesson select/deselect
-	const toggleLesson = (num: number) => {
-		setSelectedLessonNums((prev) =>
-			prev.includes(num) ? prev.filter((n) => n !== num) : [...prev, num],
-		);
-	};
-
-	const toggleSelectAll = () => {
-		if (selectedLessonNums.length === initialLessons.length) {
-			setSelectedLessonNums([]);
-		} else {
-			setSelectedLessonNums(initialLessons.map((l) => l.n));
-		}
-	};
+	}, [poolCount, countMode, customCount]);
 
 	// Start Quiz
-	const startQuiz = (customQuestions?: Question[], retryMode = false) => {
+	const startQuiz = async (customQuestions?: Question[], retryMode = false) => {
+		if (startingRef.current) return;
+		startingRef.current = true;
+		setStarting(true);
+		setStartError("");
+		try {
 		let sourcePool = customQuestions || pool;
+		if (!customQuestions && availableSets.length) {
+			if (!selectedSetId) return;
+			const data = await getQuizData(selectedSetId);
+			if (data.error || data.selectedSetId !== selectedSetId || !data.questions.length) {
+				setStartError(data.error || "Bộ đề không có câu hỏi. Vui lòng chọn bộ đề khác.");
+				return;
+			}
+			sourcePool = data.questions;
+			setPool(data.questions);
+			setLessons(data.lessons);
+			setSetId(selectedSetId);
+		}
 		if (sourcePool.length === 0) return;
+		const count = countMode === "all" ? sourcePool.length : countMode === "custom"
+			? Math.max(1, Math.min(customCount, sourcePool.length))
+			: Math.min(Number(countMode), sourcePool.length);
 
 		let selectedQs =
-			customQuestions || shuffle(sourcePool).slice(0, targetCount);
+			customQuestions || shuffle(sourcePool).slice(0, count);
 
 		const sessionItems: QuizSessionItem[] = selectedQs.map((q) => ({
 			q,
@@ -169,6 +154,12 @@ export function QuizEngine({
 		setView("quiz");
 		setShowGridModal(false);
 		window.scrollTo({ top: 0, behavior: "instant" });
+		} catch {
+			setStartError("Không thể tải bộ đề. Kiểm tra kết nối và thử lại.");
+		} finally {
+			startingRef.current = false;
+			setStarting(false);
+		}
 	};
 
 	// Answer selection
@@ -197,7 +188,7 @@ export function QuizEngine({
 		setShowGridModal(false);
 		const el = document.getElementById(`q-card-${idx}`);
 		if (el) {
-			el.scrollIntoView({ behavior: "smooth", block: "start" });
+			el.scrollIntoView({ behavior: reduceMotion ? "auto" : "smooth", block: "start" });
 			el.classList.add("flash-active");
 			setTimeout(() => el.classList.remove("flash-active"), 1200);
 		}
@@ -220,7 +211,7 @@ export function QuizEngine({
 		const finishMs = Date.now();
 		setEndTime(finishMs);
 		setView("result");
-		window.scrollTo({ top: 0, behavior: "smooth" });
+		window.scrollTo({ top: 0, behavior: reduceMotion ? "auto" : "smooth" });
 
 		// Save attempt record
 		const wrongIds = items
@@ -245,36 +236,6 @@ export function QuizEngine({
 		if (wrongQs.length === 0) return;
 		startQuiz(wrongQs, true);
 	};
-
-	const renderLessonChoices = () => (
-		<div className="grid grid-cols-1 gap-2.5">
-			{initialLessons.map((lesson) => {
-				const checked = selectedLessonNums.includes(lesson.n);
-				const count = initialQuestions.filter(
-					(question) => question.lesson === lesson.n,
-				).length;
-				return (
-					<label
-						key={lesson.n}
-						className={`flex cursor-pointer items-center justify-between gap-3 rounded-2xl border p-3 ${checked ? "border-primary/40 bg-base-100" : "border-base-300 bg-base-100/40"}`}>
-						<input
-							type="checkbox"
-							checked={checked}
-							onChange={() => toggleLesson(lesson.n)}
-							className="checkbox checkbox-primary checkbox-sm shrink-0"
-						/>
-						<span className="min-w-0 flex-1 text-xs font-semibold">
-							Bài {lesson.n}.{" "}
-							{lesson.title.replace(/^BÀI \d+\.\s*/i, "")}
-						</span>
-						<span className="badge badge-sm badge-ghost shrink-0 text-[10px]">
-							{count} câu
-						</span>
-					</label>
-				);
-			})}
-		</div>
-	);
 
 	/* ==============================================================
      1. SETUP VIEW
@@ -316,56 +277,29 @@ export function QuizEngine({
 					<section className="bg-base-200/50 backdrop-blur-sm p-4 sm:p-5 rounded-3xl border border-base-300 shadow-sm">
 						<div className="flex justify-between items-center mb-3">
 							<div className="flex items-center gap-2">
-								<span className="w-2 h-2 rounded-full bg-primary animate-pulse" />
+								<span className="w-2 h-2 rounded-full bg-primary" />
 								<h2 className="font-display font-bold text-sm tracking-tight">
 									Chọn bài ôn tập
 								</h2>
 							</div>
-							<button
-								type="button"
-								onClick={toggleSelectAll}
-								className="text-xs text-primary font-semibold hover:underline">
-								{selectedLessonNums.length ===
-								initialLessons.length
-									? "Bỏ chọn tất cả"
-									: "Chọn tất cả"}
-							</button>
 						</div>
 
 						<div className="space-y-3">
 							{availableSets.map((set) => (
-								<div key={set.id} className="space-y-2">
-									<Link
-										href={`/?set=${encodeURIComponent(set.id)}`}
-										aria-current={
-											set.id === setId
-												? "true"
-												: undefined
-										}
-										className={`flex items-center gap-3 rounded-2xl border p-3.5 transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-primary ${set.id === setId ? "border-primary bg-base-100" : "border-base-300 bg-base-100/40 hover:border-primary/50"}`}>
-										<span
-											aria-hidden="true"
-											className={`flex h-5 w-5 shrink-0 items-center justify-center rounded-full border ${set.id === setId ? "border-primary" : "border-base-content/40"}`}>
-											{set.id === setId && (
-												<span className="h-2.5 w-2.5 rounded-full bg-primary" />
-											)}
-										</span>
+									<label key={set.id}
+										className={`flex cursor-pointer items-center gap-3 rounded-xl border p-3.5 ${set.id === selectedSetId ? "border-primary bg-base-100" : "border-base-300"}`}>
+										<input type="checkbox" checked={set.id === selectedSetId} disabled={starting}
+											onChange={() => { setSelectedSetId(set.id === selectedSetId ? undefined : set.id); setStartError(""); }}
+											className="checkbox checkbox-primary checkbox-sm shrink-0" />
 										<span className="flex-1 text-xs font-semibold leading-snug">
 											{set.title}
 										</span>
 										<span className="badge badge-sm badge-ghost shrink-0 text-[10px]">
 											{set.questionCount} câu
 										</span>
-									</Link>
-									{set.id === setId && (
-										<div className="pl-3 border-l border-base-300">
-											{renderLessonChoices()}
-										</div>
-									)}
-								</div>
+									</label>
 							))}
-							{availableSets.length === 0 &&
-								renderLessonChoices()}
+							{availableSets.length === 0 && <p className="text-sm">Bộ câu hỏi mẫu — {poolCount} câu</p>}
 						</div>
 					</section>
 
@@ -387,9 +321,9 @@ export function QuizEngine({
 													? "Toàn bộ"
 													: "Tự chọn";
 									const disabled =
-										(mode === "20" && pool.length < 20) ||
-										(mode === "25" && pool.length < 25) ||
-										pool.length === 0;
+										starting || (mode === "20" && poolCount < 20) ||
+										(mode === "25" && poolCount < 25) ||
+										poolCount === 0;
 
 									return (
 										<button
@@ -414,7 +348,8 @@ export function QuizEngine({
 								<input
 									type="range"
 									min="1"
-									max={Math.max(1, pool.length)}
+									max={Math.max(1, poolCount)}
+									disabled={starting}
 									value={customCount}
 									onChange={(e) =>
 										setCustomCount(
@@ -426,7 +361,8 @@ export function QuizEngine({
 								<input
 									type="number"
 									min="1"
-									max={Math.max(1, pool.length)}
+									max={Math.max(1, poolCount)}
+									disabled={starting}
 									value={customCount}
 									onChange={(e) =>
 										setCustomCount(
@@ -446,7 +382,7 @@ export function QuizEngine({
 							<span>
 								Ngân hàng đã chọn:{" "}
 								<b className="text-base-content">
-									{pool.length}
+									{poolCount}
 								</b>{" "}
 								câu
 							</span>
@@ -463,6 +399,7 @@ export function QuizEngine({
 
 				{/* Start Button */}
 				<footer>
+					{startError && <p role="alert" className="mb-3 text-sm text-error">{startError}</p>}
 					<div className="mb-3"><InstallApp /></div>
 					<p className="text-center text-[11px] text-base-content/60 mb-2">
 						Câu hỏi và 4 phương án được trộn ngẫu nhiên mỗi lượt ôn
@@ -470,10 +407,11 @@ export function QuizEngine({
 					</p>
 					<button
 						type="button"
-						disabled={targetCount === 0}
+						disabled={targetCount === 0 || starting}
+						aria-busy={starting}
 						onClick={() => startQuiz()}
-						className="btn btn-primary w-full py-3.5 rounded-2xl font-display font-bold text-base shadow-lg shadow-primary/25 text-primary-content active:scale-98 transition-transform leading-[1]">
-						Bắt đầu làm bài ({targetCount} câu)
+						className="btn btn-primary w-full py-3.5 rounded-2xl font-display font-bold text-base text-primary-content leading-[1]">
+						{starting ? "Đang tải bộ đề…" : `Bắt đầu làm bài (${targetCount} câu)`}
 					</button>
 				</footer>
 			</div>
@@ -678,6 +616,7 @@ export function QuizEngine({
 									<motion.div
 										initial={{ opacity: 0, height: 0 }}
 										animate={{ opacity: 1, height: "auto" }}
+										transition={reduceMotion ? { duration: 0 } : undefined}
 										className="mt-4 pt-3 border-t border-base-300/80 text-xs space-y-2 bg-base-200/40 p-3 rounded-2xl">
 										<div>
 											<b className="text-primary font-display">
@@ -746,6 +685,7 @@ export function QuizEngine({
 							<motion.div
 								initial={{ y: "100%", opacity: 0 }}
 								animate={{ y: 0, opacity: 1 }}
+								transition={reduceMotion ? { duration: 0 } : undefined}
 								exit={{ y: "100%", opacity: 0 }}
 								safe_bot=""
 								className="w-full max-w-lg bg-base-100 rounded-t-3xl sm:rounded-3xl p-5 border border-base-300 shadow-2xl max-h-[85vh] flex flex-col">
