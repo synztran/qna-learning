@@ -1,6 +1,8 @@
 import type { Metadata, Viewport } from 'next';
 import './globals.css';
 
+export const runtime = 'edge';
+
 export const metadata: Metadata = {
   title: 'SC5 - MĐ1 | Ôn tập trắc nghiệm',
   description: 'Nền tảng ôn tập trắc nghiệm thông minh, tối ưu trải nghiệm học tập trên thiết bị di động.',

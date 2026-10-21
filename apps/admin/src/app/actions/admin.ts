@@ -4,9 +4,8 @@ import {
   createSupabaseAdminClient,
   parseQuizJson,
   DEFAULT_SEED_DATA,
-  convertDocxBufferToQuizData,
-  parseTextToQuizData,
 } from '@qna/database';
+import { convertDocxBufferToQuizData, parseTextToQuizData } from '@qna/database/src/doc-converter';
 import type { Question, QuizRawData, UserProfile } from '@qna/types';
 import { revalidatePath } from 'next/cache';
 import fs from 'fs';
