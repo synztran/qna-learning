@@ -212,7 +212,7 @@ export async function updateUserPassword(userId: string, newPassword: string) {
 export async function uploadQuestionsToStorageAndSync(formData: FormData) {
   try {
     const file = formData.get('file') as File;
-    const title = (formData.get('title') as string)?.trim() || 'SC5 - MĐ1';
+    const title = (formData.get('title') as string)?.trim() || 'NoobTeam';
     const slug = (formData.get('slug') as string)?.trim() || 'sc5-mon-md1';
 
     if (!file) {
@@ -322,7 +322,7 @@ export async function seedDefaultSc5Data() {
       .upsert(
         {
           slug: 'sc5-mon-md1',
-          title: 'SC5 - MĐ1',
+          title: 'NoobTeam',
           description: 'Hàng không dân dụng - Môn MĐ1',
           is_active: true,
           storage_file_path: 'sc5_mon_md1.json',

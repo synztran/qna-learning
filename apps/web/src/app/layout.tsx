@@ -10,7 +10,7 @@ export const metadata: Metadata = {
     icon: [{ url: '/icons/icon-192.png', sizes: '192x192', type: 'image/png' }],
     apple: [{ url: '/icons/apple-touch-icon.png', sizes: '180x180', type: 'image/png' }],
   },
-  title: 'SC5 - MĐ1 | Ôn tập trắc nghiệm',
+  title: 'NoobTeam | Ôn tập trắc nghiệm',
   description: 'Nền tảng ôn tập trắc nghiệm thông minh, tối ưu trải nghiệm học tập trên thiết bị di động.',
   appleWebApp: {
     capable: true,

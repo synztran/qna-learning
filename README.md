@@ -1,4 +1,4 @@
-# SC5 QnA Learning Platform (Turborepo + Supabase + Next.js + Cloudflare)
+# NoobTeam Learning Platform (Turborepo + Supabase + Next.js + Cloudflare)
 
 Hệ thống ôn tập trắc nghiệm câu hỏi chuyên sâu (dựa trên format [studywithmsnhung.github.io/sc5-mon-md1](https://studywithmsnhung.github.io/sc5-mon-md1/)), tối ưu hóa giao diện di động (iOS safe-area, touch responsiveness, visual feedback tức thì), phân quyền không cần đăng ký công khai (quản lý bởi giáo viên/admin qua portal nội bộ), và hỗ trợ triển khai Cloudflare.
 
@@ -12,7 +12,7 @@ qna_learning/
 │   ├── web/               # Ứng dụng ôn tập cho học viên (Next.js App Router -> Triển khai Cloudflare)
 │   └── admin/             # Trang quản trị nội bộ chạy local (Quản lý user, soft-ban, đổi MK, upload & sửa đề)
 ├── packages/
-│   ├── database/          # SQL schema Supabase, RLS policies, helpers & 90 câu hỏi mẫu SC5 - MĐ1
+│   ├── database/          # SQL schema Supabase, RLS policies, helpers & 90 câu hỏi mẫu NoobTeam
 │   ├── types/             # Kiểu dữ liệu TypeScript dùng chung (Quiz, Question, User, Attempt)
 │   └── ui/                # Theme DaisyUI (Light/Dark), icons (Lucide + Thiings SVG), SafeContainer
 ├── package.json
@@ -44,7 +44,7 @@ qna_learning/
 - **Upload đề vào Storage & Đồng bộ Database**:
   - Upload file `.json` câu hỏi vào Supabase Storage bucket `quiz-files`.
   - Tự động parse và import vào bảng `lessons` và `questions`.
-  - Nút **"Nạp 90 câu mẫu"**: 1 click nạp toàn bộ 90 câu SC5 - MĐ1 vào cơ sở dữ liệu.
+  - Nút **"Nạp 90 câu mẫu"**: 1 click nạp toàn bộ 90 câu NoobTeam vào cơ sở dữ liệu.
 - **Biên tập & Chỉnh sửa câu hỏi**:
   - Tìm kiếm câu hỏi, lọc theo bài học.
   - Chỉnh sửa nội dung câu hỏi, 4 phương án A/B/C/D, chọn đáp án đúng, sửa giải thích và trích dẫn.
