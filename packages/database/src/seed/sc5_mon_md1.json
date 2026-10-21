@@ -1,0 +1,1386 @@
+{
+  "lessons": [
+    {
+      "n": 1,
+      "title": "BÀI 1. KHÁI QUÁT CHUNG VỀ HÀNG KHÔNG DÂN DỤNG QUỐC TẾ",
+      "src": "Nguồn: ANSC 1.1 - Khái quát chung về HKDD quốc tế"
+    },
+    {
+      "n": 2,
+      "title": "BÀI 2. KHÁI QUÁT CHUNG VỀ HÀNG KHÔNG DÂN DỤNG VIỆT NAM",
+      "src": "Nguồn: ANSC 1.2 - Khái quát chung về HKDD Việt Nam"
+    },
+    {
+      "n": 3,
+      "title": "BÀI 3. PHÁP LUẬT QUỐC TẾ VỀ HÀNG KHÔNG VÀ AN NINH HÀNG KHÔNG",
+      "src": "Nguồn: ANSC 1.3 - Pháp luật quốc tế về hàng không và ANHK"
+    },
+    {
+      "n": 4,
+      "title": "BÀI 4. PHÁP LUẬT QUỐC GIA VỀ HÀNG KHÔNG VÀ AN NINH HÀNG KHÔNG",
+      "src": "Nguồn: ANSC 1.4 - Pháp luật quốc gia về hàng không và ANHK"
+    },
+    {
+      "n": 5,
+      "title": "BÀI 5. KHÁI QUÁT AN TOÀN HÀNG KHÔNG; CÔNG TÁC KHẨN NGUY VÀ PHÒNG CHỐNG CHÁY NỔ",
+      "src": "Nguồn: ANSC 1.5 - Khái quát An toàn hàng không; công tác khẩn nguy và phòng chống cháy nổ"
+    },
+    {
+      "n": 6,
+      "title": "BÀI 6. KHÁI QUÁT QUY TRÌNH VẬN CHUYỂN HÀNH KHÁCH, HÀNH LÝ, HÀNG HÓA",
+      "src": "Nguồn: ANSC 1.6 - Khái quát quy trình vận chuyển hành khách, hành lý, hàng hóa"
+    }
+  ],
+  "qs": [
+    {
+      "lesson": 1,
+      "n": 1,
+      "q": "Mô hình “Thành phố sân bay” (Aerotropolis) có đặc điểm gì?",
+      "opts": {
+        "A": "Sân bay là trung tâm, xung quanh phát triển khu công nghiệp và đô thị",
+        "B": "Sân bay chỉ phục vụ hành khách",
+        "C": "Sân bay chỉ phục vụ quân sự",
+        "D": "Sân bay nằm tách biệt khỏi đô thị"
+      },
+      "ans": "A",
+      "ansText": "Sân bay là trung tâm, xung quanh phát triển khu công nghiệp và đô thị",
+      "exp": "Tài liệu mô tả mô hình Aerotropolis là mô hình lấy sân bay làm trung tâm, xung quanh phát triển khu công nghiệp công nghệ cao, trung tâm hội nghị và đô thị thương mại.",
+      "src": "ANSC 1.1, trang 15: “Mô hình \"Thành phố sân bay\" (Aerotropolis) trong đó sân bay trở thành trung tâm, xung quanh là các khu công nghiệp công nghệ cao, trung tâm hội nghị và đô thị thương mại.”"
+    },
+    {
+      "lesson": 1,
+      "n": 2,
+      "q": "Đặc điểm nổi bật của ngành hàng không dân dụng quốc tế là gì?",
+      "opts": {
+        "A": "Áp dụng khoa học công nghệ hiện đại, vốn lớn, hoạt động toàn cầu",
+        "B": "Chỉ phục vụ nội địa, vốn nhỏ",
+        "C": "Chủ yếu dựa vào lao động phổ thông",
+        "D": "Không liên quan đến nghiên cứu và đào tạo"
+      },
+      "ans": "A",
+      "ansText": "Áp dụng khoa học công nghệ hiện đại, vốn lớn, hoạt động toàn cầu",
+      "exp": "Đặc điểm của ngành HKDD được nêu: áp dụng khoa học, công nghệ hiện đại, quy mô vốn lớn, hoạt động cả trong và ngoài nước, gắn kết với đào tạo, nghiên cứu.",
+      "src": "ANSC 1.1, trang 16: “Ngành HKDD là một ngành áp dụng khoa học, công nghệ kỹ thuật hiện đại, trình độ quản lý tiên tiến, có quy mô lớn về vốn lớn, hoạt động cả trong và ngoài nước, có sự gắn kết chặt chẽ giữa khoa học công nghệ, đào tạo, nghiên cứu triển khai với sản xuất kinh doanh.”"
+    },
+    {
+      "lesson": 1,
+      "n": 3,
+      "q": "Công ước nào năm 1944 đã định hình toàn bộ luật hàng không quốc tế và khẳng định chủ quyền không lưu của mỗi quốc gia?",
+      "opts": {
+        "A": "Công ước Warsaw",
+        "B": "Công ước Paris",
+        "C": "Công ước Chicago",
+        "D": "Công ước Geneva"
+      },
+      "ans": "C",
+      "ansText": "Công ước Chicago",
+      "exp": "Công ước Chicago 1944 được tài liệu khẳng định là văn kiện định hình toàn bộ luật hàng không quốc tế và khẳng định chủ quyền không lưu của mỗi quốc gia.",
+      "src": "ANSC 1.1, trang 16–17: “Công ước Chicago 1944: Định hình toàn bộ luật hàng không quốc tế; khẳng định chủ quyền không lưu của mỗi quốc gia; thiết lập các tiêu chuẩn an ninh và an toàn bay.”"
+    },
+    {
+      "lesson": 1,
+      "n": 4,
+      "q": "Tổ chức nào thuộc Liên Hợp Quốc ban hành các Phụ lục (Annexes) quy định tiêu chuẩn kỹ thuật bắt buộc các quốc gia thành viên tuân thủ?",
+      "opts": {
+        "A": "IATA",
+        "B": "ICAO",
+        "C": "CAA",
+        "D": "FAA"
+      },
+      "ans": "B",
+      "ansText": "ICAO",
+      "exp": "ICAO là cơ quan thuộc Liên Hợp Quốc, ban hành các Phụ lục (Annexes) chứa tiêu chuẩn kỹ thuật (SARPs) mà các quốc gia thành viên phải tuân thủ. IATA là hiệp hội của các hãng hàng không.",
+      "src": "ANSC 1.1, trang 17: “Tổ chức Hàng không dân dụng quốc tế (ICAO) là cơ quan thuộc Liên Hợp Quốc, ban hành các Phụ lục (Annexes) quy định tiêu chuẩn kỹ thuật (SARPs) bắt buộc các quốc gia thành viên tuân thủ.”"
+    },
+    {
+      "lesson": 1,
+      "n": 5,
+      "q": "Các nhà sản xuất máy bay lớn thống trị toàn cầu trong phân khúc máy bay thân rộng/thân hẹp là ai?",
+      "opts": {
+        "A": "Embraer và COMAC",
+        "B": "Boeing và Airbus",
+        "C": "Vietjet và Vietnam Airlines",
+        "D": "SkyTeam và Oneworld"
+      },
+      "ans": "B",
+      "ansText": "Boeing và Airbus",
+      "exp": "Boeing và Airbus thống trị phân khúc thân rộng/thân hẹp; Embraer, COMAC chỉ là các hãng máy bay khu vực.",
+      "src": "ANSC 1.1, trang 17: “Các nhà sản xuất tàu bay lớn hiện gồm Boeing và Airbus thống trị toàn cầu trong phân khúc máy bay thân rộng/thân hẹp, cùng các hãng máy bay khu vực như Embraer, COMAC.”"
+    },
+    {
+      "lesson": 1,
+      "n": 6,
+      "q": "Quản lý điều hành bay (Air Traffic Management - ATM) bao gồm những dịch vụ nào?",
+      "opts": {
+        "A": "Kiểm soát tại sân bay, kiểm soát tiếp cận, kiểm soát đường dài",
+        "B": "Kiểm soát giá vé, kiểm soát hành lý, kiểm soát suất ăn",
+        "C": "Kiểm soát du lịch, kiểm soát khách sạn, kiểm soát hải quan",
+        "D": "Kiểm soát tài chính, kiểm soát ngân hàng, kiểm soát đầu tư"
+      },
+      "ans": "A",
+      "ansText": "Kiểm soát tại sân bay, kiểm soát tiếp cận, kiểm soát đường dài",
+      "exp": "Dịch vụ không lưu (ATS) trong ATM gồm ba loại kiểm soát: tại sân bay (Tower), tiếp cận (Approach) và đường dài (ACC).",
+      "src": "ANSC 1.1, trang 17: “Quản lý điều hành bay (Air Traffic Management - ATM)… trong đó dịch vụ không lưu (ATS) bao gồm kiểm soát tại sân bay (Tower), kiểm soát tiếp cận (Approach) và kiểm soát đường dài (Area Control - ACC).”"
+    },
+    {
+      "lesson": 1,
+      "n": 7,
+      "q": "ICAO ban hành các tiêu chuẩn và khuyến nghị thực hành (SARPs) nhằm mục đích gì?",
+      "opts": {
+        "A": "Tăng doanh thu cho các hãng hàng không",
+        "B": "Thống nhất luật lệ hàng không quốc tế",
+        "C": "Giảm giá vé máy bay",
+        "D": "Quản lý du lịch quốc tế"
+      },
+      "ans": "B",
+      "ansText": "Thống nhất luật lệ hàng không quốc tế",
+      "exp": "Mục đích ICAO ban hành SARPs là để các quốc gia thành viên áp dụng, tạo sự thống nhất trong luật lệ hàng không quốc tế.",
+      "src": "ANSC 1.1, trang 18: “ICAO ban hành các tiêu chuẩn và khuyến nghị thực hành (Standards and Recommended Practices - SARPs)… để các quốc gia thành viên áp dụng, tạo sự thống nhất trong luật lệ hàng không quốc tế.”"
+    },
+    {
+      "lesson": 1,
+      "n": 8,
+      "q": "Đại hội đồng (Assembly) của ICAO họp định kỳ bao lâu một lần?",
+      "opts": {
+        "A": "Hằng năm",
+        "B": "2 năm một lần",
+        "C": "3 năm một lần",
+        "D": "5 năm một lần"
+      },
+      "ans": "C",
+      "ansText": "3 năm một lần",
+      "exp": "Đại hội đồng là cơ quan quyền lực cao nhất của ICAO, họp 3 năm một lần.",
+      "src": "ANSC 1.1, trang 19: “Đại Hội đồng họp 3 năm một lần để quyết định chính sách tổng thể, ngân sách và bầu Hội đồng.”"
+    },
+    {
+      "lesson": 1,
+      "n": 9,
+      "q": "Ủy ban Hàng không (Air Navigation Commission - ANC) có bao nhiêu thành viên chính thức?",
+      "opts": {
+        "A": "10",
+        "B": "19",
+        "C": "36",
+        "D": "50"
+      },
+      "ans": "B",
+      "ansText": "19",
+      "exp": "Ủy ban Hàng không (ANC) có 19 thành viên là các chuyên gia kỹ thuật. (Con số 36 là số thành viên Hội đồng ICAO.)",
+      "src": "ANSC 1.1, trang 19: “Ủy ban có 19 thành viên là các chuyên gia kỹ thuật, được các quốc gia thành viên ICAO đề cử và Hội đồng bổ nhiệm.”"
+    },
+    {
+      "lesson": 1,
+      "n": 10,
+      "q": "Công ước nào do Ủy ban Pháp luật (Legal Committee) xây dựng liên quan đến trách nhiệm vận chuyển quốc tế?",
+      "opts": {
+        "A": "Công ước Tokyo 1963",
+        "B": "Công ước Hague 1970",
+        "C": "Công ước Montreal 1999",
+        "D": "Công ước Chicago 1944"
+      },
+      "ans": "C",
+      "ansText": "Công ước Montreal 1999",
+      "exp": "Trong các ví dụ về công ước do Ủy ban Pháp luật xây dựng, Công ước Montreal 1999 là công ước về trách nhiệm vận chuyển quốc tế.",
+      "src": "ANSC 1.1, trang 20: “Ví dụ: Công ước Tokyo 1963 (hành vi vi phạm trên máy bay), Công ước Montreal 1999 (trách nhiệm vận chuyển quốc tế), Công ước Hague 1970 (chống chiếm đoạt máy bay).”"
+    },
+    {
+      "lesson": 1,
+      "n": 11,
+      "q": "ICAO hiện có bao nhiêu văn phòng khu vực trên thế giới?",
+      "opts": {
+        "A": "5",
+        "B": "6",
+        "C": "7",
+        "D": "8"
+      },
+      "ans": "C",
+      "ansText": "7",
+      "exp": "Tài liệu ghi ICAO có 7 văn phòng khu vực. (Lưu ý: tài liệu chỉ liệt kê tên 6 nơi.)",
+      "src": "ANSC 1.1, trang 22: “ICAO có 7 văn phòng khu vực đặt tại Bangkok (Châu Á – Thái Bình Dương), Nairobi (Đông & Nam Phi), Paris (Châu Âu & Bắc Đại Tây Dương), Cairo (Trung Đông), Mexico City (Bắc Mỹ, Trung Mỹ & Caribbean), Lima (Nam Mỹ).”"
+    },
+    {
+      "lesson": 1,
+      "n": 12,
+      "q": "Ủy ban Hàng không (Air Navigation Commission - ANC) của ICAO có đặc điểm nào sau đây?",
+      "opts": {
+        "A": "Thành viên đại diện cho quốc gia và bỏ phiếu theo lợi ích quốc gia",
+        "B": "Hoạt động độc lập dựa trên chuyên môn, không đại diện cho quốc gia",
+        "C": "Chỉ xem xét các vấn đề pháp lý liên quan đến hàng không",
+        "D": "Là cơ quan thường trực của Đại hội đồng"
+      },
+      "ans": "B",
+      "ansText": "Hoạt động độc lập dựa trên chuyên môn, không đại diện cho quốc gia",
+      "exp": "Các ủy viên ANC hoạt động độc lập dựa trên chuyên môn, không đại diện cho quốc gia. Các vấn đề pháp lý thuộc Ủy ban Pháp luật; cơ quan thường trực là Hội đồng.",
+      "src": "ANSC 1.1, trang 19: “Các ủy viên không đại diện cho quốc gia mà hoạt động độc lập, dựa trên chuyên môn hàng không.”"
+    },
+    {
+      "lesson": 1,
+      "n": 13,
+      "q": "Chương trình CORSIA do ICAO đề ra nhằm mục tiêu gì?",
+      "opts": {
+        "A": "Tăng cường an ninh hàng không quốc tế",
+        "B": "Giảm thiểu khí thải CO₂ trong ngành hàng không",
+        "C": "Chuẩn hóa quy trình xuất nhập cảnh",
+        "D": "Phát triển hạ tầng sân bay toàn cầu"
+      },
+      "ans": "B",
+      "ansText": "Giảm thiểu khí thải CO₂ trong ngành hàng không",
+      "exp": "CORSIA được tài liệu nêu là chương trình giảm khí thải CO₂ trong định hướng phát triển bền vững của ICAO.",
+      "src": "ANSC 1.1, trang 19: “Đưa ra chiến lược toàn cầu về hàng không xanh, giảm thiểu tác động môi trường. Đề ra chương trình giảm khí thải CO₂ (như CORSIA).”"
+    },
+    {
+      "lesson": 1,
+      "n": 14,
+      "q": "Ủy ban Pháp luật (Legal Committee) của ICAO đã xây dựng Công ước nào sau đây liên quan đến hành vi vi phạm trên máy bay?",
+      "opts": {
+        "A": "Công ước Montreal 1999",
+        "B": "Công ước Tokyo 1963",
+        "C": "Công ước Hague 1970",
+        "D": "Công ước Chicago 1944"
+      },
+      "ans": "B",
+      "ansText": "Công ước Tokyo 1963",
+      "exp": "Công ước Tokyo 1963 là công ước về hành vi vi phạm trên máy bay (Montreal 1999 là trách nhiệm vận chuyển; Hague 1970 là chống chiếm đoạt máy bay).",
+      "src": "ANSC 1.1, trang 20: “Công ước Tokyo 1963 (hành vi vi phạm trên máy bay).”"
+    },
+    {
+      "lesson": 1,
+      "n": 15,
+      "q": "Tổ chức nào được thành lập năm 1996, đại diện cho tiếng nói toàn cầu của quản lý không lưu (ATM)?",
+      "opts": {
+        "A": "IATA",
+        "B": "ACI",
+        "C": "ICAO",
+        "D": "CANSO"
+      },
+      "ans": "D",
+      "ansText": "CANSO",
+      "exp": "CANSO là tiếng nói toàn cầu của quản lý không lưu (ATM), thành lập năm 1996. ACI thành lập năm 1991, đại diện cho các sân bay.",
+      "src": "ANSC 1.1, trang 24–25: “CANSO là tiếng nói toàn cầu của quản lý không lưu (Air Traffic Management - ATM) trên toàn thế giới. … CANSO được thành lập vào năm 1996.”"
+    },
+    {
+      "lesson": 2,
+      "n": 1,
+      "q": "Thực thể nào sau đây giữ vai trò là Nhà chức trách hàng không dân dụng tại Việt Nam?",
+      "opts": {
+        "A": "Bộ Xây dựng.",
+        "B": "Tổng công ty Cảng hàng không Việt Nam (ACV).",
+        "C": "Cục Hàng không Việt Nam (CAAV).",
+        "D": "Tổng công ty Quản lý bay Việt Nam (VATM)."
+      },
+      "ans": "C",
+      "ansText": "Cục Hàng không Việt Nam (CAAV).",
+      "exp": "Cục Hàng không Việt Nam (CAAV) là nhà chức trách hàng không, thực thi chức năng quản lý nhà nước chuyên trách. ACV và VATM là doanh nghiệp.",
+      "src": "ANSC 1.2, trang 18: “Cục Hàng không Việt Nam – CAAV là nhà chức trách hàng không là cơ quan thực thi chức năng quản lý nhà nước chuyên trách.”"
+    },
+    {
+      "lesson": 2,
+      "n": 2,
+      "q": "Vùng thông báo bay (FIR) do ICAO giao cho Việt Nam quản lý hiện nay bao gồm những vùng nào?",
+      "opts": {
+        "A": "FIR Hà Nội và FIR Đà Nẵng.",
+        "B": "FIR Hà Nội và FIR Hồ Chí Minh.",
+        "C": "FIR Bắc Bộ và FIR Nam Bộ.",
+        "D": "FIR Nội Bài và FIR Tân Sơn Nhất."
+      },
+      "ans": "B",
+      "ansText": "FIR Hà Nội và FIR Hồ Chí Minh.",
+      "exp": "Việt Nam đang điều hành hai vùng thông báo bay do ICAO giao: FIR Hà Nội và FIR Hồ Chí Minh.",
+      "src": "ANSC 1.2, trang 9, 20: “Hiện nay HKDD Việt Nam đang điều hành hai vùng thông báo bay (FIR Hồ Chí Minh và FIR Hà Nội)… do ICAO giao Việt Nam quản lý.”"
+    },
+    {
+      "lesson": 2,
+      "n": 3,
+      "q": "Bộ phận nào điều hành trực tiếp máy bay trong quá trình chạy đà cất cánh và xả đà hạ cánh trên đường băng?",
+      "opts": {
+        "A": "Trung tâm kiểm soát đường dài (ACC).",
+        "B": "Trạm kiểm soát tiếp cận (APP).",
+        "C": "Đài kiểm soát tại sân (TWR - Tower).",
+        "D": "Trung tâm điều hành khai thác của Hãng hàng không (OCC)."
+      },
+      "ans": "C",
+      "ansText": "Đài kiểm soát tại sân (TWR - Tower).",
+      "exp": "Đài kiểm soát tại sân (TWR) điều hành máy bay trong giai đoạn cất cánh, hạ cánh trên sân bay. APP điều hành giai đoạn lấy/hạ độ cao; ACC điều hành ở độ cao hành trình.",
+      "src": "ANSC 1.2, trang 20: “Đài kiểm soát tại sân (TWR - Tower) có trách nhiệm điều hành máy bay nổ máy, lăn, cất cánh, hạ cánh và di chuyển trong khu vực sân đỗ.”"
+    },
+    {
+      "lesson": 2,
+      "n": 4,
+      "q": "Chuyến bay nội địa đầu tiên của Hàng không Việt Nam được khai trương vào thời điểm nào?",
+      "opts": {
+        "A": "Tháng 9 năm 1956",
+        "B": "Tháng 5 năm 1959",
+        "C": "Tháng 6 năm 1963",
+        "D": "Tháng 2 năm 1964"
+      },
+      "ans": "A",
+      "ansText": "Tháng 9 năm 1956",
+      "exp": "Chuyến bay nội địa đầu tiên khai trương vào tháng 9/1956.",
+      "src": "ANSC 1.2, trang 3: “Chuyến bay nội địa đầu tiên được khai trương vào tháng 9 năm 1956.”"
+    },
+    {
+      "lesson": 2,
+      "n": 5,
+      "q": "Việt Nam chính thức trở thành thành viên của ICAO vào ngày nào?",
+      "opts": {
+        "A": "12/4/1980",
+        "B": "25/02/1980",
+        "C": "1/3/1980",
+        "D": "7/12/1944"
+      },
+      "ans": "A",
+      "ansText": "12/4/1980",
+      "exp": "Ngày 25/02/1980 ký Giấy gia nhập; ngày 1/3/1980 gửi công hàm; Việt Nam chính thức là thành viên ICAO ngày 12/4/1980.",
+      "src": "ANSC 1.2, trang 5, 6: “Hàng không dân dụng Việt Nam đã chính thức trở thành thành viên của Tổ chức hàng không dân dụng quốc tế (ICAO) ngày 12/4/1980.”"
+    },
+    {
+      "lesson": 2,
+      "n": 6,
+      "q": "Tổng cục Hàng không dân dụng Việt Nam được thành lập theo Quyết định số 28/CP vào ngày nào?",
+      "opts": {
+        "A": "11/02/1976",
+        "B": "22/08/1989",
+        "C": "30/07/1992",
+        "D": "06/10/2015"
+      },
+      "ans": "A",
+      "ansText": "11/02/1976",
+      "exp": "Quyết định số 28/CP thành lập Tổng cục HKDD được ban hành ngày 11/2/1976.",
+      "src": "ANSC 1.2, trang 6: “Ngày 11/2/1976, Thủ tướng ban hành Quyết định số 28/CP thành lập Tổng cục HKDD trực thuộc Hội đồng Chính phủ.”"
+    },
+    {
+      "lesson": 2,
+      "n": 7,
+      "q": "Hãng hàng không quốc gia Vietnam Airlines được thành lập vào thời điểm nào?",
+      "opts": {
+        "A": "Tháng 4 năm 1993",
+        "B": "Tháng 12 năm 1991",
+        "C": "Tháng 8 năm 1989",
+        "D": "Tháng 6 năm 1976"
+      },
+      "ans": "A",
+      "ansText": "Tháng 4 năm 1993",
+      "exp": "Hãng hàng không quốc gia Vietnam Airlines được Chính phủ thành lập tháng 4/1993.",
+      "src": "ANSC 1.2, trang 6: “Tháng 4 năm 1993, Chính phủ đã thành lập Hãng hàng không quốc gia (Vietnamairlines).”"
+    },
+    {
+      "lesson": 2,
+      "n": 8,
+      "q": "Việt Nam chính thức tiếp nhận quyền kiểm soát phần phía Nam vùng FIR Hồ Chí Minh vào ngày nào?",
+      "opts": {
+        "A": "08/12/1994",
+        "B": "12/04/1980",
+        "C": "29/06/2006",
+        "D": "10/06/2010"
+      },
+      "ans": "A",
+      "ansText": "08/12/1994",
+      "exp": "Việt Nam chính thức tiếp nhận quyền kiểm soát phần phía Nam FIR Hồ Chí Minh từ ngày 08/12/1994.",
+      "src": "ANSC 1.2, trang 7: “Hàng không dân dụng Việt Nam đã chính thức tiếp nhận thực hiện quyền kiểm soát phần phía Nam vùng thông báo bay (FIR) Hồ Chí Minh từ ngày 08 tháng 12 năm 1994.”"
+    },
+    {
+      "lesson": 2,
+      "n": 9,
+      "q": "Vietnam Airlines trở thành thành viên Liên minh hàng không SkyTeam vào thời điểm nào?",
+      "opts": {
+        "A": "10/06/2010",
+        "B": "01/04/2015",
+        "C": "06/10/2015",
+        "D": "29/06/2006"
+      },
+      "ans": "A",
+      "ansText": "10/06/2010",
+      "exp": "Vietnam Airlines trở thành thành viên SkyTeam ngày 10/6/2010 (01/4/2015 là mốc chuyển sang công ty cổ phần).",
+      "src": "ANSC 1.2, trang 8: “Vietnam Airlines… trở thành hãng hàng không duy nhất của ASEAN là thành viên Liên minh hàng không SkyTeam (10/6/2010).”"
+    },
+    {
+      "lesson": 2,
+      "n": 10,
+      "q": "Việc Việt Nam gia nhập Công ước Chicago năm 1980 có ý nghĩa gì đối với ngành Hàng không dân dụng Việt Nam?",
+      "opts": {
+        "A": "Đánh dấu hàng không Việt Nam chính thức hội nhập với cộng đồng hàng không quốc tế",
+        "B": "Giúp Việt Nam mở đường bay đầu tiên ra nước ngoài",
+        "C": "Cho phép Việt Nam mua máy bay từ Liên Xô",
+        "D": "Là cơ sở thành lập Vietnam Airlines"
+      },
+      "ans": "A",
+      "ansText": "Đánh dấu hàng không Việt Nam chính thức hội nhập với cộng đồng hàng không quốc tế",
+      "exp": "Việc gia nhập Công ước Chicago và ICAO năm 1980 được tài liệu đánh giá là mốc hàng không Việt Nam chính thức hội nhập quốc tế.",
+      "src": "ANSC 1.2, trang 5: “Đây là một mốc quan đánh dấu hàng không Việt Nam chính thức hội nhập với cộng đồng hàng không quốc tế và thế giới.”"
+    },
+    {
+      "lesson": 2,
+      "n": 11,
+      "q": "Trong giai đoạn 1965–1975, Hàng không dân dụng Việt Nam vừa thực hiện nhiệm vụ quân sự vừa dân dụng. Điều này thể hiện đặc điểm gì của ngành trong thời kỳ chiến tranh?",
+      "opts": {
+        "A": "Kết hợp chặt chẽ giữa quốc phòng và kinh tế",
+        "B": "Tập trung hoàn toàn vào vận tải dân dụng",
+        "C": "Chỉ phục vụ vận chuyển hàng hóa quốc tế",
+        "D": "Hoạt động độc lập với Bộ Quốc phòng"
+      },
+      "ans": "A",
+      "ansText": "Kết hợp chặt chẽ giữa quốc phòng và kinh tế",
+      "exp": "Trong thời chiến, Bộ Quốc phòng đồng thời thực hiện chức năng quốc phòng, quản lý nhà nước và kinh doanh vận tải; không quân vận tải vừa làm nhiệm vụ quân sự vừa bay dân dụng, thể hiện sự kết hợp quốc phòng với kinh tế.",
+      "src": "ANSC 1.2, trang 3: “Bộ Quốc phòng thực hiện đồng thời ba chức năng: Quốc phòng, quản lý nhà nước và kinh doanh vận tải hàng không. … không quân vận tải vừa làm nhiệm vụ quân sự, vừa làm nhiệm vụ bay dân dụng.”"
+    },
+    {
+      "lesson": 2,
+      "n": 12,
+      "q": "Việc tiếp nhận quyền kiểm soát vùng FIR Hồ Chí Minh năm 1994 thể hiện điều gì về năng lực của Hàng không Việt Nam?",
+      "opts": {
+        "A": "Đủ khả năng quản lý, điều hành vùng trời quốc gia theo tiêu chuẩn quốc tế",
+        "B": "Bắt đầu khai thác đường bay quốc tế đầu tiên",
+        "C": "Hoàn tất cổ phần hóa Vietnam Airlines",
+        "D": "Gia nhập Liên minh SkyTeam"
+      },
+      "ans": "A",
+      "ansText": "Đủ khả năng quản lý, điều hành vùng trời quốc gia theo tiêu chuẩn quốc tế",
+      "exp": "Sau khi tiếp nhận FIR Hồ Chí Minh, Việt Nam đã tự quản lý, điều hành hàng triệu chuyến bay an toàn và được ICAO tin cậy, thể hiện năng lực quản lý vùng trời theo chuẩn quốc tế.",
+      "src": "ANSC 1.2, trang 7: “Từ đó đến nay, Hàng không Việt Nam đã quản lý, điều hành, chỉ huy hàng triệu chuyến bay trong nước và quốc tế tuyệt đối an toàn, được các hãng hàng không nước ngoài và tổ chức hàng không dân dụng Quốc tế tin cậy.”"
+    },
+    {
+      "lesson": 2,
+      "n": 13,
+      "q": "Sự kiện Vietnam Airlines trở thành thành viên Liên minh SkyTeam năm 2010 phản ánh điều gì về vị thế của ngành hàng không Việt Nam?",
+      "opts": {
+        "A": "Khẳng định sự lớn mạnh và hội nhập quốc tế sâu rộng của hàng không Việt Nam",
+        "B": "Đánh dấu việc tách khỏi Bộ Quốc phòng",
+        "C": "Là bước đầu cổ phần hóa Vietnam Airlines",
+        "D": "Là thời điểm Việt Nam mở đường bay Long Thành"
+      },
+      "ans": "A",
+      "ansText": "Khẳng định sự lớn mạnh và hội nhập quốc tế sâu rộng của hàng không Việt Nam",
+      "exp": "Việc gia nhập SkyTeam được tài liệu đánh giá là bước phát triển vượt bậc trong hội nhập quốc tế và thể hiện sự lớn mạnh của hàng không Việt Nam.",
+      "src": "ANSC 1.2, trang 8: “…thành viên Liên minh hàng không SkyTeam (10/6/2010) đã đánh dấu bước phát triển vượt bậc của ngành hàng không Việt Nam trong tiến trình hội nhập quốc tế, sự lớn mạnh của Hãng Hàng không Việt Nam.”"
+    },
+    {
+      "lesson": 2,
+      "n": 14,
+      "q": "Các cảng hàng không quốc tế nào hiện nay được coi là trung tâm giao thương, du lịch và đầu tư?",
+      "opts": {
+        "A": "Nội Bài, Tân Sơn Nhất, Đà Nẵng, Cam Ranh, Phú Quốc",
+        "B": "Vinh, Chu Lai, Pleiku, Cà Mau",
+        "C": "Đồng Hới, Rạch Giá, Côn Đảo, Tuy Hòa",
+        "D": "Điện Biên, Thọ Xuân, Phù Cát, Liên Khương"
+      },
+      "ans": "A",
+      "ansText": "Nội Bài, Tân Sơn Nhất, Đà Nẵng, Cam Ranh, Phú Quốc",
+      "exp": "Tài liệu nêu đích danh 5 cảng HKQT Nội Bài, Tân Sơn Nhất, Đà Nẵng, Cam Ranh, Phú Quốc là trung tâm giao thương, du lịch và đầu tư.",
+      "src": "ANSC 1.2, trang 10: “Các cảng hàng không quốc tế như Nội Bài, Tân Sơn Nhất, Đà Nẵng, Cam Ranh, Phú Quốc, và sắp tới là Long Thành, là trung tâm giao thương, du lịch và đầu tư.”"
+    },
+    {
+      "lesson": 2,
+      "n": 15,
+      "q": "Hàng không dân dụng Việt Nam đóng góp trực tiếp vào GDP thông qua hoạt động nào?",
+      "opts": {
+        "A": "Xây dựng hạ tầng cảng biển",
+        "B": "Vận tải hành khách và hàng hóa",
+        "C": "Khai thác khoáng sản",
+        "D": "Phát triển nông nghiệp"
+      },
+      "ans": "B",
+      "ansText": "Vận tải hành khách và hàng hóa",
+      "exp": "HKDD Việt Nam đóng góp trực tiếp vào GDP thông qua vận tải hành khách và hàng hóa.",
+      "src": "ANSC 1.2, trang 10: “Đối với kinh tế ngành HKDD Việt nam đóng góp trực tiếp vào GDP thông qua vận tải hành khách và hàng hóa.”"
+    },
+    {
+      "lesson": 3,
+      "n": 1,
+      "q": "Công ước Chicago được ký kết vào ngày nào?",
+      "opts": {
+        "A": "7/12/1944",
+        "B": "13/10/1919",
+        "C": "20/2/1928",
+        "D": "4/4/1947"
+      },
+      "ans": "A",
+      "ansText": "7/12/1944",
+      "exp": "Công ước Chicago được 52 quốc gia ký ngày 7/12/1944 và có hiệu lực ngày 4/4/1947. (13/10/1919 là Công ước Paris; 20/2/1928 là Công ước Havana.)",
+      "src": "ANSC 1.3, trang 18: “…được 52 quốc gia ký kết vào cuối Hội nghị Chicago tại Phòng khiêu vũ lớn của khách sạn Stevens, ngày 7 tháng 12 năm 1944 và có hiệu lực vào ngày 4 tháng 4 năm 1947.”"
+    },
+    {
+      "lesson": 3,
+      "n": 2,
+      "q": "Tàu bay dân dụng muốn bay qua lãnh thổ quốc gia khác phải có gì?",
+      "opts": {
+        "A": "Sự cho phép đặc biệt",
+        "B": "Giấy phép thương mại",
+        "C": "Giấy chứng nhận khả năng bay",
+        "D": "Giấy phép nhân viên"
+      },
+      "ans": "A",
+      "ansText": "Sự cho phép đặc biệt",
+      "exp": "Theo Chương 1 Công ước Chicago, tàu bay dân dụng muốn bay qua lãnh thổ quốc gia khác phải có sự cho phép đặc biệt.",
+      "src": "ANSC 1.3, trang 19: “Tàu bay dân dụng của quốc gia này muốn bay qua lãnh thổ quốc gia khác phải có sự cho phép đặc biệt.”"
+    },
+    {
+      "lesson": 3,
+      "n": 3,
+      "q": "Quốc tịch tàu bay được xác định dựa trên yếu tố nào?",
+      "opts": {
+        "A": "Quốc gia nơi tàu bay được đăng ký",
+        "B": "Quốc gia sản xuất tàu bay",
+        "C": "Quốc gia khai thác tàu bay",
+        "D": "Quốc gia cấp giấy phép phi công"
+      },
+      "ans": "A",
+      "ansText": "Quốc gia nơi tàu bay được đăng ký",
+      "exp": "Điều 17: tàu bay mang quốc tịch của quốc gia nơi đăng ký.",
+      "src": "ANSC 1.3, trang 19: “Điều 17 quy định tàu bay mang quốc tịch của quốc gia nơi nó được đăng ký.”"
+    },
+    {
+      "lesson": 3,
+      "n": 4,
+      "q": "Mỗi tàu bay phải mang theo giấy chứng nhận gì để chứng minh đủ điều kiện kỹ thuật?",
+      "opts": {
+        "A": "Giấy chứng nhận khả năng bay",
+        "B": "Giấy phép nhân viên",
+        "C": "Giấy chứng nhận đăng ký",
+        "D": "Nhật ký bay"
+      },
+      "ans": "A",
+      "ansText": "Giấy chứng nhận khả năng bay",
+      "exp": "Điều 29, 31: tàu bay phải mang chứng chỉ đủ điều kiện bay (giấy chứng nhận khả năng bay) do quốc gia đăng ký cấp.",
+      "src": "ANSC 1.3, trang 20: “Điều 31 quy định mọi tàu bay quốc tế phải có chứng chỉ đủ điều kiện bay do quốc gia đăng ký cấp.”"
+    },
+    {
+      "lesson": 3,
+      "n": 5,
+      "q": "Vật tư tàu bay như nhiên liệu, dầu, phụ tùng khi nhập cảnh được hưởng ưu đãi gì?",
+      "opts": {
+        "A": "Miễn thuế hải quan",
+        "B": "Giảm 50% thuế",
+        "C": "Được bán tại quốc gia sở tại",
+        "D": "Được chuyển nhượng tự do"
+      },
+      "ans": "A",
+      "ansText": "Miễn thuế hải quan",
+      "exp": "Điều 24: tàu bay, nhiên liệu, phụ tùng, thiết bị mang theo được miễn thuế hải quan (khi chỉ quá cảnh hoặc tạm dừng, trừ khi bốc dỡ).",
+      "src": "ANSC 1.3, trang 20: “Điều 24 quy định tàu bay, nhiên liệu, phụ tùng, thiết bị và thực phẩm mang theo được miễn thuế hải quan khi chỉ quá cảnh hoặc tạm dừng, trừ khi bốc dỡ.”"
+    },
+    {
+      "lesson": 3,
+      "n": 6,
+      "q": "Quốc gia nơi xảy ra tai nạn hàng không dân dụng quốc tế có trách nhiệm gì?",
+      "opts": {
+        "A": "Tiến hành điều tra",
+        "B": "Chỉ báo cáo cho ICAO",
+        "C": "Chỉ cứu hộ hành khách",
+        "D": "Không có trách nhiệm"
+      },
+      "ans": "A",
+      "ansText": "Tiến hành điều tra",
+      "exp": "Điều 26: quốc gia nơi xảy ra tai nạn phải mở điều tra, cho phép quốc gia đăng ký tàu bay tham gia giám sát và báo cáo kết quả.",
+      "src": "ANSC 1.3, trang 20: “Điều 26 quy định quốc gia nơi xảy ra tai nạn phải mở điều tra và cho phép quốc gia đăng ký tàu bay tham gia giám sát, đồng thời báo cáo kết quả.”"
+    },
+    {
+      "lesson": 3,
+      "n": 7,
+      "q": "Các chuyến bay thương mại thường lệ quốc tế chỉ được thực hiện khi nào?",
+      "opts": {
+        "A": "Có sự thỏa thuận hoặc cho phép của quốc gia sở tại",
+        "B": "Có giấy phép phi công",
+        "C": "Có giấy chứng nhận khả năng bay",
+        "D": "Có sự đồng ý của ICAO"
+      },
+      "ans": "A",
+      "ansText": "Có sự thỏa thuận hoặc cho phép của quốc gia sở tại",
+      "exp": "Điều 6: chuyến bay quốc tế thường lệ chỉ được thực hiện khi có sự cho phép đặc biệt của quốc gia sở tại.",
+      "src": "ANSC 1.3, trang 19: “Điều 6 quy định các chuyến bay quốc tế thường lệ chỉ được thực hiện khi có sự cho phép đặc biệt của quốc gia sở tại.”"
+    },
+    {
+      "lesson": 3,
+      "n": 8,
+      "q": "Quốc gia thành viên phải công bố quy định và thông tin liên quan đến hàng không cho ai?",
+      "opts": {
+        "A": "ICAO",
+        "B": "Liên Hợp Quốc",
+        "C": "Hội Quốc Liên",
+        "D": "Tòa án Công lý Quốc tế"
+      },
+      "ans": "A",
+      "ansText": "ICAO",
+      "exp": "Các quốc gia thành viên có nghĩa vụ thông báo, cung cấp thông tin cho ICAO (Điều 9 – khu vực cấm bay; Điều 21 – thông tin đăng ký; Điều 38 – sự khác biệt so với tiêu chuẩn quốc tế).",
+      "src": "ANSC 1.3, trang 19–21: “Điều 38 quy định nếu quốc gia không thể tuân thủ hoặc có quy định khác, phải thông báo ngay cho ICAO. ICAO sẽ thông báo sự khác biệt này cho các quốc gia khác.”"
+    },
+    {
+      "lesson": 3,
+      "n": 9,
+      "q": "Công ước Chicago không áp dụng cho loại tàu bay nào?",
+      "opts": {
+        "A": "Tàu bay quân sự, hải quan, cảnh sát",
+        "B": "Tàu bay dân dụng",
+        "C": "Tàu bay thương mại",
+        "D": "Tàu bay chở hàng hóa"
+      },
+      "ans": "A",
+      "ansText": "Tàu bay quân sự, hải quan, cảnh sát",
+      "exp": "Điều 3: Công ước áp dụng cho tàu bay dân dụng, không áp dụng cho tàu bay nhà nước (quân sự, hải quan, cảnh sát).",
+      "src": "ANSC 1.3, trang 19: “Phân loại tàu bay (Điều 3) áp dụng cho tàu bay dân dụng, không áp dụng cho tàu bay nhà nước bao gồm tàu bay quân sự, hải quan, cảnh sát.”"
+    },
+    {
+      "lesson": 3,
+      "n": 10,
+      "q": "Bản gốc Công ước Chicago được lưu giữ tại đâu?",
+      "opts": {
+        "A": "Chính phủ Hoa Kỳ",
+        "B": "Liên Hợp Quốc",
+        "C": "ICAO",
+        "D": "Paris, Pháp"
+      },
+      "ans": "A",
+      "ansText": "Chính phủ Hoa Kỳ",
+      "exp": "Điều 91: Chính phủ Hoa Kỳ là cơ quan lưu trữ Công ước và thông báo cho các quốc gia.",
+      "src": "ANSC 1.3, trang 26: “Chính phủ Hoa Kỳ là cơ quan lưu trữ và thông báo cho các quốc gia.”"
+    },
+    {
+      "lesson": 3,
+      "n": 11,
+      "q": "Việc ICAO ban hành và điều chỉnh các tiêu chuẩn quốc tế (SARPs) có ý nghĩa gì?",
+      "opts": {
+        "A": "Giúp thống nhất quy định toàn cầu, giảm sự khác biệt giữa các quốc gia",
+        "B": "Cho phép mỗi quốc gia tự đặt tiêu chuẩn riêng",
+        "C": "Chỉ áp dụng cho các chuyến bay nội địa",
+        "D": "Loại bỏ vai trò của quốc gia sở tại"
+      },
+      "ans": "A",
+      "ansText": "Giúp thống nhất quy định toàn cầu, giảm sự khác biệt giữa các quốc gia",
+      "exp": "Chương 6 quy định việc ban hành, áp dụng tiêu chuẩn quốc tế nhằm bảo đảm sự thống nhất; các quốc gia cam kết phối hợp để thống nhất quy định.",
+      "src": "ANSC 1.3, trang 21: “Chương 6 quy định về việc ban hành, áp dụng và công nhận các tiêu chuẩn quốc tế trong hàng không dân dụng, nhằm đảm bảo sự thống nhất và an toàn. … Các quốc gia ký kết cam kết phối hợp để thống nhất quy định.”"
+    },
+    {
+      "lesson": 3,
+      "n": 12,
+      "q": "Phụ lục nào liên quan đến An ninh hàng không dân dụng quốc tế chống lại các hành vi can thiệp bất hợp pháp?",
+      "opts": {
+        "A": "Phụ lục 17",
+        "B": "Phụ lục 6",
+        "C": "Phụ lục 8",
+        "D": "Phụ lục 12"
+      },
+      "ans": "A",
+      "ansText": "Phụ lục 17",
+      "exp": "Phụ lục 17 – An ninh: Bảo vệ hàng không dân dụng quốc tế chống lại các hành vi can thiệp bất hợp pháp.",
+      "src": "ANSC 1.3, trang 28, 33: “Phụ lục 17 của ICAO—An ninh—Bảo vệ Hàng không dân dụng quốc tế chống lại các hành vi can thiệp bất hợp pháp có hiệu lực vào năm 1975.”"
+    },
+    {
+      "lesson": 3,
+      "n": 13,
+      "q": "Phụ lục nào được ICAO thông qua năm 1984 về vận chuyển an toàn hàng hóa nguy hiểm bằng đường hàng không?",
+      "opts": {
+        "A": "Phụ lục 18",
+        "B": "Phụ lục 19",
+        "C": "Phụ lục 7",
+        "D": "Phụ lục 5"
+      },
+      "ans": "A",
+      "ansText": "Phụ lục 18",
+      "exp": "Năm 1984 ICAO thông qua Phụ lục 18 về vận chuyển an toàn hàng hóa nguy hiểm. (Phụ lục 19 – Quản lý an toàn, năm 2013.)",
+      "src": "ANSC 1.3, trang 28: “Năm 1984 Phụ lục 18 về vận chuyển an toàn hàng hóa nguy hiểm bằng đường hàng không được ICAO thông qua.”"
+    },
+    {
+      "lesson": 3,
+      "n": 14,
+      "q": "Sau sự kiện 11/9, biện pháp nào được áp dụng để tăng cường an ninh buồng lái?",
+      "opts": {
+        "A": "Gia cố cửa buồng lái",
+        "B": "Cho phép mở cửa tự do",
+        "C": "Loại bỏ cửa buồng lái",
+        "D": "Không có thay đổi"
+      },
+      "ans": "A",
+      "ansText": "Gia cố cửa buồng lái",
+      "exp": "Sau sự kiện 11/9, các chính phủ gia cố cửa buồng lái, hạn chế vật dụng xách tay và mở rộng kiểm tra soi chiếu.",
+      "src": "ANSC 1.3, trang 31: “Các chính phủ đã thực hiện việc gia cố cửa buồng lái, hạn chế nghiêm ngặt các vật dụng xách tay…”"
+    },
+    {
+      "lesson": 3,
+      "n": 15,
+      "q": "Người khai thác tàu bay thương mại phải thiết lập chương trình an ninh của mình nhằm mục đích gì?",
+      "opts": {
+        "A": "Đáp ứng yêu cầu của chương trình an ninh hàng không dân dụng quốc gia",
+        "B": "Giảm chi phí vận hành",
+        "C": "Tăng lợi nhuận kinh doanh",
+        "D": "Loại bỏ trách nhiệm pháp lý"
+      },
+      "ans": "A",
+      "ansText": "Đáp ứng yêu cầu của chương trình an ninh hàng không dân dụng quốc gia",
+      "exp": "Theo Phụ lục 17, hãng hàng không phải thiết lập chương trình an ninh của người khai thác đáp ứng yêu cầu của chương trình an ninh HKDD quốc gia.",
+      "src": "ANSC 1.3, trang 36: “Người khai thác tàu bay vận chuyển hàng không thương mại (hãng hàng không) phải thiết lập, thực hiện và duy trì một chương trình an ninh của người khai thác tàu bay đáp ứng các yêu cầu của chương trình an ninh hàng không dân dụng quốc gia.”"
+    },
+    {
+      "lesson": 4,
+      "n": 1,
+      "q": "Luật Hàng không dân dụng Việt Nam năm 2026 được Quốc hội thông qua vào ngày nào?",
+      "opts": {
+        "A": "10/12/2025",
+        "B": "01/07/2026",
+        "C": "15/12/2025",
+        "D": "01/01/2026"
+      },
+      "ans": "A",
+      "ansText": "10/12/2025",
+      "exp": "Luật HKDD Việt Nam năm 2026 (Luật số 130/2025/QH15) được Quốc hội thông qua ngày 10/12/2025. (Lưu ý: tr. 18 của tài liệu ghi \"ngày 15 tháng 12 năm 2025\"; đáp án đã được xác nhận là A.)",
+      "src": "ANSC 1.4, trang 4: “Luật Hàng không dân dụng Việt Nam năm 2026 (Luật số 130/2025/QH15) được Quốc hội thông qua ngày 10/12/2025 và chính thức có hiệu lực từ ngày 01/07/2026.”"
+    },
+    {
+      "lesson": 4,
+      "n": 2,
+      "q": "Luật Hàng không dân dụng Việt Nam năm 2026 có hiệu lực từ ngày nào?",
+      "opts": {
+        "A": "01/07/2026",
+        "B": "10/12/2025",
+        "C": "01/01/2026",
+        "D": "15/07/2026"
+      },
+      "ans": "A",
+      "ansText": "01/07/2026",
+      "exp": "Luật có hiệu lực từ 01/07/2026; Luật HKDD năm 2006 hết hiệu lực kể từ ngày này.",
+      "src": "ANSC 1.4, trang 4, 16: “…và chính thức có hiệu lực từ ngày 01/07/2026.”"
+    },
+    {
+      "lesson": 4,
+      "n": 3,
+      "q": "Tàu bay chỉ được đăng ký quốc tịch Việt Nam khi nào?",
+      "opts": {
+        "A": "Khi chưa có quốc tịch khác hoặc đã xóa quốc tịch nước ngoài",
+        "B": "Khi đang mang quốc tịch nước ngoài",
+        "C": "Khi chưa có giấy chứng nhận bay",
+        "D": "Khi chưa có chủ sở hữu"
+      },
+      "ans": "A",
+      "ansText": "Khi chưa có quốc tịch khác hoặc đã xóa quốc tịch nước ngoài",
+      "exp": "Chương II: tàu bay chỉ được đăng ký quốc tịch Việt Nam khi chưa có quốc tịch khác hoặc đã xóa quốc tịch nước ngoài.",
+      "src": "ANSC 1.4, trang 6: “Tàu bay chỉ được đăng ký quốc tịch Việt Nam khi chưa có quốc tịch khác hoặc đã xóa quốc tịch nước ngoài.”"
+    },
+    {
+      "lesson": 4,
+      "n": 4,
+      "q": "Người khai thác tàu bay phải có giấy tờ gì để được khai thác?",
+      "opts": {
+        "A": "Giấy chứng nhận khai thác",
+        "B": "Giấy phép lái xe",
+        "C": "Giấy chứng nhận sức khỏe",
+        "D": "Giấy phép thương mại"
+      },
+      "ans": "A",
+      "ansText": "Giấy chứng nhận khai thác",
+      "exp": "Chương II: người khai thác tàu bay phải có giấy chứng nhận khai thác.",
+      "src": "ANSC 1.4, trang 6: “Người khai thác tàu bay phải có giấy chứng nhận khai thác; người khai thác nước ngoài chỉ được công nhận khi đáp ứng quy định ICAO.”"
+    },
+    {
+      "lesson": 4,
+      "n": 5,
+      "q": "Biện pháp quản lý đặc biệt có thể áp dụng đối với chuyến bay vi phạm là gì?",
+      "opts": {
+        "A": "Đình chỉ chuyến bay hoặc yêu cầu hạ cánh",
+        "B": "Cho phép bay tự do",
+        "C": "Chỉ cảnh báo bằng văn bản",
+        "D": "Không có biện pháp nào"
+      },
+      "ans": "A",
+      "ansText": "Đình chỉ chuyến bay hoặc yêu cầu hạ cánh",
+      "exp": "Biện pháp quản lý đặc biệt gồm: đình chỉ chuyến bay, yêu cầu hạ cánh, bắt giữ tàu bay theo quyết định của Tòa án.",
+      "src": "ANSC 1.4, trang 6–7: “Đình chỉ chuyến bay khi có dấu hiệu vi phạm an toàn, an ninh hoặc quốc phòng. Yêu cầu hạ cánh khi chuyến bay có dấu hiệu uy hiếp an toàn, an ninh.”"
+    },
+    {
+      "lesson": 4,
+      "n": 6,
+      "q": "Người thứ ba ở mặt đất bị thiệt hại do tàu bay gây ra có quyền gì?",
+      "opts": {
+        "A": "Yêu cầu bồi thường",
+        "B": "Chỉ được báo cáo",
+        "C": "Không có quyền gì",
+        "D": "Chỉ được hỗ trợ y tế"
+      },
+      "ans": "A",
+      "ansText": "Yêu cầu bồi thường",
+      "exp": "Chương VI: người thứ ba ở mặt đất bị thiệt hại do tàu bay đang bay hoặc vật rơi từ tàu bay có quyền yêu cầu bồi thường.",
+      "src": "ANSC 1.4, trang 11: “Người thứ ba ở mặt đất bị thiệt hại do tàu bay đang bay hoặc vật từ tàu bay rơi xuống có quyền yêu cầu bồi thường.”"
+    },
+    {
+      "lesson": 4,
+      "n": 7,
+      "q": "Quy định về cưỡng chế tàu bay vi phạm trong Chương IV cho thấy điều gì về cách tiếp cận của Luật 2026?",
+      "opts": {
+        "A": "Đặt an toàn và an ninh quốc gia lên hàng đầu",
+        "B": "Chỉ xử lý bằng biện pháp dân sự",
+        "C": "Cho phép tàu bay tự do hoạt động",
+        "D": "Loại bỏ quyền kiểm soát của quốc gia"
+      },
+      "ans": "A",
+      "ansText": "Đặt an toàn và an ninh quốc gia lên hàng đầu",
+      "exp": "Chương IV cho phép bay chặn, bay kèm, ép hạ cánh tàu bay vi phạm, nhằm bảo đảm an toàn, an ninh, cho thấy Luật đặt an toàn và an ninh quốc gia lên hàng đầu.",
+      "src": "ANSC 1.4, trang 8: “Chương IV thiết lập khung pháp lý… nhằm đảm bảo an toàn, an ninh và hiệu quả… Tàu bay vi phạm quy định có thể bị áp dụng biện pháp: bay chặn, bay kèm, ép hạ cánh hoặc các biện pháp cưỡng chế khác.”"
+    },
+    {
+      "lesson": 4,
+      "n": 8,
+      "q": "Nghị định số 215/2026/NĐ-CP về an ninh hàng không thay thế văn bản nào?",
+      "opts": {
+        "A": "Nghị định 92/2015/NĐ-CP",
+        "B": "Nghị định 66/2015/NĐ-CP",
+        "C": "Nghị định 75/2007/NĐ-CP",
+        "D": "Nghị định 125/2015/NĐ-CP"
+      },
+      "ans": "A",
+      "ansText": "Nghị định 92/2015/NĐ-CP",
+      "exp": "Nghị định 215/2026/NĐ-CP về an ninh hàng không thay thế Nghị định 92/2015/NĐ-CP.",
+      "src": "ANSC 1.4, trang 17: “Nghị định số 215/2026/NĐ-CP ngày 18.06.2026 về an ninh hàng không có hiệu lực từ 01/7/2026 thay thế Nghị định 92/2015/NĐ-CP về an ninh hàng không.”"
+    },
+    {
+      "lesson": 4,
+      "n": 9,
+      "q": "Nghị định số 221/2026/NĐ-CP về nhà chức trách hàng không và quản lý an toàn thay thế quy định nào?",
+      "opts": {
+        "A": "Nghị định 66/2015/NĐ-CP",
+        "B": "Nghị định 205/2023/NĐ-CP",
+        "C": "Nghị định 208/2016/NĐ-CP",
+        "D": "Nghị định 223/2021/NĐ-CP"
+      },
+      "ans": "A",
+      "ansText": "Nghị định 66/2015/NĐ-CP",
+      "exp": "Nghị định 221/2026/NĐ-CP thay thế Nghị định 66/2015/NĐ-CP về nhà chức trách hàng không (cùng một số nghị định khác).",
+      "src": "ANSC 1.4, trang 17: “Nghị định 221/2026/ND-CP… về nhà chức trách hàng không và quản lý an toàn… thay thế cho quy định tại các Nghị định 66/2015/ND-CP ngày 12/8/2015 về nhà chức trách hàng không.”"
+    },
+    {
+      "lesson": 4,
+      "n": 10,
+      "q": "Chương 9 của Luật Hàng không dân dụng Việt Nam quy định về vấn đề gì?",
+      "opts": {
+        "A": "An ninh hàng không",
+        "B": "Vận tải hàng không",
+        "C": "Nhân viên hàng không",
+        "D": "Cảng hàng không"
+      },
+      "ans": "A",
+      "ansText": "An ninh hàng không",
+      "exp": "Chương 9 (Chương IX) của Luật quy định về An ninh hàng không, từ điều 91 đến 98.",
+      "src": "ANSC 1.4, trang 13, 18: “…trong đó tập trung nhất có Chương 9 quy định về An ninh hàng không từ điều 91 đến 98.”"
+    },
+    {
+      "lesson": 4,
+      "n": 11,
+      "q": "Nghị định số 215/2026/NĐ-CP tập trung vào nội dung nào?",
+      "opts": {
+        "A": "Phòng ngừa, ngăn chặn và xử lý hành vi can thiệp bất hợp pháp",
+        "B": "Quản lý giá vé máy bay",
+        "C": "Quy định về bảo hiểm hàng không",
+        "D": "Quản lý nhân viên hàng không"
+      },
+      "ans": "A",
+      "ansText": "Phòng ngừa, ngăn chặn và xử lý hành vi can thiệp bất hợp pháp",
+      "exp": "Nghị định 215/2026/NĐ-CP tập trung vào phòng ngừa, ngăn chặn và xử lý hành vi can thiệp bất hợp pháp.",
+      "src": "ANSC 1.4, trang 19: “…tập trung vào việc phòng ngừa, ngăn chặn và xử lý các hành vi can thiệp bất hợp pháp trong hoạt động hàng không dân dụng.”"
+    },
+    {
+      "lesson": 4,
+      "n": 12,
+      "q": "Lực lượng nào giữ vai trò nòng cốt trong công tác an ninh hàng không theo Nghị định 215/2026/NĐ-CP?",
+      "opts": {
+        "A": "Công an",
+        "B": "Hải quan",
+        "C": "Bộ Xây dựng",
+        "D": "Doanh nghiệp hàng không"
+      },
+      "ans": "A",
+      "ansText": "Công an",
+      "exp": "Theo nguyên tắc chung của Nghị định 215, công tác an ninh hàng không là trách nhiệm của mọi tổ chức, cá nhân; lực lượng Công an giữ vai trò nòng cốt.",
+      "src": "ANSC 1.4, trang 19: “Công tác an ninh hàng không là trách nhiệm của tất cả tổ chức, cá nhân; lực lượng Công an giữ vai trò nòng cốt.”"
+    },
+    {
+      "lesson": 4,
+      "n": 13,
+      "q": "Cơ quan nào được xác định là Nhà chức trách an ninh hàng không Việt Nam?",
+      "opts": {
+        "A": "Cục Quản lý xuất nhập cảnh – Bộ Công an",
+        "B": "Bộ Quốc phòng",
+        "C": "UBND tỉnh",
+        "D": "Bộ Giao thông Vận tải"
+      },
+      "ans": "A",
+      "ansText": "Cục Quản lý xuất nhập cảnh – Bộ Công an",
+      "exp": "Nhà chức trách an ninh hàng không Việt Nam là Cục Quản lý xuất nhập cảnh – Bộ Công an.",
+      "src": "ANSC 1.4, trang 19: “Xác định rõ vai trò của Nhà chức trách an ninh hàng không Việt Nam (Cục Quản lý xuất nhập cảnh – Bộ Công an).”"
+    },
+    {
+      "lesson": 4,
+      "n": 14,
+      "q": "Người, phương tiện ra vào hoạt động tại khu vực hạn chế tại cảng hàng không phải có gì?",
+      "opts": {
+        "A": "Thẻ hoặc giấy phép kiểm soát an ninh",
+        "B": "Vé máy bay",
+        "C": "Giấy chứng nhận sức khỏe",
+        "D": "Giấy phép lái xe"
+      },
+      "ans": "A",
+      "ansText": "Thẻ hoặc giấy phép kiểm soát an ninh",
+      "exp": "Người, phương tiện ra vào khu vực hạn chế phải có thẻ, giấy phép kiểm soát an ninh và chịu soi chiếu, giám sát.",
+      "src": "ANSC 1.4, trang 19, 23: “Người, phương tiện ra vào khu vực hạn chế phải có thẻ, giấy phép kiểm soát an ninh và chịu soi chiếu, giám sát.”"
+    },
+    {
+      "lesson": 4,
+      "n": 15,
+      "q": "Thông tư số 115/2026/TT-BCA quy định về vấn đề gì?",
+      "opts": {
+        "A": "Thẻ, giấy phép, chứng nhận an ninh hàng không",
+        "B": "Giá vé máy bay",
+        "C": "Vận tải hàng hóa nguy hiểm",
+        "D": "Bảo hiểm hàng không"
+      },
+      "ans": "A",
+      "ansText": "Thẻ, giấy phép, chứng nhận an ninh hàng không",
+      "exp": "Thông tư 115/2026/TT-BCA quy định về thẻ, giấy phép, chứng nhận an ninh hàng không.",
+      "src": "ANSC 1.4, trang 20: “Thông tư số 115/2026/TT-BCA Quy định về thẻ, giấy phép, chứng nhận an ninh hàng không.”"
+    },
+    {
+      "lesson": 5,
+      "n": 1,
+      "q": "Kế hoạch An toàn hàng không toàn cầu (GASP) của ICAO có mục tiêu chính là gì?",
+      "opts": {
+        "A": "Tăng số lượng chuyến bay thương mại",
+        "B": "Giảm chi phí vận hành của hãng hàng không",
+        "C": "Liên tục giảm thiểu thương vong và nguy cơ tai nạn",
+        "D": "Phát triển động cơ đẩy mới cho tàu bay"
+      },
+      "ans": "C",
+      "ansText": "Liên tục giảm thiểu thương vong và nguy cơ tai nạn",
+      "exp": "Mục đích của GASP là liên tục giảm thiểu thương vong và nguy cơ thương vong liên quan đến tai nạn.",
+      "src": "ANSC 1.5, trang 4: “Mục đích của GASP là liên tục giảm thiểu thương vong và nguy cơ thương vong liên quan đến tai nạn bằng cách hướng dẫn việc phát triển và thực hiện hài hòa các kế hoạch an toàn hàng không khu vực và quốc gia.”"
+    },
+    {
+      "lesson": 5,
+      "n": 2,
+      "q": "Theo định nghĩa của ICAO trong Phụ lục 19, “an toàn” trong hàng không được hiểu là gì?",
+      "opts": {
+        "A": "Trạng thái không có rủi ro",
+        "B": "Trạng thái rủi ro được giảm thiểu và kiểm soát ở mức chấp nhận được",
+        "C": "Trạng thái loại bỏ hoàn toàn mọi yếu tố bất định",
+        "D": "Trạng thái chỉ tập trung vào hoạt động bay"
+      },
+      "ans": "B",
+      "ansText": "Trạng thái rủi ro được giảm thiểu và kiểm soát ở mức chấp nhận được",
+      "exp": "Phụ lục 19 định nghĩa an toàn là trạng thái rủi ro được giảm thiểu và kiểm soát đến mức chấp nhận được, không phải trạng thái \"không có rủi ro\".",
+      "src": "ANSC 1.5, trang 4: “An toàn là trạng thái mà các rủi ro liên quan đến hoạt động hàng không… được giảm thiểu và kiểm soát đến mức chấp nhận được.”"
+    },
+    {
+      "lesson": 5,
+      "n": 3,
+      "q": "Hệ thống quản lý an toàn (SMS) cụ thể hóa định nghĩa “An toàn” bằng cách nào?",
+      "opts": {
+        "A": "Loại bỏ hoàn toàn mọi nguy cơ",
+        "B": "Nhận diện, đánh giá và kiểm soát rủi ro",
+        "C": "Tập trung vào đào tạo phi công",
+        "D": "Giảm chi phí vận hành của hãng hàng không"
+      },
+      "ans": "B",
+      "ansText": "Nhận diện, đánh giá và kiểm soát rủi ro",
+      "exp": "SMS cụ thể hóa định nghĩa an toàn qua ba bước: nhận diện rủi ro, đánh giá rủi ro, kiểm soát rủi ro.",
+      "src": "ANSC 1.5, trang 5: “SMS cụ thể hóa định nghĩa \"An toàn\". Nhận diện rủi ro (Hazard Identification)… Đánh giá rủi ro (Risk Assessment)… Kiểm soát rủi ro (Risk Mitigation)…”"
+    },
+    {
+      "lesson": 5,
+      "n": 4,
+      "q": "Trong quản lý không lưu, biện pháp nào được coi là kiểm soát rủi ro để đảm bảo mức chấp nhận được?",
+      "opts": {
+        "A": "Cho phép bay khi có lỗi kỹ thuật nhỏ",
+        "B": "Phân cách tối thiểu giữa các tàu bay",
+        "C": "Tăng số lượng chuyến bay thương mại",
+        "D": "Giảm chi phí bảo dưỡng tàu bay"
+      },
+      "ans": "B",
+      "ansText": "Phân cách tối thiểu giữa các tàu bay",
+      "exp": "Ví dụ trong tài liệu: phân cách tối thiểu giữa các tàu bay là biện pháp kiểm soát rủi ro trong quản lý không lưu.",
+      "src": "ANSC 1.5, trang 4: “Trong quản lý không lưu, việc phân cách tối thiểu giữa các tàu bay là một biện pháp kiểm soát rủi ro, đảm bảo nguy cơ va chạm được giữ ở mức chấp nhận được.”"
+    },
+    {
+      "lesson": 5,
+      "n": 5,
+      "q": "ICAO định nghĩa chương trình an toàn quốc gia là gì?",
+      "opts": {
+        "A": "Bộ quy trình nội bộ của hãng hàng không",
+        "B": "Tập hợp các quy định và hoạt động tích hợp nhằm cải thiện an toàn",
+        "C": "Hệ thống quản lý tài chính của ngành hàng không",
+        "D": "Công cụ giám sát của Cục Hàng không"
+      },
+      "ans": "B",
+      "ansText": "Tập hợp các quy định và hoạt động tích hợp nhằm cải thiện an toàn",
+      "exp": "ICAO định nghĩa SSP là tập hợp các quy định và hoạt động tích hợp nhằm cải thiện an toàn.",
+      "src": "ANSC 1.5, trang 5: “Định nghĩa của ICAO Chương trình an toàn quốc gia (SSP) là một tập hợp các quy định và hoạt động tích hợp nhằm mục đích cải thiện an toàn.”"
+    },
+    {
+      "lesson": 5,
+      "n": 6,
+      "q": "Ai chịu trách nhiệm thiết lập và duy trì chương trình an toàn quốc gia ở Việt Nam?",
+      "opts": {
+        "A": "Bộ Giao thông vận tải",
+        "B": "Bộ Xây dựng",
+        "C": "Cục Hàng không Việt Nam",
+        "D": "ICAO"
+      },
+      "ans": "C",
+      "ansText": "Cục Hàng không Việt Nam",
+      "exp": "Cục Hàng không Việt Nam là nhà chức trách hàng không, có trách nhiệm xây dựng, thực hiện, duy trì Chương trình an toàn HKDD Việt Nam.",
+      "src": "ANSC 1.5, trang 8: “Cục Hàng không Việt Nam là Nhà chức trách hàng không Việt Nam có trách nhiệm xây dựng, tổ chức thực hiện, duy trì, rà soát và cập nhật Chương trình an toàn hàng không dân dụng Việt Nam.”"
+    },
+    {
+      "lesson": 5,
+      "n": 7,
+      "q": "Điều tra tai nạn và sự cố trong chương trình an toàn quốc gia có mục tiêu chính là gì?",
+      "opts": {
+        "A": "Xác định lỗi của cá nhân",
+        "B": "Ngăn ngừa tai nạn và sự cố",
+        "C": "Giảm chi phí bảo dưỡng",
+        "D": "Tăng số lượng chuyến bay"
+      },
+      "ans": "B",
+      "ansText": "Ngăn ngừa tai nạn và sự cố",
+      "exp": "Điều tra tai nạn, sự cố có mục tiêu duy nhất là ngăn ngừa, không nhằm phân bổ trách nhiệm hay lỗi.",
+      "src": "ANSC 1.5, trang 6: “Nhà nước phải thiết lập một quy trình điều tra tai nạn và sự cố độc lập, với mục tiêu duy nhất là ngăn ngừa tai nạn và sự cố, chứ không phải là phân bổ trách nhiệm hay lỗi lầm.”"
+    },
+    {
+      "lesson": 5,
+      "n": 8,
+      "q": "Chương trình an toàn quốc gia yêu cầu các nhà cung cấp dịch vụ nào phải triển khai hệ thống quản lý an toàn?",
+      "opts": {
+        "A": "Chỉ các hãng hàng không",
+        "B": "Chỉ các sân bay",
+        "C": "Các tổ chức đào tạo, khai thác, bảo dưỡng, thiết kế, sản xuất, ATS, sân bay",
+        "D": "Các cơ quan quản lý nhà nước"
+      },
+      "ans": "C",
+      "ansText": "Các tổ chức đào tạo, khai thác, bảo dưỡng, thiết kế, sản xuất, ATS, sân bay",
+      "exp": "SSP yêu cầu các nhà cung cấp dịch vụ triển khai SMS gồm: tổ chức đào tạo, nhà khai thác tàu bay, tổ chức bảo dưỡng, tổ chức thiết kế/sản xuất, nhà cung cấp dịch vụ ATS, nhà khai thác cảng hàng không, sân bay.",
+      "src": "ANSC 1.5, trang 5–6: “(i) Các tổ chức đào tạo… (ii) Các nhà khai thác tàu bay… (iii) Các tổ chức bảo dưỡng… (iv) Các tổ chức chịu trách nhiệm thiết kế kiểu loại hoặc sản xuất tàu bay (v) Các nhà cung cấp dịch vụ kiểm soát không lưu (ATS) (vi) Các nhà khai thác cảng hàng không, sân bay.”"
+    },
+    {
+      "lesson": 5,
+      "n": 9,
+      "q": "Một trong các nội dung thúc đẩy an toàn quốc gia trong Chương trình an toàn quốc là gì?",
+      "opts": {
+        "A": "Đào tạo và truyền thông an toàn",
+        "B": "Giảm chi phí vận hành",
+        "C": "Tăng số lượng chuyến bay",
+        "D": "Phát triển động cơ mới"
+      },
+      "ans": "A",
+      "ansText": "Đào tạo và truyền thông an toàn",
+      "exp": "Thành phần \"Thúc đẩy an toàn quốc gia\" của SSP gồm đào tạo, truyền thông và phổ biến thông tin an toàn.",
+      "src": "ANSC 1.5, trang 8: “(4) Thúc đẩy an toàn quốc gia – Đào tạo nội bộ, truyền thông và phổ biến thông tin an toàn.”"
+    },
+    {
+      "lesson": 5,
+      "n": 10,
+      "q": "Hệ thống quản lý an toàn của doanh nghiệp hàng không được ICAO coi là gì?",
+      "opts": {
+        "A": "Công cụ quản lý tài chính",
+        "B": "Xương sống của hệ thống an toàn",
+        "C": "Bộ quy trình đào tạo phi công",
+        "D": "Hệ thống quản lý nhân sự"
+      },
+      "ans": "B",
+      "ansText": "Xương sống của hệ thống an toàn",
+      "exp": "SMS được tài liệu gọi là \"xương sống\" của hệ thống an toàn trong ngành hàng không hiện đại.",
+      "src": "ANSC 1.5, trang 14: “Nói cách khác, SMS chính là \"xương sống\" của hệ thống an toàn trong ngành hàng không hiện đại.”"
+    },
+    {
+      "lesson": 5,
+      "n": 11,
+      "q": "Nội dung tối thiểu của hệ thống quản lý an toàn phải bao gồm gì?",
+      "opts": {
+        "A": "Nhận diện mối nguy, biện pháp khắc phục, giám sát liên tục",
+        "B": "Quản lý tài chính, nhân sự, đào tạo",
+        "C": "Giảm chi phí và tăng lợi nhuận",
+        "D": "Tăng số lượng chuyến bay"
+      },
+      "ans": "A",
+      "ansText": "Nhận diện mối nguy, biện pháp khắc phục, giám sát liên tục",
+      "exp": "Nội dung SMS tối thiểu gồm: xác định mối nguy và đánh giá rủi ro; biện pháp khắc phục; giám sát liên tục và đánh giá thường xuyên.",
+      "src": "ANSC 1.5, trang 11–12: “i) Quy trình xác định các mối nguy hiểm về an toàn… ii) Quy trình phát triển và thực hiện các biện pháp khắc phục… iii) Quy định về việc giám sát liên tục và đánh giá thường xuyên…”"
+    },
+    {
+      "lesson": 5,
+      "n": 12,
+      "q": "Cơ quan nào chịu trách nhiệm xây dựng và thực hiện Chương trình an toàn hàng không dân dụng Việt Nam?",
+      "opts": {
+        "A": "Bộ Giao thông Vận tải",
+        "B": "Bộ Xây dựng",
+        "C": "Cục Hàng không Việt Nam",
+        "D": "ICAO"
+      },
+      "ans": "C",
+      "ansText": "Cục Hàng không Việt Nam",
+      "exp": "Theo Nghị định 221/2026/NĐ-CP, Cục Hàng không Việt Nam có trách nhiệm xây dựng và tổ chức thực hiện Chương trình an toàn HKDD Việt Nam.",
+      "src": "ANSC 1.5, trang 8: “Cục Hàng không Việt Nam là Nhà chức trách hàng không Việt Nam có trách nhiệm xây dựng, tổ chức thực hiện, duy trì, rà soát và cập nhật Chương trình an toàn hàng không dân dụng Việt Nam.”"
+    },
+    {
+      "lesson": 5,
+      "n": 13,
+      "q": "Mục tiêu cao nhất trong mọi hoạt động hàng không theo Chương trình an toàn hàng không là gì?",
+      "opts": {
+        "A": "Hiệu quả kinh tế",
+        "B": "An toàn",
+        "C": "Phát triển bền vững",
+        "D": "Hợp tác quốc tế"
+      },
+      "ans": "B",
+      "ansText": "An toàn",
+      "exp": "Chính sách an toàn trong Chương trình (Thông tư 18/2026/TT-BXD) xác định an toàn là mục tiêu cao nhất.",
+      "src": "ANSC 1.5, trang 10: “An toàn là mục tiêu cao nhất trong mọi hoạt động hàng không.”"
+    },
+    {
+      "lesson": 5,
+      "n": 14,
+      "q": "Một trong những nội dung thúc đẩy an toàn hàng không là gì?",
+      "opts": {
+        "A": "Giảm chi phí vận hành",
+        "B": "Khuyến khích báo cáo an toàn tự nguyện",
+        "C": "Tăng số lượng chuyến bay",
+        "D": "Mở rộng thị trường quốc tế"
+      },
+      "ans": "B",
+      "ansText": "Khuyến khích báo cáo an toàn tự nguyện",
+      "exp": "Một trong các nội dung thúc đẩy an toàn là khuyến khích báo cáo an toàn tự nguyện, xây dựng văn hóa an toàn.",
+      "src": "ANSC 1.5, trang 10: “Khuyến khích báo cáo an toàn tự nguyện, xây dựng văn hóa an toàn.”"
+    },
+    {
+      "lesson": 5,
+      "n": 15,
+      "q": "Theo ICAO, mỗi sân bay phải thiết lập kế hoạch ứng phó khẩn cấp nhằm đối phó với những tình huống nào?",
+      "opts": {
+        "A": "Chỉ tai nạn tàu bay",
+        "B": "Chỉ hỏa hoạn và thiên tai",
+        "C": "Các sự cố tàu bay, phá hoại, hàng hóa nguy hiểm, hỏa hoạn, thiên tai, dịch bệnh",
+        "D": "Chỉ hành vi can thiệp bất hợp pháp"
+      },
+      "ans": "C",
+      "ansText": "Các sự cố tàu bay, phá hoại, hàng hóa nguy hiểm, hỏa hoạn, thiên tai, dịch bệnh",
+      "exp": "Phụ lục 14 yêu cầu kế hoạch ứng phó khẩn cấp sân bay bao quát nhiều tình huống: sự cố tàu bay, phá hoại, hàng hóa nguy hiểm, hỏa hoạn, thiên tai, khẩn cấp sức khỏe cộng đồng (dịch bệnh).",
+      "src": "ANSC 1.5, trang 21: “Các trường hợp khẩn cấp như là sự cố tàu bay, phá hoại bao gồm cả đe dọa đánh bom, tàu bay bị chiếm giữ trái phép, sự cố liên quan đến hàng hóa nguy hiểm, hỏa hoạn, thiên tai và các trường hợp khẩn cấp về sức khỏe cộng đồng…”"
+    },
+    {
+      "lesson": 6,
+      "n": 1,
+      "q": "Hành khách quốc tế phải thực hiện thủ tục nào trước khi vào khu cách ly?",
+      "opts": {
+        "A": "Kiểm tra an ninh và xuất nhập cảnh",
+        "B": "Kiểm tra vé điện tử",
+        "C": "Kiểm tra hành lý ký gửi",
+        "D": "Kiểm tra sức khỏe"
+      },
+      "ans": "A",
+      "ansText": "Kiểm tra an ninh và xuất nhập cảnh",
+      "exp": "Hành khách quốc tế phải qua kiểm tra soi chiếu an ninh và thủ tục xuất cảnh rồi mới vào khu cách ly.",
+      "src": "ANSC 1.6, trang 6–7: “Sau khi hoàn tất kiểm tra soi chiếu và xuất cảnh hành khách vào khu vực phòng chờ (khu cách ly).”"
+    },
+    {
+      "lesson": 6,
+      "n": 2,
+      "q": "Thời điểm đóng cửa tàu bay thường diễn ra khi nào?",
+      "opts": {
+        "A": "30 phút trước giờ cất cánh",
+        "B": "20 phút trước giờ cất cánh",
+        "C": "15 phút trước giờ cất cánh",
+        "D": "10 phút trước giờ cất cánh"
+      },
+      "ans": "C",
+      "ansText": "15 phút trước giờ cất cánh",
+      "exp": "Việc đóng cửa tàu bay thường thực hiện không quá 15 phút trước giờ cất cánh.",
+      "src": "ANSC 1.6, trang 7: “Việc đóng cửa tàu bay thường thực hiện không quá 15 phút trước giờ cất cánh.”"
+    },
+    {
+      "lesson": 6,
+      "n": 3,
+      "q": "Hành khách cần hỗ trợ đặc biệt (UM, khuyết tật, phụ nữ có thai) phải thông báo từ giai đoạn nào?",
+      "opts": {
+        "A": "Khi làm thủ tục check-in",
+        "B": "Khi boarding",
+        "C": "Khi đặt chỗ",
+        "D": "Khi nhận hành lý"
+      },
+      "ans": "C",
+      "ansText": "Khi đặt chỗ",
+      "exp": "Hành khách cần hỗ trợ đặc biệt phải thông báo từ khâu đặt chỗ để hãng chuẩn bị.",
+      "src": "ANSC 1.6, trang 7: “Hành khách cần sự hỗ trợ đặc biệt (UM - trẻ em đi một mình, hành khách khuyết tật, phụ nữ có thai) cần thông báo từ khâu đặt chỗ để hãng chuẩn bị.”"
+    },
+    {
+      "lesson": 6,
+      "n": 4,
+      "q": "Hãng hàng không chịu trách nhiệm pháp lý cao nhất đối với hành khách và hành lý dựa trên cơ sở nào?",
+      "opts": {
+        "A": "Quy định của ICAO",
+        "B": "Hợp đồng vận chuyển (vé máy bay)",
+        "C": "Quy định của hải quan",
+        "D": "Quy định của an ninh sân bay"
+      },
+      "ans": "B",
+      "ansText": "Hợp đồng vận chuyển (vé máy bay)",
+      "exp": "Trách nhiệm pháp lý cao nhất của hãng hàng không dựa trên hợp đồng vận chuyển (vé máy bay).",
+      "src": "ANSC 1.6, trang 8: “Hãng hàng không là bên chịu trách nhiệm pháp lý cao nhất đối với hành khách và hành lý dựa trên hợp đồng vận chuyển (vé máy bay).”"
+    },
+    {
+      "lesson": 6,
+      "n": 5,
+      "q": "Hành khách có nghĩa vụ gì để đảm bảo an ninh, an toàn chung?",
+      "opts": {
+        "A": "Chỉ cần mua vé đầy đủ",
+        "B": "Tuân thủ điều lệ vận chuyển và khai báo trung thực hành lý",
+        "C": "Không cần chuẩn bị giấy tờ tùy thân",
+        "D": "Chỉ cần có mặt tại sân bay"
+      },
+      "ans": "B",
+      "ansText": "Tuân thủ điều lệ vận chuyển và khai báo trung thực hành lý",
+      "exp": "Hành khách có nghĩa vụ tuân thủ điều lệ vận chuyển và khai báo trung thực về hành lý.",
+      "src": "ANSC 1.6, trang 8: “Hành khách là chủ thể sử dụng dịch vụ, có nghĩa vụ tuân thủ các điều lệ vận chuyển để đảm bảo an ninh, an toàn chung. … Khai báo trung thực về hành lý mang theo.”"
+    },
+    {
+      "lesson": 6,
+      "n": 6,
+      "q": "Đơn vị phục vụ mặt đất (GHA) có nhiệm vụ nào sau đây?",
+      "opts": {
+        "A": "Cấp phép bay",
+        "B": "Làm thủ tục check-in và xử lý hành lý",
+        "C": "Kiểm tra hộ chiếu, thị thực",
+        "D": "Giám sát an ninh hàng không"
+      },
+      "ans": "B",
+      "ansText": "Làm thủ tục check-in và xử lý hành lý",
+      "exp": "GHA phục vụ hành khách (check-in, cấp thẻ lên tàu bay) và phục vụ hành lý. Kiểm tra hộ chiếu là việc của Công an cửa khẩu; giám sát an ninh là việc của lực lượng ANHK.",
+      "src": "ANSC 1.6, trang 8: “Nhiệm vụ phục vụ hành khách (Passenger Services) là làm thủ tục check-in… Nhiệm vụ phục vụ hành lý (Baggage Services) là tiếp nhận hành lý từ quầy check-in…”"
+    },
+    {
+      "lesson": 6,
+      "n": 7,
+      "q": "Cơ quan nào chịu trách nhiệm giám sát an toàn, cấp phép bay và xử phạt hãng vi phạm nghĩa vụ với hành khách?",
+      "opts": {
+        "A": "Hải quan",
+        "B": "Công an cửa khẩu",
+        "C": "Cảng vụ hàng không / Cục Hàng không",
+        "D": "An ninh hàng không"
+      },
+      "ans": "C",
+      "ansText": "Cảng vụ hàng không / Cục Hàng không",
+      "exp": "Cảng vụ hàng không / Cục Hàng không giám sát an toàn, cấp phép bay, xử phạt hãng vi phạm nghĩa vụ với hành khách.",
+      "src": "ANSC 1.6, trang 9: “Cảng vụ hàng không / Cục Hàng không… Có trách nhiệm giám sát an toàn… cấp phép bay. … Giám sát và xử phạt các hãng hàng không vi phạm nghĩa vụ đối với hành khách khi xảy ra chậm, hủy chuyến.”"
+    },
+    {
+      "lesson": 6,
+      "n": 8,
+      "q": "Lực lượng an ninh hàng không có nhiệm vụ chính là gì?",
+      "opts": {
+        "A": "Bán vé cho hành khách",
+        "B": "Kiểm tra, soi chiếu, lục soát và ngăn chặn hành vi can thiệp bất hợp pháp",
+        "C": "Cấp hộ chiếu cho hành khách",
+        "D": "Quản lý hệ thống đặt chỗ"
+      },
+      "ans": "B",
+      "ansText": "Kiểm tra, soi chiếu, lục soát và ngăn chặn hành vi can thiệp bất hợp pháp",
+      "exp": "Lực lượng ANHK chịu trách nhiệm kiểm tra, soi chiếu, lục soát, giám sát và ngăn chặn hành vi can thiệp bất hợp pháp.",
+      "src": "ANSC 1.6, trang 9: “Lực lượng An ninh hàng không… chịu trách nhiệm kiểm tra, soi chiếu, lục soát, giám sát an ninh hàng không đối với hành khách và hành lý… ngăn chặn đối phó với các hành vi can thiệp bất hợp pháp.”"
+    },
+    {
+      "lesson": 6,
+      "n": 9,
+      "q": "Trong chuyến bay quốc tế, cơ quan nào kiểm soát nghĩa vụ thuế đối với hành lý hành khách mang theo?",
+      "opts": {
+        "A": "Công an cửa khẩu",
+        "B": "Hải quan",
+        "C": "Kiểm dịch y tế",
+        "D": "Cục Hàng không"
+      },
+      "ans": "B",
+      "ansText": "Hải quan",
+      "exp": "Hải quan kiểm soát nghĩa vụ thuế đối với hành lý hành khách mang theo.",
+      "src": "ANSC 1.6, trang 9: “Hải quan (Customs) kiểm soát nghĩa vụ thuế đối với hành lý hành khách mang theo; ngăn chặn buôn lậu, vận chuyển ngoại tệ vượt quá quy định.”"
+    },
+    {
+      "lesson": 6,
+      "n": 10,
+      "q": "Vận đơn hàng không (Air Waybill – AWB) được phát hành ở giai đoạn nào của quy trình quốc tế?",
+      "opts": {
+        "A": "Giai đoạn chuẩn bị và đặt chỗ",
+        "B": "Giai đoạn thủ tục hải quan",
+        "C": "Giai đoạn vận chuyển và nhận hàng",
+        "D": "Giai đoạn kiểm tra an ninh"
+      },
+      "ans": "C",
+      "ansText": "Giai đoạn vận chuyển và nhận hàng",
+      "exp": "Trong quy trình quốc tế, việc \"Phát hành AWB\" được liệt kê ở Giai đoạn 3 – Vận chuyển và nhận hàng.",
+      "src": "ANSC 1.6, trang 11: “c) Giai đoạn 3 - Vận chuyển và nhận hàng (Linehaul & Destination). Phát hành AWB: Hãng hàng không hoặc đại lý phát hành vận đơn.”"
+    },
+    {
+      "lesson": 6,
+      "n": 11,
+      "q": "Trong quy trình nội địa, hàng hóa phải qua kiểm tra nào trước khi cấp vận đơn?",
+      "opts": {
+        "A": "Kiểm tra vé máy bay",
+        "B": "Kiểm tra soi chiếu X-ray an ninh",
+        "C": "Kiểm tra giấy tờ tùy thân",
+        "D": "Kiểm tra sức khỏe"
+      },
+      "ans": "B",
+      "ansText": "Kiểm tra soi chiếu X-ray an ninh",
+      "exp": "Trong quy trình nội địa, hàng hóa phải qua máy soi chiếu X-ray trước khi được gắn mã vận đơn (AWB).",
+      "src": "ANSC 1.6, trang 11: “Kiểm tra an ninh và đóng gói cấp vận đơn hàng không: Hàng hóa phải qua được soi chiếu qua máy soi chiếu X-ray để phát hiện vật cấm chất nổ.”"
+    },
+    {
+      "lesson": 6,
+      "n": 12,
+      "q": "Hàng hóa nội địa được chất xếp lên thiết bị tiêu chuẩn nào trước khi đưa vào khoang hàng tàu bay?",
+      "opts": {
+        "A": "Container đường biển",
+        "B": "ULD (Unit Load Device)",
+        "C": "Xe tải chuyên dụng",
+        "D": "Pallet gỗ thô"
+      },
+      "ans": "B",
+      "ansText": "ULD (Unit Load Device)",
+      "exp": "Hàng được chất xếp lên ULD (thùng hoặc pallet tiêu chuẩn) trước khi đưa vào khoang hàng.",
+      "src": "ANSC 1.6, trang 12: “Nhân viên chất xếp hàng lên ULD (Unit Load Device) các thùng hoặc pallet tiêu chuẩn để đưa vào khoang hàng của tàu bay.”"
+    },
+    {
+      "lesson": 6,
+      "n": 13,
+      "q": "Quy trình vận chuyển hàng hóa nội địa bằng đường hàng không đặc biệt hữu ích cho loại hàng nào?",
+      "opts": {
+        "A": "Hàng hóa giá trị thấp",
+        "B": "Hàng hóa dễ hỏng, giá trị cao, cần giao nhanh",
+        "C": "Hàng hóa cồng kềnh không thể vận chuyển",
+        "D": "Hàng hóa không cần kiểm tra an ninh"
+      },
+      "ans": "B",
+      "ansText": "Hàng hóa dễ hỏng, giá trị cao, cần giao nhanh",
+      "exp": "Quy trình nội địa đặc biệt hữu ích cho hàng giá trị cao, dễ hỏng hoặc cần giao nhanh.",
+      "src": "ANSC 1.6, trang 12: “…đặc biệt hữu ích cho hàng hóa giá trị cao, dễ hỏng hoặc cần giao nhanh.”"
+    },
+    {
+      "lesson": 6,
+      "n": 14,
+      "q": "Người gửi hàng (Shipper/Consignor) chịu trách nhiệm pháp lý cao nhất về điều gì?",
+      "opts": {
+        "A": "Lịch trình bay",
+        "B": "Tính trung thực, an toàn và hợp pháp của lô hàng",
+        "C": "Thuế nhập khẩu",
+        "D": "Phí lưu kho"
+      },
+      "ans": "B",
+      "ansText": "Tính trung thực, an toàn và hợp pháp của lô hàng",
+      "exp": "Người gửi hàng chịu trách nhiệm pháp lý cao nhất về tính trung thực, an toàn và hợp pháp của lô hàng.",
+      "src": "ANSC 1.6, trang 12: “Người gửi hàng chịu trách nhiệm pháp lý cao nhất về tính trung thực, an toàn và hợp pháp của lô hàng trước khi đưa lên máy bay.”"
+    },
+    {
+      "lesson": 6,
+      "n": 15,
+      "q": "An ninh hàng không thực hiện kiểm tra hàng hóa bằng phương tiện nào?",
+      "opts": {
+        "A": "Máy soi chiếu X-quang",
+        "B": "Máy đo trọng lượng",
+        "C": "Máy kiểm tra nhiệt độ",
+        "D": "Máy kiểm tra độ ẩm"
+      },
+      "ans": "A",
+      "ansText": "Máy soi chiếu X-quang",
+      "exp": "An ninh hàng không kiểm tra hàng hóa bằng máy soi chiếu X-quang.",
+      "src": "ANSC 1.6, trang 15: “Thực hiện soi chiếu bằng máy X-quang để phát hiện vũ khí, chất nổ, ma túy, hàng cấm.”"
+    }
+  ]
+}

@@ -1,0 +1,84 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  color-scheme: light;
+  --f-display: 'Quicksand', 'Be Vietnam Pro', system-ui, sans-serif;
+  --f-body: 'Be Vietnam Pro', system-ui, -apple-system, sans-serif;
+  --bar-h: 120px;
+}
+
+[data-theme='dark'] {
+  color-scheme: dark;
+}
+
+* {
+  box-sizing: border-box;
+  -webkit-tap-highlight-color: transparent;
+}
+
+html {
+  scroll-behavior: smooth;
+  scroll-padding-top: env(safe-area-inset-top, 0px);
+}
+
+body {
+  font-family: var(--f-body);
+  background-color: var(--fallback-b1,oklch(var(--b1)/1));
+  color: var(--fallback-bc,oklch(var(--bc)/1));
+  margin: 0;
+  padding: 0;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  touch-action: manipulation;
+  overflow-x: hidden;
+}
+
+/* iOS Safe Areas */
+.safe-top {
+  padding-top: env(safe-area-inset-top, 0px);
+}
+
+.safe-bottom {
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+}
+
+/* Question Option States */
+.quiz-opt-btn {
+  transition: all 0.15s cubic-bezier(0.4, 0, 0.2, 1);
+  user-select: none;
+}
+
+.quiz-opt-btn:active:not(:disabled) {
+  transform: scale(0.985);
+}
+
+/* Custom scrollbars */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: rgba(150, 150, 150, 0.25);
+  border-radius: 9999px;
+}
+
+/* Pulsing flash for active jump */
+@keyframes highlightFlash {
+  0% {
+    box-shadow: 0 0 0 4px rgba(217, 168, 117, 0.6);
+  }
+  100% {
+    box-shadow: none;
+  }
+}
+
+.flash-active {
+  animation: highlightFlash 1.2s ease-out;
+}

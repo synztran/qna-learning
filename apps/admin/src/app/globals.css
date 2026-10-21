@@ -1,0 +1,22 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  color-scheme: light;
+  --f-display: 'Quicksand', 'Be Vietnam Pro', system-ui, sans-serif;
+  --f-body: 'Be Vietnam Pro', system-ui, -apple-system, sans-serif;
+}
+
+[data-theme='dark'] {
+  color-scheme: dark;
+}
+
+body {
+  font-family: var(--f-body);
+  background-color: var(--fallback-b1,oklch(var(--b1)/1));
+  color: var(--fallback-bc,oklch(var(--bc)/1));
+  margin: 0;
+  padding: 0;
+  -webkit-font-smoothing: antialiased;
+}
