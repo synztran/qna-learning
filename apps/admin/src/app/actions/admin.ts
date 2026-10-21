@@ -3,9 +3,29 @@
 import { createSupabaseAdminClient, parseQuizJson, DEFAULT_SEED_DATA } from '@qna/database';
 import type { Question, QuizRawData, UserProfile } from '@qna/types';
 import { revalidatePath } from 'next/cache';
+import fs from 'fs';
+import path from 'path';
 
 function getAdmin() {
   return createSupabaseAdminClient();
+}
+
+export interface FolderQuestionSource {
+  fileName: string;
+  fullPath: string;
+  slug: string;
+  title: string;
+  lessonsCount: number;
+  questionsCount: number;
+  fileSizeBytes: number;
+  isValid: boolean;
+  errorMessage?: string;
+  syncedSet?: {
+    id: string;
+    slug: string;
+    title: string;
+    isActive: boolean;
+  } | null;
 }
 
 // -------------------------------------------------------------
@@ -374,6 +394,253 @@ export async function deleteQuestion(questionId: string) {
     if (error) return { success: false, error: error.message };
     revalidatePath('/');
     return { success: true };
+  } catch (err: any) {
+    return { success: false, error: err.message };
+  }
+}
+
+// -------------------------------------------------------------
+// FOLDER SOURCE SCANNER & SET BUILDER ACTIONS
+// -------------------------------------------------------------
+function resolveSourceFolder(customPath?: string): string {
+  if (customPath && customPath.trim().length > 0) {
+    return path.isAbsolute(customPath) ? customPath : path.resolve(process.cwd(), customPath);
+  }
+
+  // Look in standard candidate locations
+  const candidates = [
+    path.resolve(process.cwd(), 'data/question-sources'),
+    path.resolve(process.cwd(), '../../data/question-sources'),
+    path.resolve(process.cwd(), '../data/question-sources'),
+    path.resolve(process.cwd(), 'src/question_sources'),
+    path.resolve(process.cwd(), 'apps/admin/src/question_sources'),
+    path.resolve(process.cwd(), '../../apps/admin/src/question_sources'),
+  ];
+
+  for (const c of candidates) {
+    if (fs.existsSync(c)) return c;
+  }
+
+  return path.resolve(process.cwd(), '../../data/question-sources');
+}
+
+export async function listQuestionSourcesFromFolder(customPath?: string): Promise<{
+  folderPath: string;
+  sources: FolderQuestionSource[];
+  error?: string;
+}> {
+  try {
+    const targetDir = resolveSourceFolder(customPath);
+
+    if (!fs.existsSync(targetDir)) {
+      return {
+        folderPath: targetDir,
+        sources: [],
+        error: `Thư mục không tồn tại: ${targetDir}`,
+      };
+    }
+
+    const files = await fs.promises.readdir(targetDir);
+    const jsonFiles = files.filter((f) => f.endsWith('.json'));
+
+    let syncedSetsMap: Record<string, { id: string; slug: string; title: string; isActive: boolean }> = {};
+    if (process.env.SUPABASE_SERVICE_ROLE_KEY) {
+      try {
+        const supabase = getAdmin();
+        const { data: dbSets } = await supabase.from('quiz_sets').select('id, slug, title, is_active');
+        if (dbSets) {
+          dbSets.forEach((s) => {
+            syncedSetsMap[s.slug] = {
+              id: s.id,
+              slug: s.slug,
+              title: s.title,
+              isActive: s.is_active,
+            };
+          });
+        }
+      } catch (e) {
+        console.warn('Could not query DB for synced sets:', e);
+      }
+    }
+
+    const sources: FolderQuestionSource[] = [];
+
+    for (const f of jsonFiles) {
+      const fullPath = path.join(targetDir, f);
+      const stat = await fs.promises.stat(fullPath);
+      const baseSlug = f.replace(/\.json$/i, '').replace(/_/g, '-').toLowerCase();
+
+      try {
+        const content = await fs.promises.readFile(fullPath, 'utf-8');
+        const parsed = JSON.parse(content);
+
+        const lessonsCount = Array.isArray(parsed.lessons) ? parsed.lessons.length : 0;
+        const questionsCount = Array.isArray(parsed.qs) ? parsed.qs.length : 0;
+        const title =
+          parsed.title ||
+          f
+            .replace(/\.json$/i, '')
+            .replace(/[-_]/g, ' ')
+            .toUpperCase();
+
+        sources.push({
+          fileName: f,
+          fullPath,
+          slug: baseSlug,
+          title,
+          lessonsCount,
+          questionsCount,
+          fileSizeBytes: stat.size,
+          isValid: questionsCount > 0,
+          syncedSet: syncedSetsMap[baseSlug] || null,
+        });
+      } catch (err: any) {
+        sources.push({
+          fileName: f,
+          fullPath,
+          slug: baseSlug,
+          title: f,
+          lessonsCount: 0,
+          questionsCount: 0,
+          fileSizeBytes: stat.size,
+          isValid: false,
+          errorMessage: err.message,
+          syncedSet: syncedSetsMap[baseSlug] || null,
+        });
+      }
+    }
+
+    return {
+      folderPath: targetDir,
+      sources,
+    };
+  } catch (err: any) {
+    return {
+      folderPath: customPath || '',
+      sources: [],
+      error: err.message,
+    };
+  }
+}
+
+export async function buildSetFromFolderSource(fileName: string, customPath?: string) {
+  try {
+    const targetDir = resolveSourceFolder(customPath);
+    const fullPath = path.join(targetDir, fileName);
+
+    if (!fs.existsSync(fullPath)) {
+      return { success: false, error: `File không tồn tại: ${fullPath}` };
+    }
+
+    const content = await fs.promises.readFile(fullPath, 'utf-8');
+    const parsedData: QuizRawData = JSON.parse(content);
+    const slug = fileName.replace(/\.json$/i, '').replace(/_/g, '-').toLowerCase();
+    const title =
+      (parsedData as any).title ||
+      fileName
+        .replace(/\.json$/i, '')
+        .replace(/[-_]/g, ' ')
+        .toUpperCase();
+
+    const supabase = getAdmin();
+
+    // 1. Create/update set
+    const { data: setRecord, error: setError } = await supabase
+      .from('quiz_sets')
+      .upsert(
+        {
+          slug,
+          title,
+          description: `Ngân hàng câu hỏi ${title} từ file ${fileName}`,
+          is_active: true,
+          storage_file_path: fileName,
+        },
+        { onConflict: 'slug' }
+      )
+      .select()
+      .single();
+
+    if (setError || !setRecord) {
+      return { success: false, error: setError?.message || 'Lỗi tạo bộ đề' };
+    }
+
+    const { lessons, questions } = parseQuizJson(parsedData);
+
+    // 2. Insert lessons
+    const lessonMap: Record<number, string> = {};
+    for (const l of lessons) {
+      const { data: lRecord } = await supabase
+        .from('lessons')
+        .insert({
+          set_id: setRecord.id,
+          lesson_num: l.n,
+          title: l.title,
+          source_doc: l.src || null,
+        })
+        .select()
+        .single();
+
+      if (lRecord) lessonMap[l.n] = lRecord.id;
+    }
+
+    // 3. Clear existing questions of this set and insert fresh ones
+    await supabase.from('questions').delete().eq('set_id', setRecord.id);
+
+    const questionsToInsert = questions.map((q) => ({
+      set_id: setRecord.id,
+      lesson_id: lessonMap[q.lesson] || null,
+      lesson_num: q.lesson,
+      question_order: q.n,
+      question_text: q.q,
+      options: q.opts as any,
+      correct_option: q.ans,
+      answer_text: q.ansText || q.opts[q.ans],
+      explanation: q.exp,
+      source_ref: q.src,
+      is_active: true,
+    }));
+
+    const chunkSize = 50;
+    for (let i = 0; i < questionsToInsert.length; i += chunkSize) {
+      const chunk = questionsToInsert.slice(i, i + chunkSize);
+      await supabase.from('questions').insert(chunk);
+    }
+
+    revalidatePath('/');
+    return {
+      success: true,
+      message: `Đã build thành công bộ đề "${title}" với ${lessons.length} bài và ${questions.length} câu hỏi!`,
+    };
+  } catch (err: any) {
+    return { success: false, error: err.message };
+  }
+}
+
+export async function setActiveQuizSet(setId: string) {
+  try {
+    const supabase = getAdmin();
+    // Set all to false first
+    await supabase.from('quiz_sets').update({ is_active: false }).neq('id', setId);
+    // Set target to active
+    const { error } = await supabase.from('quiz_sets').update({ is_active: true }).eq('id', setId);
+
+    if (error) return { success: false, error: error.message };
+
+    revalidatePath('/');
+    return { success: true };
+  } catch (err: any) {
+    return { success: false, error: err.message };
+  }
+}
+
+export async function previewFolderSource(fileName: string, customPath?: string) {
+  try {
+    const targetDir = resolveSourceFolder(customPath);
+    const fullPath = path.join(targetDir, fileName);
+    const content = await fs.promises.readFile(fullPath, 'utf-8');
+    const parsedData: QuizRawData = JSON.parse(content);
+    const { lessons, questions } = parseQuizJson(parsedData);
+    return { success: true, lessons, questions };
   } catch (err: any) {
     return { success: false, error: err.message };
   }

@@ -5,7 +5,8 @@
   "types": "./src/index.ts",
   "private": true,
   "scripts": {
-    "lint": "echo 0"
+    "lint": "echo 0",
+    "db:seed": "tsx src/scripts/seed.ts"
   },
   "dependencies": {
     "@qna/types": "workspace:*",
@@ -13,6 +14,7 @@
     "@supabase/supabase-js": "^2.49.1"
   },
   "devDependencies": {
+    "tsx": "^4.19.3",
     "typescript": "^5.8.2"
   }
 }

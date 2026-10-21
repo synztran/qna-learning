@@ -7,6 +7,7 @@
     "dev": "turbo run dev",
     "dev:web": "turbo run dev --filter=@qna/web",
     "dev:admin": "turbo run dev --filter=@qna/admin",
+    "db:seed": "pnpm --filter=@qna/database db:seed",
     "lint": "turbo run lint",
     "clean": "turbo run clean"
   },

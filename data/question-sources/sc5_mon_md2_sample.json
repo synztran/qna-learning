@@ -1,0 +1,46 @@
+{
+  "lessons": [
+    {
+      "n": 1,
+      "title": "BÀI 1. QUY CHẾ KHÔNG LƯU QUỐC TẾ",
+      "src": "Tài liệu ICAO Doc 4444"
+    },
+    {
+      "n": 2,
+      "title": "BÀI 2. NGUYÊN TẮC AN TOÀN HÀNG KHÔNG",
+      "src": "Phụ ước 19 ICAO"
+    }
+  ],
+  "qs": [
+    {
+      "lesson": 1,
+      "n": 1,
+      "q": "Cơ quan nào chịu trách nhiệm ban hành các tiêu chuẩn và khuyến cáo thực hành hàng không dân dụng quốc tế (SARPs)?",
+      "opts": {
+        "A": "ICAO (Tổ chức Hàng không Dân dụng Quốc tế)",
+        "B": "IATA (Hiệp hội Vận tải Hàng không Quốc tế)",
+        "C": "FAA (Cục Hàng không Liên bang Hoa Kỳ)",
+        "D": "EASA (Cơ quan An toàn Hàng không Châu Âu)"
+      },
+      "ans": "A",
+      "ansText": "ICAO (Tổ chức Hàng không Dân dụng Quốc tế)",
+      "exp": "ICAO là cơ quan chuyên môn của Liên Hợp Quốc có nhiệm vụ thiết lập các tiêu chuẩn và khuyến cáo thực hành quốc tế (SARPs) theo Công ước Chicago 1944.",
+      "src": "ICAO Annex 11"
+    },
+    {
+      "lesson": 1,
+      "n": 2,
+      "q": "Vùng thông báo bay (FIR) có định nghĩa như thế nào?",
+      "opts": {
+        "A": "Vùng trời có kích thước xác định mà trong đó dịch vụ thông báo bay và dịch vụ báo động được cung cấp",
+        "B": "Toàn bộ không phận nội địa của một quốc gia độc lập",
+        "C": "Khu vực giới hạn quanh sân bay trong bán kính 10 km",
+        "D": "Đường bay quốc tế chỉ dành cho tàu bay quân sự"
+      },
+      "ans": "A",
+      "ansText": "Vùng trời có kích thước xác định mà trong đó dịch vụ thông báo bay và dịch vụ báo động được cung cấp",
+      "exp": "Theo ICAO, FIR (Flight Information Region) là vùng trời xác định cung cấp dịch vụ thông tin bay và báo động.",
+      "src": "Quy chế không lưu Việt Nam, Điều 12"
+    }
+  ]
+}

@@ -1,0 +1,808 @@
+{
+  "title": "PHÁP LUẬT VỀ HÀNG KHÔNG VÀ AN NINH HÀNG KHÔNG",
+  "slug": "phap-luat-va-an-ninh-hang-khong",
+  "lessons": [
+    {
+      "n": 1,
+      "title": "BÀI 1. PHÁP LUẬT VÀ AN NINH HÀNG KHÔNG DÂN DỤNG",
+      "src": "Giáo trình Pháp luật về Hàng không và An ninh hàng không"
+    }
+  ],
+  "qs": [
+    {
+      "lesson": 1,
+      "n": 1,
+      "q": "An ninh hàng không được định nghĩa như thế nào theo Luật Hàng không dân dụng Việt Nam?",
+      "opts": {
+        "A": "An ninh hàng không là hoạt động kiểm tra hành khách và hành lý trước chuyến bay.",
+        "B": "An ninh hàng không là bộ phận của an ninh quốc gia, được tiến hành bằng việc kết hợp sử dụng các biện pháp, nhân lực và nguồn lực vật chất nhằm bảo vệ hoạt động hàng không dân dụng, phòng ngừa và chống lại các hành vi can thiệp bất hợp pháp.",
+        "C": "An ninh hàng không là bộ phận của an toàn hàng không, chỉ thực hiện bằng biện pháp kỹ thuật.",
+        "D": "An ninh hàng không là hoạt động quản lý khai thác sân bay nhằm bảo đảm hiệu quả kinh doanh hàng không."
+      },
+      "ans": "B",
+      "ansText": "An ninh hàng không là bộ phận của an ninh quốc gia, được tiến hành bằng việc kết hợp sử dụng các biện pháp, nhân lực và nguồn lực vật chất nhằm bảo vệ hoạt động hàng không dân dụng, phòng ngừa và chống lại các hành vi can thiệp bất hợp pháp.",
+      "exp": "An ninh hàng không là bộ phận của an ninh quốc gia, được tiến hành bằng việc kết hợp sử dụng các biện pháp, nhân lực và nguồn lực vật chất nhằm bảo vệ hoạt động hàng không dân dụng, phòng ngừa và chống lại các hành vi can thiệp bất hợp pháp.",
+      "src": "Pháp luật về hàng không và an ninh hàng không"
+    },
+    {
+      "lesson": 1,
+      "n": 2,
+      "q": "Công ước La Hague 1970 có tên đầy đủ là gì?",
+      "opts": {
+        "A": "Công ước về các hành vi phạm tội và một số hành vi khác thực hiện trên tàu bay.",
+        "B": "Công ước về đánh dấu các chất nổ dẻo nhằm mục đích phát hiện.",
+        "C": "Công ước nhằm ngăn chặn việc chiếm giữ bất hợp pháp tàu bay.",
+        "D": "Công ước về ngăn chặn các hành vi bất hợp pháp chống lại an toàn của hàng không dân dụng."
+      },
+      "ans": "C",
+      "ansText": "Công ước nhằm ngăn chặn việc chiếm giữ bất hợp pháp tàu bay.",
+      "exp": "Công ước nhằm ngăn chặn việc chiếm giữ bất hợp pháp tàu bay.",
+      "src": "Pháp luật về hàng không và an ninh hàng không"
+    },
+    {
+      "lesson": 1,
+      "n": 3,
+      "q": "Hệ thống điều ước Chicago bao gồm những văn kiện nào?",
+      "opts": {
+        "A": "Theo giáo trình: Công ước Chicago năm 1944; 15 Nghị định thư bổ sung, sửa đổi Công ước; 04 Nghị định thư về ngôn ngữ; và 02 Hiệp định được thông qua tại Hội nghị Chicago là Hiệp định hai thương quyền và Hiệp định năm thương quyền.",
+        "B": "Công ước Chicago năm 1944; 19 Phụ ước; 02 Nghị định thư; 05 Hiệp định thương quyền.",
+        "C": "Công ước Chicago năm 1944; 12 Nghị định thư sửa đổi; 03 Nghị định thư ngôn ngữ; 01 Hiệp định thương quyền.",
+        "D": "Công ước Chicago năm 1944; 10 Nghị định thư sửa đổi; 04 Nghị định thư ngôn ngữ; 03 Hiệp định."
+      },
+      "ans": "A",
+      "ansText": "Theo giáo trình: Công ước Chicago năm 1944; 15 Nghị định thư bổ sung, sửa đổi Công ước; 04 Nghị định thư về ngôn ngữ; và 02 Hiệp định được thông qua tại Hội nghị Chicago là Hiệp định hai thương quyền và Hiệp định năm thương quyền.",
+      "exp": "Theo giáo trình: Công ước Chicago năm 1944; 15 Nghị định thư bổ sung, sửa đổi Công ước; 04 Nghị định thư về ngôn ngữ; và 02 Hiệp định được thông qua tại Hội nghị Chicago là Hiệp định hai thương quyền và Hiệp định năm thương quyền.",
+      "src": "Pháp luật về hàng không và an ninh hàng không"
+    },
+    {
+      "lesson": 1,
+      "n": 4,
+      "q": "Công ước Tokyo 1963 được ký ở đâu và có hiệu lực từ ngày nào?",
+      "opts": {
+        "A": "Được ký tại Montreal, Canada ngày 23/9/1971 và có hiệu lực từ ngày 26/01/1973.",
+        "B": "Được ký tại Chicago, Hoa Kỳ ngày 07/12/1944 và có hiệu lực từ ngày 04/4/1947.",
+        "C": "Được ký tại La Hague, Hà Lan ngày 16/12/1970 và có hiệu lực từ ngày 14/10/1971.",
+        "D": "Được ký tại Tokyo, Nhật Bản ngày 14/9/1963 và có hiệu lực từ ngày 04/12/1969."
+      },
+      "ans": "D",
+      "ansText": "Được ký tại Tokyo, Nhật Bản ngày 14/9/1963 và có hiệu lực từ ngày 04/12/1969.",
+      "exp": "Được ký tại Tokyo, Nhật Bản ngày 14/9/1963 và có hiệu lực từ ngày 04/12/1969.",
+      "src": "Pháp luật về hàng không và an ninh hàng không"
+    },
+    {
+      "lesson": 1,
+      "n": 5,
+      "q": "Công ước Chicago về hàng không dân dụng quốc tế được các nước tham dự Hội nghị Chicago thông qua vào ngày, tháng, năm nào?",
+      "opts": {
+        "A": "Ngày 04/4/1947.",
+        "B": "Ngày 23/9/1971.",
+        "C": "Ngày 07/12/1944.",
+        "D": "Ngày 14/9/1963."
+      },
+      "ans": "C",
+      "ansText": "Ngày 07/12/1944.",
+      "exp": "Ngày 07/12/1944.",
+      "src": "Pháp luật về hàng không và an ninh hàng không"
+    },
+    {
+      "lesson": 1,
+      "n": 6,
+      "q": "Biện pháp bảo đảm an ninh hàng không theo Luật Hàng không dân dụng Việt Nam bao gồm nội dung nào?",
+      "opts": {
+        "A": "Chỉ gồm kiểm tra hành khách, hành lý xách tay và hành lý ký gửi.",
+        "B": "Chỉ gồm giám sát an ninh tại nhà ga và trên tàu bay.",
+        "C": "Gồm: thiết lập khu vực hạn chế; kiểm tra, soi chiếu, giám sát và lục soát khi có dấu hiệu uy hiếp; loại trừ việc chuyên chở trái phép vật phẩm nguy hiểm và áp dụng biện pháp phòng ngừa đặc biệt; giám sát ANHK, duy trì trật tự; phòng, chống khủng bố trên tàu bay; kiểm soát đối tượng nguy hiểm; và kiểm soát an ninh nội bộ đối với nhân viên hàng không.",
+        "D": "Chỉ gồm phòng, chống khủng bố và xử lý hành khách gây rối."
+      },
+      "ans": "C",
+      "ansText": "Gồm: thiết lập khu vực hạn chế; kiểm tra, soi chiếu, giám sát và lục soát khi có dấu hiệu uy hiếp; loại trừ việc chuyên chở trái phép vật phẩm nguy hiểm và áp dụng biện pháp phòng ngừa đặc biệt; giám sát ANHK, duy trì trật tự; phòng, chống khủng bố trên tàu bay; kiểm soát đối tượng nguy hiểm; và kiểm soát an ninh nội bộ đối với nhân viên hàng không.",
+      "exp": "Gồm: thiết lập khu vực hạn chế; kiểm tra, soi chiếu, giám sát và lục soát khi có dấu hiệu uy hiếp; loại trừ việc chuyên chở trái phép vật phẩm nguy hiểm và áp dụng biện pháp phòng ngừa đặc biệt; giám sát ANHK, duy trì trật tự; phòng, chống khủng bố trên tàu bay; kiểm soát đối tượng nguy hiểm; và kiểm soát an ninh nội bộ đối với nhân viên hàng không.",
+      "src": "Pháp luật về hàng không và an ninh hàng không"
+    },
+    {
+      "lesson": 1,
+      "n": 7,
+      "q": "Bộ nào thực hiện quản lý nhà nước về bảo đảm an ninh cho hoạt động hàng không dân dụng theo bài giảng?",
+      "opts": {
+        "A": "Bộ Quốc phòng.",
+        "B": "Bộ Công an.",
+        "C": "Bộ Xây dựng.",
+        "D": "Bộ Tài chính."
+      },
+      "ans": "B",
+      "ansText": "Bộ Công an.",
+      "exp": "Bộ Công an.",
+      "src": "Pháp luật về hàng không và an ninh hàng không"
+    },
+    {
+      "lesson": 1,
+      "n": 8,
+      "q": "Việt Nam gia nhập Nghị định thư Montreal 1988 vào ngày nào?",
+      "opts": {
+        "A": "Ngày 17/9/1979.",
+        "B": "Ngày 10/10/1979.",
+        "C": "Ngày 25/8/1999.",
+        "D": "Ngày 08/01/1980."
+      },
+      "ans": "C",
+      "ansText": "Ngày 25/8/1999.",
+      "exp": "Ngày 25/8/1999.",
+      "src": "Pháp luật về hàng không và an ninh hàng không"
+    },
+    {
+      "lesson": 1,
+      "n": 9,
+      "q": "Người chỉ huy tàu bay có quyền hạn và trách nhiệm như thế nào trên tàu bay?",
+      "opts": {
+        "A": "Người chỉ huy tàu bay chỉ chịu trách nhiệm trong giai đoạn cất cánh và hạ cánh.",
+        "B": "Người chỉ huy tàu bay chỉ có quyền điều hành tổ lái, không chịu trách nhiệm về hành khách và tài sản.",
+        "C": "Người chỉ huy tàu bay có quyền cao nhất trên tàu bay và chịu trách nhiệm bảo đảm an toàn, an ninh cho tàu bay, người và tài sản trong toàn bộ thời gian chuyến bay.",
+        "D": "Người chỉ huy tàu bay chịu sự chỉ huy trực tiếp của mọi thành viên tổ bay trong toàn bộ chuyến bay."
+      },
+      "ans": "C",
+      "ansText": "Người chỉ huy tàu bay có quyền cao nhất trên tàu bay và chịu trách nhiệm bảo đảm an toàn, an ninh cho tàu bay, người và tài sản trong toàn bộ thời gian chuyến bay.",
+      "exp": "Người chỉ huy tàu bay có quyền cao nhất trên tàu bay và chịu trách nhiệm bảo đảm an toàn, an ninh cho tàu bay, người và tài sản trong toàn bộ thời gian chuyến bay.",
+      "src": "Pháp luật về hàng không và an ninh hàng không"
+    },
+    {
+      "lesson": 1,
+      "n": 10,
+      "q": "Chương trình an ninh hàng không theo Luật Hàng không dân dụng Việt Nam bao gồm những chương trình con nào?",
+      "opts": {
+        "A": "Gồm Chương trình kiểm tra hành khách; Chương trình kiểm tra hành lý; Chương trình kiểm tra hàng hóa.",
+        "B": "Gồm: Chương trình an ninh hàng không dân dụng Việt Nam; Chương trình đào tạo, huấn luyện an ninh hàng không dân dụng Việt Nam; và Chương trình kiểm soát chất lượng an ninh hàng không Việt Nam.",
+        "C": "Gồm Chương trình quản lý bay; Chương trình khai thác sân bay; Chương trình vận tải hàng không.",
+        "D": "Gồm Chương trình an toàn hàng không; Chương trình điều tra tai nạn; Chương trình cứu nạn."
+      },
+      "ans": "B",
+      "ansText": "Gồm: Chương trình an ninh hàng không dân dụng Việt Nam; Chương trình đào tạo, huấn luyện an ninh hàng không dân dụng Việt Nam; và Chương trình kiểm soát chất lượng an ninh hàng không Việt Nam.",
+      "exp": "Gồm: Chương trình an ninh hàng không dân dụng Việt Nam; Chương trình đào tạo, huấn luyện an ninh hàng không dân dụng Việt Nam; và Chương trình kiểm soát chất lượng an ninh hàng không Việt Nam.",
+      "src": "Pháp luật về hàng không và an ninh hàng không"
+    },
+    {
+      "lesson": 1,
+      "n": 11,
+      "q": "Công an cấp tỉnh có trách nhiệm gì trong công tác kiểm soát chất lượng an ninh hàng không?",
+      "opts": {
+        "A": "Thực hiện kiểm soát chất lượng an ninh hàng không theo thẩm quyền; kiểm tra, giám sát việc tuân thủ pháp luật, chương trình ANHK, biện pháp bảo đảm ANHK và xử lý vụ việc tại cảng hàng không, sân bay do địa phương quản lý.",
+        "B": "Chỉ phối hợp xử lý vụ việc khi có yêu cầu của hãng hàng không.",
+        "C": "Chỉ cấp thẻ kiểm soát an ninh và giấy phép cho phương tiện.",
+        "D": "Chỉ thực hiện nhiệm vụ tuần tra và duy trì trật tự công cộng tại nhà ga."
+      },
+      "ans": "A",
+      "ansText": "Thực hiện kiểm soát chất lượng an ninh hàng không theo thẩm quyền; kiểm tra, giám sát việc tuân thủ pháp luật, chương trình ANHK, biện pháp bảo đảm ANHK và xử lý vụ việc tại cảng hàng không, sân bay do địa phương quản lý.",
+      "exp": "Thực hiện kiểm soát chất lượng an ninh hàng không theo thẩm quyền; kiểm tra, giám sát việc tuân thủ pháp luật, chương trình ANHK, biện pháp bảo đảm ANHK và xử lý vụ việc tại cảng hàng không, sân bay do địa phương quản lý.",
+      "src": "Pháp luật về hàng không và an ninh hàng không"
+    },
+    {
+      "lesson": 1,
+      "n": 12,
+      "q": "Công ước Chicago chính thức có hiệu lực từ ngày nào, sau khi bao nhiêu quốc gia phê chuẩn?",
+      "opts": {
+        "A": "Ngày 26/01/1973, sau khi 20 quốc gia phê chuẩn.",
+        "B": "Ngày 14/10/1971, sau khi 30 quốc gia phê chuẩn.",
+        "C": "Ngày 07/12/1944, sau khi 52 quốc gia ký kết.",
+        "D": "Ngày 04/4/1947, sau khi 26 quốc gia phê chuẩn."
+      },
+      "ans": "D",
+      "ansText": "Ngày 04/4/1947, sau khi 26 quốc gia phê chuẩn.",
+      "exp": "Ngày 04/4/1947, sau khi 26 quốc gia phê chuẩn.",
+      "src": "Pháp luật về hàng không và an ninh hàng không"
+    },
+    {
+      "lesson": 1,
+      "n": 13,
+      "q": "Nghị định thư Montreal 1988 là văn kiện bổ sung cho công ước nào?",
+      "opts": {
+        "A": "Bổ sung cho Công ước Tokyo 1963.",
+        "B": "Bổ sung cho Công ước Chicago 1944.",
+        "C": "Bổ sung cho Công ước Montreal 1971 về ngăn chặn các hành vi bất hợp pháp chống lại an toàn của hàng không dân dụng.",
+        "D": "Bổ sung cho Công ước La Hague 1970."
+      },
+      "ans": "C",
+      "ansText": "Bổ sung cho Công ước Montreal 1971 về ngăn chặn các hành vi bất hợp pháp chống lại an toàn của hàng không dân dụng.",
+      "exp": "Bổ sung cho Công ước Montreal 1971 về ngăn chặn các hành vi bất hợp pháp chống lại an toàn của hàng không dân dụng.",
+      "src": "Pháp luật về hàng không và an ninh hàng không"
+    },
+    {
+      "lesson": 1,
+      "n": 14,
+      "q": "Bộ Quốc phòng có trách nhiệm gì trong bảo đảm an ninh hàng không?",
+      "opts": {
+        "A": "Chỉ thực hiện nhiệm vụ tìm kiếm cứu nạn hàng không khi có yêu cầu.",
+        "B": "Chủ trì quản lý, bảo vệ vùng trời quốc gia; phòng, chống hành vi sử dụng tên lửa vác vai; bảo đảm an ninh, trật tự tại khu vực do Bộ Quốc phòng quản lý ở sân bay dùng chung; xây dựng phương án khẩn nguy và phối hợp đánh giá, ứng phó nguy cơ uy hiếp ANHK.",
+        "C": "Chỉ quản lý sân bay quân sự, không phối hợp với hàng không dân dụng.",
+        "D": "Chỉ cấp giấy phép bay cho tàu bay quân sự và tàu bay chuyên cơ."
+      },
+      "ans": "B",
+      "ansText": "Chủ trì quản lý, bảo vệ vùng trời quốc gia; phòng, chống hành vi sử dụng tên lửa vác vai; bảo đảm an ninh, trật tự tại khu vực do Bộ Quốc phòng quản lý ở sân bay dùng chung; xây dựng phương án khẩn nguy và phối hợp đánh giá, ứng phó nguy cơ uy hiếp ANHK.",
+      "exp": "Chủ trì quản lý, bảo vệ vùng trời quốc gia; phòng, chống hành vi sử dụng tên lửa vác vai; bảo đảm an ninh, trật tự tại khu vực do Bộ Quốc phòng quản lý ở sân bay dùng chung; xây dựng phương án khẩn nguy và phối hợp đánh giá, ứng phó nguy cơ uy hiếp ANHK.",
+      "src": "Pháp luật về hàng không và an ninh hàng không"
+    },
+    {
+      "lesson": 1,
+      "n": 15,
+      "q": "Công ước Chicago gồm bao nhiêu điều, được chia làm mấy phần?",
+      "opts": {
+        "A": "Gồm 96 điều, chia thành 03 phần.",
+        "B": "Gồm 99 điều, chia thành 04 phần.",
+        "C": "Gồm 88 điều, chia thành 04 phần.",
+        "D": "Gồm 102 điều, chia thành 05 phần."
+      },
+      "ans": "B",
+      "ansText": "Gồm 99 điều, chia thành 04 phần.",
+      "exp": "Gồm 99 điều, chia thành 04 phần.",
+      "src": "Pháp luật về hàng không và an ninh hàng không"
+    },
+    {
+      "lesson": 1,
+      "n": 16,
+      "q": "Bộ Tài chính có trách nhiệm gì liên quan đến an ninh hàng không?",
+      "opts": {
+        "A": "Cấp giấy phép khai thác tàu bay và giấy phép nhân viên hàng không.",
+        "B": "Chủ trì điều tra mọi hành vi can thiệp bất hợp pháp trên tàu bay.",
+        "C": "Quản lý trực tiếp lực lượng kiểm soát an ninh hàng không tại mọi cảng hàng không.",
+        "D": "Chỉ đạo lực lượng Hải quan tại cảng hàng không quốc tế phối hợp kiểm tra, giám sát hành lý, hàng hóa, bưu gửi để phát hiện, ngăn chặn vật phẩm nguy hiểm và vi phạm pháp luật; đồng thời triển khai hoạt động tạo thuận lợi hàng không."
+      },
+      "ans": "D",
+      "ansText": "Chỉ đạo lực lượng Hải quan tại cảng hàng không quốc tế phối hợp kiểm tra, giám sát hành lý, hàng hóa, bưu gửi để phát hiện, ngăn chặn vật phẩm nguy hiểm và vi phạm pháp luật; đồng thời triển khai hoạt động tạo thuận lợi hàng không.",
+      "exp": "Chỉ đạo lực lượng Hải quan tại cảng hàng không quốc tế phối hợp kiểm tra, giám sát hành lý, hàng hóa, bưu gửi để phát hiện, ngăn chặn vật phẩm nguy hiểm và vi phạm pháp luật; đồng thời triển khai hoạt động tạo thuận lợi hàng không.",
+      "src": "Pháp luật về hàng không và an ninh hàng không"
+    },
+    {
+      "lesson": 1,
+      "n": 17,
+      "q": "Luật Phòng, chống khủng bố có số hiệu và ngày ban hành là gì?",
+      "opts": {
+        "A": "Luật số 42/2024/QH15, ban hành ngày 29/6/2024.",
+        "B": "Luật số 28/2013/QH14, ban hành ngày 12/6/2013.",
+        "C": "Luật số 100/2015/QH13, ban hành ngày 27/11/2015.",
+        "D": "Luật số 28/2013/QH13, ban hành ngày 12/6/2013."
+      },
+      "ans": "D",
+      "ansText": "Luật số 28/2013/QH13, ban hành ngày 12/6/2013.",
+      "exp": "Luật số 28/2013/QH13, ban hành ngày 12/6/2013.",
+      "src": "Pháp luật về hàng không và an ninh hàng không"
+    },
+    {
+      "lesson": 1,
+      "n": 18,
+      "q": "Công ước Montreal 1971 có tên đầy đủ là gì?",
+      "opts": {
+        "A": "Công ước về ngăn chặn các hành vi bất hợp pháp chống lại an toàn của hàng không dân dụng.",
+        "B": "Công ước về đánh dấu các chất nổ dẻo nhằm mục đích phát hiện.",
+        "C": "Công ước nhằm ngăn chặn việc chiếm giữ bất hợp pháp tàu bay.",
+        "D": "Công ước về các hành vi phạm tội và một số hành vi khác thực hiện trên tàu bay."
+      },
+      "ans": "A",
+      "ansText": "Công ước về ngăn chặn các hành vi bất hợp pháp chống lại an toàn của hàng không dân dụng.",
+      "exp": "Công ước về ngăn chặn các hành vi bất hợp pháp chống lại an toàn của hàng không dân dụng.",
+      "src": "Pháp luật về hàng không và an ninh hàng không"
+    },
+    {
+      "lesson": 1,
+      "n": 19,
+      "q": "Cục Quản lý xuất nhập cảnh có trách nhiệm gì trong công tác bảo đảm an ninh hàng không?",
+      "opts": {
+        "A": "Chỉ thực hiện công tác quản lý xuất nhập cảnh đối với hành khách.",
+        "B": "Là đầu mối tham mưu, hướng dẫn, tổ chức thực hiện, kiểm tra và kiểm soát chất lượng ANHK; phê duyệt, chấp thuận chương trình; đánh giá rủi ro; xử lý, phối hợp đối phó hành vi can thiệp bất hợp pháp và quản lý hệ thống dữ liệu, đào tạo, kiểm soát chất lượng theo thẩm quyền.",
+        "C": "Chỉ cấp giấy phép khai thác cảng hàng không, sân bay.",
+        "D": "Chỉ phê duyệt kế hoạch bay và quản lý vùng trời dân dụng."
+      },
+      "ans": "B",
+      "ansText": "Là đầu mối tham mưu, hướng dẫn, tổ chức thực hiện, kiểm tra và kiểm soát chất lượng ANHK; phê duyệt, chấp thuận chương trình; đánh giá rủi ro; xử lý, phối hợp đối phó hành vi can thiệp bất hợp pháp và quản lý hệ thống dữ liệu, đào tạo, kiểm soát chất lượng theo thẩm quyền.",
+      "exp": "Là đầu mối tham mưu, hướng dẫn, tổ chức thực hiện, kiểm tra và kiểm soát chất lượng ANHK; phê duyệt, chấp thuận chương trình; đánh giá rủi ro; xử lý, phối hợp đối phó hành vi can thiệp bất hợp pháp và quản lý hệ thống dữ liệu, đào tạo, kiểm soát chất lượng theo thẩm quyền.",
+      "src": "Pháp luật về hàng không và an ninh hàng không"
+    },
+    {
+      "lesson": 1,
+      "n": 20,
+      "q": "Địa bàn hoạt động của lực lượng kiểm soát an ninh hàng không bao gồm những nơi nào?",
+      "opts": {
+        "A": "Bao gồm cảng hàng không; trên tàu bay; doanh nghiệp cung cấp dịch vụ không lưu; tổ chức thiết kế, sản xuất, thử nghiệm, bảo dưỡng tàu bay, động cơ, cánh quạt và trang thiết bị tàu bay; tổ chức cung cấp dịch vụ hàng không tại cảng; tổ chức xử lý hàng hóa, bưu gửi để đưa lên tàu bay.",
+        "B": "Chỉ bao gồm trên tàu bay và các cơ sở cung cấp dịch vụ không lưu.",
+        "C": "Chỉ bao gồm khu vực nhà ga hành khách và khu bay.",
+        "D": "Chỉ bao gồm cảng hàng không quốc tế do ACV quản lý."
+      },
+      "ans": "A",
+      "ansText": "Bao gồm cảng hàng không; trên tàu bay; doanh nghiệp cung cấp dịch vụ không lưu; tổ chức thiết kế, sản xuất, thử nghiệm, bảo dưỡng tàu bay, động cơ, cánh quạt và trang thiết bị tàu bay; tổ chức cung cấp dịch vụ hàng không tại cảng; tổ chức xử lý hàng hóa, bưu gửi để đưa lên tàu bay.",
+      "exp": "Bao gồm cảng hàng không; trên tàu bay; doanh nghiệp cung cấp dịch vụ không lưu; tổ chức thiết kế, sản xuất, thử nghiệm, bảo dưỡng tàu bay, động cơ, cánh quạt và trang thiết bị tàu bay; tổ chức cung cấp dịch vụ hàng không tại cảng; tổ chức xử lý hàng hóa, bưu gửi để đưa lên tàu bay.",
+      "src": "Pháp luật về hàng không và an ninh hàng không"
+    },
+    {
+      "lesson": 1,
+      "n": 21,
+      "q": "Hành vi can thiệp bất hợp pháp vào hoạt động hàng không dân dụng được hiểu là gì?",
+      "opts": {
+        "A": "Là hành vi gây chậm chuyến, hủy chuyến hoặc ảnh hưởng đến chất lượng dịch vụ.",
+        "B": "Là hành vi không tuân thủ lịch bay hoặc quy trình khai thác của hãng hàng không.",
+        "C": "Là mọi hành vi vi phạm hành chính xảy ra tại cảng hàng không.",
+        "D": "Là hành vi có khả năng uy hiếp an toàn hoạt động hàng không dân dụng, bao gồm cưỡng đoạt tàu bay, phá hủy tàu bay, bắt giữ con tin, xâm nhập bằng vũ lực, đưa vật phẩm nguy hiểm, sử dụng tàu bay làm vũ khí, cung cấp thông tin sai và các hành vi cố ý khác uy hiếp an toàn HKDD."
+      },
+      "ans": "D",
+      "ansText": "Là hành vi có khả năng uy hiếp an toàn hoạt động hàng không dân dụng, bao gồm cưỡng đoạt tàu bay, phá hủy tàu bay, bắt giữ con tin, xâm nhập bằng vũ lực, đưa vật phẩm nguy hiểm, sử dụng tàu bay làm vũ khí, cung cấp thông tin sai và các hành vi cố ý khác uy hiếp an toàn HKDD.",
+      "exp": "Là hành vi có khả năng uy hiếp an toàn hoạt động hàng không dân dụng, bao gồm cưỡng đoạt tàu bay, phá hủy tàu bay, bắt giữ con tin, xâm nhập bằng vũ lực, đưa vật phẩm nguy hiểm, sử dụng tàu bay làm vũ khí, cung cấp thông tin sai và các hành vi cố ý khác uy hiếp an toàn HKDD.",
+      "src": "Pháp luật về hàng không và an ninh hàng không"
+    },
+    {
+      "lesson": 1,
+      "n": 22,
+      "q": "Công ước Chicago có bao nhiêu Phụ ước?",
+      "opts": {
+        "A": "Có 20 Phụ ước.",
+        "B": "Có 19 Phụ ước.",
+        "C": "Có 18 Phụ ước.",
+        "D": "Có 17 Phụ ước."
+      },
+      "ans": "B",
+      "ansText": "Có 19 Phụ ước.",
+      "exp": "Có 19 Phụ ước.",
+      "src": "Pháp luật về hàng không và an ninh hàng không"
+    },
+    {
+      "lesson": 1,
+      "n": 23,
+      "q": "Luật Hàng không dân dụng Việt Nam hiện hành có số hiệu và ngày ban hành là gì?",
+      "opts": {
+        "A": "Luật số 66/2006/QH11, ban hành ngày 29/6/2006.",
+        "B": "Luật số 130/2025/QH15, ban hành ngày 01/7/2026.",
+        "C": "Luật số 61/2014/QH13, ban hành ngày 21/11/2014.",
+        "D": "Luật số 130/2025/QH15, ban hành ngày 10/12/2025."
+      },
+      "ans": "D",
+      "ansText": "Luật số 130/2025/QH15, ban hành ngày 10/12/2025.",
+      "exp": "Luật số 130/2025/QH15, ban hành ngày 10/12/2025.",
+      "src": "Pháp luật về hàng không và an ninh hàng không"
+    },
+    {
+      "lesson": 1,
+      "n": 24,
+      "q": "Lực lượng kiểm soát an ninh hàng không được trang bị gì để thực hiện nhiệm vụ theo quy định pháp luật?",
+      "opts": {
+        "A": "Chỉ được sử dụng thiết bị soi chiếu và cổng từ.",
+        "B": "Chỉ được trang bị bộ đàm, đèn pin và phương tiện tuần tra.",
+        "C": "Được trang bị, sử dụng vũ khí, công cụ hỗ trợ, thiết bị và phương tiện để thực hiện nhiệm vụ theo quy định của pháp luật.",
+        "D": "Chỉ được trang bị công cụ hỗ trợ, không được sử dụng vũ khí."
+      },
+      "ans": "C",
+      "ansText": "Được trang bị, sử dụng vũ khí, công cụ hỗ trợ, thiết bị và phương tiện để thực hiện nhiệm vụ theo quy định của pháp luật.",
+      "exp": "Được trang bị, sử dụng vũ khí, công cụ hỗ trợ, thiết bị và phương tiện để thực hiện nhiệm vụ theo quy định của pháp luật.",
+      "src": "Pháp luật về hàng không và an ninh hàng không"
+    },
+    {
+      "lesson": 1,
+      "n": 25,
+      "q": "Pháp luật được định nghĩa là gì?",
+      "opts": {
+        "A": "Pháp luật là hệ thống các quy tắc xử sự mang tính bắt buộc chung, do Nhà nước ban hành hoặc thừa nhận, được Nhà nước bảo đảm thực hiện nhằm điều chỉnh các quan hệ xã hội.",
+        "B": "Pháp luật là hệ thống quy định nội bộ của từng cơ quan, tổ chức.",
+        "C": "Pháp luật là hệ thống các hướng dẫn tự nguyện do cơ quan nhà nước khuyến nghị.",
+        "D": "Pháp luật là tập hợp các quy tắc đạo đức do cộng đồng thừa nhận."
+      },
+      "ans": "A",
+      "ansText": "Pháp luật là hệ thống các quy tắc xử sự mang tính bắt buộc chung, do Nhà nước ban hành hoặc thừa nhận, được Nhà nước bảo đảm thực hiện nhằm điều chỉnh các quan hệ xã hội.",
+      "exp": "Pháp luật là hệ thống các quy tắc xử sự mang tính bắt buộc chung, do Nhà nước ban hành hoặc thừa nhận, được Nhà nước bảo đảm thực hiện nhằm điều chỉnh các quan hệ xã hội.",
+      "src": "Pháp luật về hàng không và an ninh hàng không"
+    },
+    {
+      "lesson": 1,
+      "n": 26,
+      "q": "Nghị định số 215/2026/NĐ-CP quy định về nội dung gì và có hiệu lực từ ngày nào?",
+      "opts": {
+        "A": "Quy định về quản lý hoạt động bay; có hiệu lực từ ngày 01/7/2026.",
+        "B": "Quy định về đào tạo, huấn luyện ANHK; có hiệu lực từ ngày 03/02/2026.",
+        "C": "Quy định về an ninh hàng không; có hiệu lực từ ngày 01/7/2026.",
+        "D": "Quy định về quản lý, khai thác cảng hàng không; có hiệu lực từ ngày 18/6/2026."
+      },
+      "ans": "C",
+      "ansText": "Quy định về an ninh hàng không; có hiệu lực từ ngày 01/7/2026.",
+      "exp": "Quy định về an ninh hàng không; có hiệu lực từ ngày 01/7/2026.",
+      "src": "Pháp luật về hàng không và an ninh hàng không"
+    },
+    {
+      "lesson": 1,
+      "n": 27,
+      "q": "Việc sử dụng thiết bị bay không người lái trái phép tại khu vực nào bị nghiêm cấm theo Luật Hàng không dân dụng Việt Nam?",
+      "opts": {
+        "A": "Chỉ trong nhà ga hành khách.",
+        "B": "Tại cảng hàng không và khu vực lân cận cảng hàng không.",
+        "C": "Chỉ tại khu bay và đường cất hạ cánh.",
+        "D": "Tại mọi khu vực công cộng của thành phố có sân bay."
+      },
+      "ans": "B",
+      "ansText": "Tại cảng hàng không và khu vực lân cận cảng hàng không.",
+      "exp": "Tại cảng hàng không và khu vực lân cận cảng hàng không.",
+      "src": "Pháp luật về hàng không và an ninh hàng không"
+    },
+    {
+      "lesson": 1,
+      "n": 28,
+      "q": "Người khai thác cảng hàng không, sân bay chịu sự thanh tra, kiểm tra, đánh giá, điều tra an ninh hàng không của cơ quan nào?",
+      "opts": {
+        "A": "Cục Hàng không Việt Nam và Cảng vụ hàng không.",
+        "B": "Người khai thác cảng hàng không và hãng hàng không.",
+        "C": "Bộ Quốc phòng và Bộ Xây dựng.",
+        "D": "Cục Quản lý xuất nhập cảnh và Công an cấp tỉnh."
+      },
+      "ans": "D",
+      "ansText": "Cục Quản lý xuất nhập cảnh và Công an cấp tỉnh.",
+      "exp": "Cục Quản lý xuất nhập cảnh và Công an cấp tỉnh.",
+      "src": "Pháp luật về hàng không và an ninh hàng không"
+    },
+    {
+      "lesson": 1,
+      "n": 29,
+      "q": "Người khai thác tàu bay nước ngoài được khai thác đến và đi từ Việt Nam khi nào?",
+      "opts": {
+        "A": "Khi có giấy phép bay do quốc gia đăng ký tàu bay cấp.",
+        "B": "Khi được hãng hàng không Việt Nam bảo lãnh.",
+        "C": "Khi được Cảng vụ hàng không tại sân bay đến chấp thuận bằng văn bản.",
+        "D": "Khi giấy chứng nhận người khai thác tàu bay do quốc gia thành viên ICAO cấp đã được Nhà chức trách hàng không Việt Nam công nhận."
+      },
+      "ans": "D",
+      "ansText": "Khi giấy chứng nhận người khai thác tàu bay do quốc gia thành viên ICAO cấp đã được Nhà chức trách hàng không Việt Nam công nhận.",
+      "exp": "Khi giấy chứng nhận người khai thác tàu bay do quốc gia thành viên ICAO cấp đã được Nhà chức trách hàng không Việt Nam công nhận.",
+      "src": "Pháp luật về hàng không và an ninh hàng không"
+    },
+    {
+      "lesson": 1,
+      "n": 30,
+      "q": "Nhân viên hàng không được định nghĩa là ai theo Luật Hàng không dân dụng Việt Nam?",
+      "opts": {
+        "A": "Là người được cấp thẻ kiểm soát an ninh hàng không.",
+        "B": "Là người lao động làm việc tại doanh nghiệp hàng không.",
+        "C": "Là người làm việc trực tiếp tại cảng hàng không, sân bay.",
+        "D": "Là người hoạt động liên quan trực tiếp đến bảo đảm an toàn hàng không."
+      },
+      "ans": "D",
+      "ansText": "Là người hoạt động liên quan trực tiếp đến bảo đảm an toàn hàng không.",
+      "exp": "Là người hoạt động liên quan trực tiếp đến bảo đảm an toàn hàng không.",
+      "src": "Pháp luật về hàng không và an ninh hàng không"
+    },
+    {
+      "lesson": 1,
+      "n": 31,
+      "q": "Phạm vi điều chỉnh của Luật Hàng không dân dụng Việt Nam bao gồm những nội dung nào?",
+      "opts": {
+        "A": "Chỉ quy định về vận tải hàng không thương mại và trách nhiệm dân sự.",
+        "B": "Chỉ quy định về an toàn, an ninh và tìm kiếm cứu nạn hàng không.",
+        "C": "Gồm hoạt động HKDD về tàu bay, cảng hàng không, nhân viên hàng không, hoạt động bay, vận tải hàng không thương mại, hàng không chuyên dùng, hàng không chung, an toàn, an ninh hàng không, trách nhiệm dân sự và các hoạt động khác liên quan.",
+        "D": "Chỉ quy định về tàu bay, cảng hàng không và hoạt động bay."
+      },
+      "ans": "C",
+      "ansText": "Gồm hoạt động HKDD về tàu bay, cảng hàng không, nhân viên hàng không, hoạt động bay, vận tải hàng không thương mại, hàng không chuyên dùng, hàng không chung, an toàn, an ninh hàng không, trách nhiệm dân sự và các hoạt động khác liên quan.",
+      "exp": "Gồm hoạt động HKDD về tàu bay, cảng hàng không, nhân viên hàng không, hoạt động bay, vận tải hàng không thương mại, hàng không chuyên dùng, hàng không chung, an toàn, an ninh hàng không, trách nhiệm dân sự và các hoạt động khác liên quan.",
+      "src": "Pháp luật về hàng không và an ninh hàng không"
+    },
+    {
+      "lesson": 1,
+      "n": 32,
+      "q": "Công ước Tokyo năm 1963 có tên đầy đủ là gì?",
+      "opts": {
+        "A": "Công ước về các hành vi phạm tội và một số hành vi khác thực hiện trên tàu bay.",
+        "B": "Công ước về ngăn chặn các hành vi bất hợp pháp chống lại an toàn của hàng không dân dụng.",
+        "C": "Công ước về đánh dấu các chất nổ dẻo nhằm mục đích phát hiện.",
+        "D": "Công ước nhằm ngăn chặn việc chiếm giữ bất hợp pháp tàu bay."
+      },
+      "ans": "A",
+      "ansText": "Công ước về các hành vi phạm tội và một số hành vi khác thực hiện trên tàu bay.",
+      "exp": "Công ước về các hành vi phạm tội và một số hành vi khác thực hiện trên tàu bay.",
+      "src": "Pháp luật về hàng không và an ninh hàng không"
+    },
+    {
+      "lesson": 1,
+      "n": 33,
+      "q": "Phụ ước 17 (Annex 17) của Công ước Chicago quy định về nội dung gì?",
+      "opts": {
+        "A": "An toàn - Quản lý an toàn trong hoạt động hàng không dân dụng.",
+        "B": "An ninh - Bảo vệ hoạt động hàng không dân dụng quốc tế chống lại các hành vi can thiệp bất hợp pháp.",
+        "C": "Sân bay - Tiêu chuẩn thiết kế và khai thác cảng hàng không.",
+        "D": "Vận chuyển an toàn hàng hóa nguy hiểm bằng đường hàng không."
+      },
+      "ans": "B",
+      "ansText": "An ninh - Bảo vệ hoạt động hàng không dân dụng quốc tế chống lại các hành vi can thiệp bất hợp pháp.",
+      "exp": "An ninh - Bảo vệ hoạt động hàng không dân dụng quốc tế chống lại các hành vi can thiệp bất hợp pháp.",
+      "src": "Pháp luật về hàng không và an ninh hàng không"
+    },
+    {
+      "lesson": 1,
+      "n": 34,
+      "q": "Quốc gia tham gia vào những tổ chức quốc tế nào về an ninh hàng không để chia sẻ thông tin, kinh nghiệm?",
+      "opts": {
+        "A": "ICAO và IATA.",
+        "B": "ICAO và ACI.",
+        "C": "IATA và ACI.",
+        "D": "ICAO và Liên Hợp Quốc."
+      },
+      "ans": "A",
+      "ansText": "ICAO và IATA.",
+      "exp": "ICAO và IATA.",
+      "src": "Pháp luật về hàng không và an ninh hàng không"
+    },
+    {
+      "lesson": 1,
+      "n": 35,
+      "q": "Tại Hội nghị Hàng không dân dụng quốc tế tháng 11/1944 ở Chicago, có bao nhiêu quốc gia ký kết Công ước về Hàng không dân dụng quốc tế?",
+      "opts": {
+        "A": "Có 52 trong tổng số 54 quốc gia tham dự ký kết.",
+        "B": "Có 54 trong tổng số 54 quốc gia tham dự ký kết.",
+        "C": "Có 50 trong tổng số 54 quốc gia tham dự ký kết.",
+        "D": "Có 48 trong tổng số 52 quốc gia tham dự ký kết."
+      },
+      "ans": "A",
+      "ansText": "Có 52 trong tổng số 54 quốc gia tham dự ký kết.",
+      "exp": "Có 52 trong tổng số 54 quốc gia tham dự ký kết.",
+      "src": "Pháp luật về hàng không và an ninh hàng không"
+    },
+    {
+      "lesson": 1,
+      "n": 36,
+      "q": "Tàu bay chưa khởi hành có thể bị đình chỉ thực hiện chuyến bay trong trường hợp nào theo Luật Hàng không dân dụng Việt Nam?",
+      "opts": {
+        "A": "Khi chuyến bay chậm quá 03 giờ hoặc hành khách khiếu nại.",
+        "B": "Khi sân bay đến không còn vị trí đỗ tàu bay.",
+        "C": "Khi hãng hàng không chưa hoàn thành thủ tục thương mại.",
+        "D": "Khi có tình huống cấp thiết bảo vệ chủ quyền, an ninh quốc gia; vi phạm quy định về đủ điều kiện bay, khai thác, an toàn, thủ tục, kế hoạch hoặc phép bay; hoặc có dấu hiệu bị uy hiếp, vi phạm quy định về an ninh hàng không."
+      },
+      "ans": "D",
+      "ansText": "Khi có tình huống cấp thiết bảo vệ chủ quyền, an ninh quốc gia; vi phạm quy định về đủ điều kiện bay, khai thác, an toàn, thủ tục, kế hoạch hoặc phép bay; hoặc có dấu hiệu bị uy hiếp, vi phạm quy định về an ninh hàng không.",
+      "exp": "Khi có tình huống cấp thiết bảo vệ chủ quyền, an ninh quốc gia; vi phạm quy định về đủ điều kiện bay, khai thác, an toàn, thủ tục, kế hoạch hoặc phép bay; hoặc có dấu hiệu bị uy hiếp, vi phạm quy định về an ninh hàng không.",
+      "src": "Pháp luật về hàng không và an ninh hàng không"
+    },
+    {
+      "lesson": 1,
+      "n": 37,
+      "q": "Tàu bay đang bay trong lãnh thổ Việt Nam bị yêu cầu hạ cánh tại địa điểm chỉ định trong trường hợp nào?",
+      "opts": {
+        "A": "Khi chuyến bay có dấu hiệu bị uy hiếp an toàn hàng không, an ninh hàng không hoặc trong trường hợp khác theo yêu cầu của cơ quan nhà nước, người có thẩm quyền.",
+        "B": "Khi hành khách yêu cầu đổi sân bay đến.",
+        "C": "Khi người khai thác tàu bay đề nghị vì lý do thương mại.",
+        "D": "Khi tàu bay bay sai giờ dự kiến hoặc chậm liên lạc 05 phút."
+      },
+      "ans": "A",
+      "ansText": "Khi chuyến bay có dấu hiệu bị uy hiếp an toàn hàng không, an ninh hàng không hoặc trong trường hợp khác theo yêu cầu của cơ quan nhà nước, người có thẩm quyền.",
+      "exp": "Khi chuyến bay có dấu hiệu bị uy hiếp an toàn hàng không, an ninh hàng không hoặc trong trường hợp khác theo yêu cầu của cơ quan nhà nước, người có thẩm quyền.",
+      "src": "Pháp luật về hàng không và an ninh hàng không"
+    },
+    {
+      "lesson": 1,
+      "n": 38,
+      "q": "Thành viên tổ lái và kiểm soát viên không lưu phải được đánh giá trình độ thông thạo tiếng Anh theo tiêu chuẩn của tổ chức nào?",
+      "opts": {
+        "A": "Tổ chức Hàng không dân dụng quốc tế (ICAO).",
+        "B": "Hội đồng Sân bay quốc tế (ACI).",
+        "C": "Tổ chức Lao động quốc tế (ILO).",
+        "D": "Hiệp hội Vận tải hàng không quốc tế (IATA)."
+      },
+      "ans": "A",
+      "ansText": "Tổ chức Hàng không dân dụng quốc tế (ICAO).",
+      "exp": "Tổ chức Hàng không dân dụng quốc tế (ICAO).",
+      "src": "Pháp luật về hàng không và an ninh hàng không"
+    },
+    {
+      "lesson": 1,
+      "n": 39,
+      "q": "Người khai thác tàu bay chỉ được cung cấp dịch vụ vận tải hàng không thương mại, chuyên dùng sau khi được cơ quan nào cấp giấy chứng nhận?",
+      "opts": {
+        "A": "Người khai thác cảng hàng không, sân bay.",
+        "B": "Nhà chức trách hàng không Việt Nam.",
+        "C": "Bộ Xây dựng.",
+        "D": "Cục Quản lý xuất nhập cảnh."
+      },
+      "ans": "B",
+      "ansText": "Nhà chức trách hàng không Việt Nam.",
+      "exp": "Nhà chức trách hàng không Việt Nam.",
+      "src": "Pháp luật về hàng không và an ninh hàng không"
+    },
+    {
+      "lesson": 1,
+      "n": 40,
+      "q": "Theo Luật Hàng không dân dụng Việt Nam, thành viên tổ bay có được rời tàu bay khi chưa có lệnh của người chỉ huy tàu bay không?",
+      "opts": {
+        "A": "Được rời tàu bay nếu đã hoàn thành nhiệm vụ.",
+        "B": "Được rời tàu bay khi có sự đồng ý của tổ trưởng tổ bay.",
+        "C": "Không được.",
+        "D": "Được rời tàu bay nếu tàu bay đang đỗ tại sân bay."
+      },
+      "ans": "C",
+      "ansText": "Không được.",
+      "exp": "Không được.",
+      "src": "Pháp luật về hàng không và an ninh hàng không"
+    },
+    {
+      "lesson": 1,
+      "n": 41,
+      "q": "Theo quy định, ai có trách nhiệm xây dựng chương trình an ninh hàng không trong phạm vi quản lý của mình?",
+      "opts": {
+        "A": "Chỉ người khai thác cảng hàng không và hãng hàng không Việt Nam.",
+        "B": "Chỉ doanh nghiệp cung cấp dịch vụ không lưu và doanh nghiệp phục vụ mặt đất.",
+        "C": "Chỉ Cục Quản lý xuất nhập cảnh và Công an cấp tỉnh.",
+        "D": "Người khai thác cảng hàng không; người khai thác tàu bay; hãng hàng không Việt Nam và nước ngoài; doanh nghiệp cung cấp dịch vụ không lưu; tổ chức thiết kế, sản xuất, thử nghiệm, bảo dưỡng tàu bay và trang thiết bị; tổ chức cung cấp dịch vụ hàng không tại cảng; tổ chức xử lý hàng hóa, bưu gửi đưa lên tàu bay."
+      },
+      "ans": "D",
+      "ansText": "Người khai thác cảng hàng không; người khai thác tàu bay; hãng hàng không Việt Nam và nước ngoài; doanh nghiệp cung cấp dịch vụ không lưu; tổ chức thiết kế, sản xuất, thử nghiệm, bảo dưỡng tàu bay và trang thiết bị; tổ chức cung cấp dịch vụ hàng không tại cảng; tổ chức xử lý hàng hóa, bưu gửi đưa lên tàu bay.",
+      "exp": "Người khai thác cảng hàng không; người khai thác tàu bay; hãng hàng không Việt Nam và nước ngoài; doanh nghiệp cung cấp dịch vụ không lưu; tổ chức thiết kế, sản xuất, thử nghiệm, bảo dưỡng tàu bay và trang thiết bị; tổ chức cung cấp dịch vụ hàng không tại cảng; tổ chức xử lý hàng hóa, bưu gửi đưa lên tàu bay.",
+      "src": "Pháp luật về hàng không và an ninh hàng không"
+    },
+    {
+      "lesson": 1,
+      "n": 42,
+      "q": "Thông tư số 110/2026/TT-BCA quy định chi tiết về nội dung gì?",
+      "opts": {
+        "A": "Quy định chi tiết Chương trình đào tạo, huấn luyện an ninh hàng không dân dụng Việt Nam.",
+        "B": "Quy định về an ninh hàng không và xử lý hành vi can thiệp bất hợp pháp.",
+        "C": "Quy định về quản lý, khai thác cảng hàng không, sân bay.",
+        "D": "Quy định chi tiết Chương trình an ninh hàng không và kiểm soát chất lượng ANHK Việt Nam."
+      },
+      "ans": "A",
+      "ansText": "Quy định chi tiết Chương trình đào tạo, huấn luyện an ninh hàng không dân dụng Việt Nam.",
+      "exp": "Quy định chi tiết Chương trình đào tạo, huấn luyện an ninh hàng không dân dụng Việt Nam.",
+      "src": "Pháp luật về hàng không và an ninh hàng không"
+    },
+    {
+      "lesson": 1,
+      "n": 43,
+      "q": "Thông tư số 14/2026/TT-BCA do cơ quan nào ban hành và quy định về nội dung gì?",
+      "opts": {
+        "A": "Do Bộ trưởng Bộ Xây dựng ban hành; quy định quản lý và bảo đảm hoạt động bay.",
+        "B": "Do Bộ trưởng Bộ Công an ban hành; quy định chi tiết Chương trình an ninh hàng không và kiểm soát chất lượng an ninh hàng không Việt Nam.",
+        "C": "Do Bộ trưởng Bộ Quốc phòng ban hành; quy định bảo vệ vùng trời quốc gia.",
+        "D": "Do Bộ trưởng Bộ Tài chính ban hành; quy định kiểm tra hải quan tại sân bay."
+      },
+      "ans": "B",
+      "ansText": "Do Bộ trưởng Bộ Công an ban hành; quy định chi tiết Chương trình an ninh hàng không và kiểm soát chất lượng an ninh hàng không Việt Nam.",
+      "exp": "Do Bộ trưởng Bộ Công an ban hành; quy định chi tiết Chương trình an ninh hàng không và kiểm soát chất lượng an ninh hàng không Việt Nam.",
+      "src": "Pháp luật về hàng không và an ninh hàng không"
+    },
+    {
+      "lesson": 1,
+      "n": 44,
+      "q": "Tiếp viên hàng không có được thực hiện nhiệm vụ như thành viên tổ lái không?",
+      "opts": {
+        "A": "Được, khi người chỉ huy tàu bay yêu cầu.",
+        "B": "Được, trong tình huống tàu bay gặp sự cố.",
+        "C": "Không được.",
+        "D": "Được, nếu đã được huấn luyện nghiệp vụ cơ bản."
+      },
+      "ans": "C",
+      "ansText": "Không được.",
+      "exp": "Không được.",
+      "src": "Pháp luật về hàng không và an ninh hàng không"
+    },
+    {
+      "lesson": 1,
+      "n": 45,
+      "q": "Tính đến năm 2025, Tổ chức ICAO có bao nhiêu quốc gia thành viên và Việt Nam là thành viên ICAO từ năm nào?",
+      "opts": {
+        "A": "ICAO có 192 quốc gia thành viên; Việt Nam là thành viên từ năm 1981.",
+        "B": "ICAO có 195 quốc gia thành viên; Việt Nam là thành viên từ năm 1990.",
+        "C": "ICAO có 193 quốc gia thành viên; Việt Nam là thành viên từ năm 1980.",
+        "D": "ICAO có 191 quốc gia thành viên; Việt Nam là thành viên từ năm 1979."
+      },
+      "ans": "C",
+      "ansText": "ICAO có 193 quốc gia thành viên; Việt Nam là thành viên từ năm 1980.",
+      "exp": "ICAO có 193 quốc gia thành viên; Việt Nam là thành viên từ năm 1980.",
+      "src": "Pháp luật về hàng không và an ninh hàng không"
+    },
+    {
+      "lesson": 1,
+      "n": 46,
+      "q": "Trách nhiệm của quốc gia trong bảo đảm an ninh hàng không bao gồm nội dung nào?",
+      "opts": {
+        "A": "Chỉ trang bị phương tiện kỹ thuật cho lực lượng an ninh hàng không.",
+        "B": "Ban hành và thực thi quy tắc, quy chuẩn; đào tạo, cung cấp phương tiện và kỹ thuật; tổ chức huấn luyện lực lượng; hợp tác với quốc gia khác; tham gia tổ chức quốc tế để chia sẻ thông tin, kinh nghiệm.",
+        "C": "Chỉ tham gia ICAO và IATA, không tổ chức đào tạo trong nước.",
+        "D": "Chỉ xây dựng quy định pháp luật trong nước, không cần hợp tác quốc tế."
+      },
+      "ans": "B",
+      "ansText": "Ban hành và thực thi quy tắc, quy chuẩn; đào tạo, cung cấp phương tiện và kỹ thuật; tổ chức huấn luyện lực lượng; hợp tác với quốc gia khác; tham gia tổ chức quốc tế để chia sẻ thông tin, kinh nghiệm.",
+      "exp": "Ban hành và thực thi quy tắc, quy chuẩn; đào tạo, cung cấp phương tiện và kỹ thuật; tổ chức huấn luyện lực lượng; hợp tác với quốc gia khác; tham gia tổ chức quốc tế để chia sẻ thông tin, kinh nghiệm.",
+      "src": "Pháp luật về hàng không và an ninh hàng không"
+    },
+    {
+      "lesson": 1,
+      "n": 47,
+      "q": "Nghị định 125/2015/NĐ-CP của Chính phủ quy định chi tiết về nội dung gì?",
+      "opts": {
+        "A": "Quy định về quản lý vũ khí, vật liệu nổ và công cụ hỗ trợ.",
+        "B": "Quy định chi tiết về quản lý, khai thác cảng hàng không, sân bay.",
+        "C": "Quy định chi tiết về quản lý hoạt động bay.",
+        "D": "Quy định về an ninh hàng không."
+      },
+      "ans": "C",
+      "ansText": "Quy định chi tiết về quản lý hoạt động bay.",
+      "exp": "Quy định chi tiết về quản lý hoạt động bay.",
+      "src": "Pháp luật về hàng không và an ninh hàng không"
+    },
+    {
+      "lesson": 1,
+      "n": 48,
+      "q": "Việt Nam gia nhập Công ước Tokyo 1963 vào ngày nào và có hiệu lực khi nào đối với Việt Nam?",
+      "opts": {
+        "A": "Gia nhập ngày 25/8/1999 và có hiệu lực ngày 06/8/1989.",
+        "B": "Gia nhập ngày 12/4/1980 và có hiệu lực cùng ngày.",
+        "C": "Gia nhập ngày 10/10/1979 và có hiệu lực đối với Việt Nam ngày 08/01/1980.",
+        "D": "Gia nhập ngày 17/9/1979 và có hiệu lực ngày 14/10/1971."
+      },
+      "ans": "C",
+      "ansText": "Gia nhập ngày 10/10/1979 và có hiệu lực đối với Việt Nam ngày 08/01/1980.",
+      "exp": "Gia nhập ngày 10/10/1979 và có hiệu lực đối với Việt Nam ngày 08/01/1980.",
+      "src": "Pháp luật về hàng không và an ninh hàng không"
+    },
+    {
+      "lesson": 1,
+      "n": 49,
+      "q": "Công ước La Hague 1970 được ký tại đâu và có hiệu lực từ ngày nào?",
+      "opts": {
+        "A": "Ký tại Chicago, Hoa Kỳ ngày 07/12/1944 và có hiệu lực ngày 04/4/1947.",
+        "B": "Ký tại La Hague, Hà Lan ngày 16/12/1970 và có hiệu lực từ ngày 14/10/1971.",
+        "C": "Ký tại Tokyo, Nhật Bản ngày 14/9/1963 và có hiệu lực ngày 04/12/1969.",
+        "D": "Ký tại Montreal, Canada ngày 23/9/1971 và có hiệu lực ngày 26/01/1973."
+      },
+      "ans": "B",
+      "ansText": "Ký tại La Hague, Hà Lan ngày 16/12/1970 và có hiệu lực từ ngày 14/10/1971.",
+      "exp": "Ký tại La Hague, Hà Lan ngày 16/12/1970 và có hiệu lực từ ngày 14/10/1971.",
+      "src": "Pháp luật về hàng không và an ninh hàng không"
+    },
+    {
+      "lesson": 1,
+      "n": 50,
+      "q": "Luật Hàng không dân dụng Việt Nam số 130/2025/QH15 có hiệu lực thi hành kể từ ngày nào?",
+      "opts": {
+        "A": "Từ ngày 01/7/2026.",
+        "B": "Từ ngày 10/12/2025.",
+        "C": "Từ ngày 01/7/2025.",
+        "D": "Từ ngày 01/01/2026."
+      },
+      "ans": "A",
+      "ansText": "Từ ngày 01/7/2026.",
+      "exp": "Từ ngày 01/7/2026.",
+      "src": "Pháp luật về hàng không và an ninh hàng không"
+    },
+    {
+      "lesson": 1,
+      "n": 51,
+      "q": "Trách nhiệm của các doanh nghiệp hàng không trong bảo đảm an ninh hàng không bao gồm nội dung nào?",
+      "opts": {
+        "A": "Chỉ xây dựng chương trình ANHK, không chịu kiểm tra của cơ quan nhà nước.",
+        "B": "Thực hiện quy định, quy chuẩn và hướng dẫn của Nhà nước; đầu tư công nghệ, kỹ thuật; hỗ trợ đào tạo; áp dụng biện pháp ANHK trong toàn bộ quy trình khai thác; phối hợp phòng, chống khủng bố và bảo đảm an ninh ngành hàng không.",
+        "C": "Chỉ thực hiện quy định của hãng và đầu tư trang thiết bị soi chiếu.",
+        "D": "Chỉ phối hợp đào tạo và phòng, chống khủng bố khi có yêu cầu."
+      },
+      "ans": "B",
+      "ansText": "Thực hiện quy định, quy chuẩn và hướng dẫn của Nhà nước; đầu tư công nghệ, kỹ thuật; hỗ trợ đào tạo; áp dụng biện pháp ANHK trong toàn bộ quy trình khai thác; phối hợp phòng, chống khủng bố và bảo đảm an ninh ngành hàng không.",
+      "exp": "Thực hiện quy định, quy chuẩn và hướng dẫn của Nhà nước; đầu tư công nghệ, kỹ thuật; hỗ trợ đào tạo; áp dụng biện pháp ANHK trong toàn bộ quy trình khai thác; phối hợp phòng, chống khủng bố và bảo đảm an ninh ngành hàng không.",
+      "src": "Pháp luật về hàng không và an ninh hàng không"
+    },
+    {
+      "lesson": 1,
+      "n": 52,
+      "q": "Theo Công ước Chicago, tổ chức quốc tế nào được thành lập để nghiên cứu, đưa ra các tiêu chuẩn bảo đảm an ninh, an toàn hàng không?",
+      "opts": {
+        "A": "Tổ chức Hàng không dân dụng quốc tế (ICAO).",
+        "B": "Tổ chức Hàng hải quốc tế (IMO).",
+        "C": "Hội đồng Sân bay quốc tế (ACI).",
+        "D": "Hiệp hội Vận tải hàng không quốc tế (IATA)."
+      },
+      "ans": "A",
+      "ansText": "Tổ chức Hàng không dân dụng quốc tế (ICAO).",
+      "exp": "Tổ chức Hàng không dân dụng quốc tế (ICAO).",
+      "src": "Pháp luật về hàng không và an ninh hàng không"
+    },
+    {
+      "lesson": 1,
+      "n": 53,
+      "q": "Công ước Tokyo 1963 không áp dụng đối với loại tàu bay nào?",
+      "opts": {
+        "A": "Tàu bay công vụ.",
+        "B": "Tàu bay đăng ký quốc tịch nước ngoài.",
+        "C": "Tàu bay vận tải hàng hóa.",
+        "D": "Tàu bay dân dụng đang bay."
+      },
+      "ans": "A",
+      "ansText": "Tàu bay công vụ.",
+      "exp": "Tàu bay công vụ.",
+      "src": "Pháp luật về hàng không và an ninh hàng không"
+    }
+  ]
+}

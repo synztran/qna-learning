@@ -219,7 +219,7 @@ export function QuizEngine({ initialLessons, initialQuestions, user }: QuizEngin
      ============================================================== */
   if (view === 'setup') {
     return (
-      <div className="min-h-[100dvh] flex flex-col justify-between py-4 sm:py-6 safe-top safe-bottom">
+      <div safe_top="" safe_bot="" className="min-h-[100dvh] flex flex-col justify-between py-4 sm:py-6">
         {/* Header */}
         <header className="flex justify-between items-center pb-4 border-b border-base-300">
           <div className="flex items-center gap-3">
@@ -398,9 +398,9 @@ export function QuizEngine({ initialLessons, initialQuestions, user }: QuizEngin
      ============================================================== */
   if (view === 'quiz') {
     return (
-      <div className="min-h-[100dvh] pb-28 pt-2 safe-bottom">
-        {/* Sticky Mobile Bar */}
-        <div className="sticky top-0 z-30 pt-[env(safe-area-inset-top,0px)] bg-base-100/90 backdrop-blur-md border-b border-base-300/80 pb-2.5 px-1 -mx-1 mb-4 shadow-sm">
+      <div safe_bot="" className="min-h-[100dvh] pb-48 pt-2">
+        {/* Sticky Mobile Bar with Rabbit Ear Clearance */}
+        <div safe_top="" className="sticky top-0 z-30 bg-base-100/95 backdrop-blur-md border-b border-base-300/80 pb-2.5 px-1 -mx-1 mb-4 shadow-sm">
           <div className="flex justify-between items-center mb-2">
             <div className="flex items-center gap-2">
               <button
@@ -597,10 +597,16 @@ export function QuizEngine({ initialLessons, initialQuestions, user }: QuizEngin
               </article>
             );
           })}
+
+          {/* Spacer so last question card scrolls well above fixed footer on iOS */}
+          <div className="h-32 sm:h-36 w-full" aria-hidden="true" />
         </div>
 
-        {/* Floating Bottom Action Bar */}
-        <div className="fixed bottom-0 left-0 right-0 p-3 bg-base-100/90 backdrop-blur-md border-t border-base-300 z-30 safe-bottom flex justify-center">
+        {/* Floating Bottom Action Bar with Browser / Control Center Clearance */}
+        <div
+          safe_bot=""
+          className="fixed bottom-0 left-0 right-0 px-4 pt-3 pb-[max(calc(env(safe-area-inset-bottom,0px)+1.5rem),2.5rem)] bg-base-100/95 backdrop-blur-md border-t border-base-300 z-30 flex justify-center shadow-lg"
+        >
           <div className="w-full max-w-md flex items-center justify-between gap-3">
             <button
               type="button"
@@ -630,7 +636,8 @@ export function QuizEngine({ initialLessons, initialQuestions, user }: QuizEngin
                 initial={{ y: '100%', opacity: 0 }}
                 animate={{ y: 0, opacity: 1 }}
                 exit={{ y: '100%', opacity: 0 }}
-                className="w-full max-w-lg bg-base-100 rounded-t-3xl sm:rounded-3xl p-5 border border-base-300 shadow-2xl max-h-[85vh] flex flex-col safe-bottom"
+                safe_bot=""
+                className="w-full max-w-lg bg-base-100 rounded-t-3xl sm:rounded-3xl p-5 border border-base-300 shadow-2xl max-h-[85vh] flex flex-col"
               >
                 <div className="flex justify-between items-center pb-3 border-b border-base-300">
                   <h3 className="font-display font-bold text-base">Bảng danh sách câu hỏi</h3>
@@ -699,7 +706,7 @@ export function QuizEngine({ initialLessons, initialQuestions, user }: QuizEngin
      3. RESULT VIEW
      ============================================================== */
   return (
-    <div className="min-h-[100dvh] py-4 sm:py-6 safe-top safe-bottom space-y-6">
+    <div safe_top="" safe_bot="" className="min-h-[100dvh] py-4 sm:py-6 space-y-6">
       {/* Trophy & Score Header */}
       <div className="card bg-base-200/60 backdrop-blur-sm border border-base-300 p-6 sm:p-8 rounded-3xl text-center shadow-lg shadow-primary/5">
         <div className="flex justify-center mb-3">

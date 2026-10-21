@@ -116,7 +116,11 @@ function LoginForm() {
 
 export default function LoginPage() {
   return (
-    <div className="min-h-[100dvh] flex flex-col justify-between items-center p-4 sm:p-6 bg-base-100 safe-top safe-bottom">
+    <div
+      safe_top=""
+      safe_bot=""
+      className="min-h-[100dvh] flex flex-col justify-between items-center p-4 sm:p-6 bg-base-100"
+    >
       {/* Top Header */}
       <div className="w-full max-w-md flex justify-between items-center pt-2">
         <div className="flex items-center gap-2">

@@ -1,4 +1,4 @@
-import { listUsers, listQuestions } from './actions/admin';
+import { listUsers, listQuestions, listQuestionSourcesFromFolder } from './actions/admin';
 import { AdminDashboard } from '@/components/AdminDashboard';
 import { parseQuizJson, DEFAULT_SEED_DATA } from '@qna/database';
 import type { Question, UserProfile } from '@qna/types';
@@ -11,8 +11,13 @@ export default async function AdminHomePage() {
   let users: UserProfile[] = [];
   let questions: Question[] = [];
 
+  const [folderSourcesRes, usersRes, questionsRes] = await Promise.all([
+    listQuestionSourcesFromFolder(),
+    hasEnv ? listUsers() : Promise.resolve({ users: [] }),
+    hasEnv ? listQuestions() : Promise.resolve({ questions: [] }),
+  ]);
+
   if (hasEnv) {
-    const [usersRes, questionsRes] = await Promise.all([listUsers(), listQuestions()]);
     users = usersRes.users || [];
     questions = questionsRes.questions || [];
   }
@@ -49,6 +54,8 @@ export default async function AdminHomePage() {
     <AdminDashboard
       initialUsers={users}
       initialQuestions={questions}
+      initialFolderSources={folderSourcesRes.sources || []}
+      initialFolderPath={folderSourcesRes.folderPath || ''}
       hasEnv={hasEnv}
     />
   );

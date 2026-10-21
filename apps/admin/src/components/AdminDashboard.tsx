@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
-import type { Question, UserProfile, OptionKey } from '@qna/types';
+import type { Question, UserProfile, OptionKey, Lesson } from '@qna/types';
 import {
   createStudentUser,
   toggleSoftBan,
@@ -10,6 +10,11 @@ import {
   seedDefaultSc5Data,
   saveQuestion,
   deleteQuestion,
+  listQuestionSourcesFromFolder,
+  buildSetFromFolderSource,
+  setActiveQuizSet,
+  previewFolderSource,
+  type FolderQuestionSource,
 } from '../app/actions/admin';
 import { ThemeToggle } from '@qna/ui';
 import {
@@ -30,18 +35,40 @@ import {
   BookOpen,
   Sparkles,
   RefreshCw,
+  FolderOpen,
+  Eye,
+  Check,
+  FolderSync,
 } from 'lucide-react';
 
 interface AdminDashboardProps {
   initialUsers: UserProfile[];
   initialQuestions: Question[];
+  initialFolderSources: FolderQuestionSource[];
+  initialFolderPath: string;
   hasEnv: boolean;
 }
 
-export function AdminDashboard({ initialUsers, initialQuestions, hasEnv }: AdminDashboardProps) {
-  const [tab, setTab] = useState<'users' | 'upload' | 'questions'>('users');
+export function AdminDashboard({
+  initialUsers,
+  initialQuestions,
+  initialFolderSources,
+  initialFolderPath,
+  hasEnv,
+}: AdminDashboardProps) {
+  const [tab, setTab] = useState<'users' | 'folderSources' | 'upload' | 'questions'>('folderSources');
   const [users, setUsers] = useState<UserProfile[]>(initialUsers);
   const [questions, setQuestions] = useState<Question[]>(initialQuestions);
+
+  // Folder Sources State
+  const [folderPath, setFolderPath] = useState(initialFolderPath);
+  const [folderSources, setFolderSources] = useState<FolderQuestionSource[]>(initialFolderSources);
+  const [folderLoading, setFolderLoading] = useState(false);
+  const [previewData, setPreviewData] = useState<{
+    fileName: string;
+    lessons: Lesson[];
+    questions: Question[];
+  } | null>(null);
 
   // User Filter & Search
   const [userSearch, setUserSearch] = useState('');
@@ -207,6 +234,70 @@ export function AdminDashboard({ initialUsers, initialQuestions, hasEnv }: Admin
     }
   };
 
+  // Handler: Scan Folder
+  const handleScanFolder = async () => {
+    setFolderLoading(true);
+    const res = await listQuestionSourcesFromFolder(folderPath);
+    setFolderLoading(false);
+    if (res.error) {
+      setUserActionMsg({ type: 'err', text: res.error });
+    } else {
+      setFolderSources(res.sources);
+      setFolderPath(res.folderPath);
+      setUserActionMsg({
+        type: 'ok',
+        text: `Đã quét thấy ${res.sources.length} file nguồn câu hỏi!`,
+      });
+    }
+  };
+
+  // Handler: Build Set from Folder Source
+  const handleBuildFolderSet = async (fileName: string) => {
+    setFolderLoading(true);
+    const res = await buildSetFromFolderSource(fileName, folderPath);
+    setFolderLoading(false);
+    if (res.success) {
+      setUserActionMsg({ type: 'ok', text: res.message || 'Build bộ đề thành công!' });
+      const scanRes = await listQuestionSourcesFromFolder(folderPath);
+      if (scanRes.sources) setFolderSources(scanRes.sources);
+    } else {
+      setUserActionMsg({ type: 'err', text: res.error || 'Lỗi build bộ đề' });
+    }
+  };
+
+  // Handler: Set Active Set for Students
+  const handleSetActive = async (setId: string, title: string) => {
+    setFolderLoading(true);
+    const res = await setActiveQuizSet(setId);
+    setFolderLoading(false);
+    if (res.success) {
+      setUserActionMsg({
+        type: 'ok',
+        text: `Đã kích hoạt bộ đề "${title}" cho học viên trên web!`,
+      });
+      const scanRes = await listQuestionSourcesFromFolder(folderPath);
+      if (scanRes.sources) setFolderSources(scanRes.sources);
+    } else {
+      setUserActionMsg({ type: 'err', text: res.error || 'Lỗi kích hoạt bộ đề' });
+    }
+  };
+
+  // Handler: Preview Source
+  const handlePreview = async (fileName: string) => {
+    setFolderLoading(true);
+    const res = await previewFolderSource(fileName, folderPath);
+    setFolderLoading(false);
+    if (res.success && res.lessons && res.questions) {
+      setPreviewData({
+        fileName,
+        lessons: res.lessons,
+        questions: res.questions,
+      });
+    } else {
+      setUserActionMsg({ type: 'err', text: res.error || 'Lỗi đọc file xem trước' });
+    }
+  };
+
   return (
     <div className="min-h-screen bg-base-100 flex flex-col">
       {/* Top Navbar */}
@@ -234,7 +325,16 @@ export function AdminDashboard({ initialUsers, initialQuestions, hasEnv }: Admin
       {/* Main Container */}
       <div className="flex-1 max-w-7xl w-full mx-auto p-4 sm:p-8 space-y-6">
         {/* Navigation Tabs */}
-        <div className="tabs tabs-boxed bg-base-200/80 p-1.5 rounded-2xl inline-flex border border-base-300">
+        <div className="tabs tabs-boxed bg-base-200/80 p-1.5 rounded-2xl inline-flex flex-wrap gap-1 border border-base-300">
+          <button
+            onClick={() => setTab('folderSources')}
+            className={`tab gap-2 text-xs font-display font-bold rounded-xl transition-all ${
+              tab === 'folderSources' ? 'tab-active !bg-primary !text-white' : ''
+            }`}
+          >
+            <FolderOpen className="w-4 h-4" />
+            Nguồn đề từ Thư mục ({folderSources.length})
+          </button>
           <button
             onClick={() => setTab('users')}
             className={`tab gap-2 text-xs font-display font-bold rounded-xl transition-all ${
@@ -251,7 +351,7 @@ export function AdminDashboard({ initialUsers, initialQuestions, hasEnv }: Admin
             }`}
           >
             <Upload className="w-4 h-4" />
-            Upload File & Storage
+            Upload File Storage
           </button>
           <button
             onClick={() => setTab('questions')}
@@ -286,6 +386,172 @@ export function AdminDashboard({ initialUsers, initialQuestions, hasEnv }: Admin
             <button onClick={() => setUserActionMsg(null)} className="btn btn-ghost btn-circle btn-xs">
               ✕
             </button>
+          </div>
+        )}
+
+        {/* ==============================================================
+            TAB: FOLDER SOURCES & SET BUILDER
+            ============================================================== */}
+        {tab === 'folderSources' && (
+          <div className="space-y-6">
+            {/* Folder path bar */}
+            <div className="card bg-base-200/50 border border-base-300 p-4 sm:p-5 rounded-3xl shadow-sm space-y-3">
+              <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
+                <div className="flex-1 w-full">
+                  <label className="label py-1">
+                    <span className="label-text text-xs font-bold font-display flex items-center gap-1.5">
+                      <FolderOpen className="w-4 h-4 text-primary" />
+                      Đường dẫn thư mục nguồn câu hỏi (JSON)
+                    </span>
+                  </label>
+                  <div className="flex gap-2">
+                    <input
+                      type="text"
+                      value={folderPath}
+                      onChange={(e) => setFolderPath(e.target.value)}
+                      placeholder="/Users/.../data/question-sources"
+                      className="input input-sm input-bordered flex-1 rounded-xl text-xs font-mono bg-base-100"
+                    />
+                    <button
+                      type="button"
+                      disabled={folderLoading}
+                      onClick={handleScanFolder}
+                      className="btn btn-primary btn-sm rounded-xl font-display font-bold text-white shadow-sm shrink-0"
+                    >
+                      {folderLoading ? (
+                        <span className="loading loading-spinner loading-xs" />
+                      ) : (
+                        <>
+                          <RefreshCw className="w-3.5 h-3.5 mr-1" />
+                          Quét lại thư mục
+                        </>
+                      )}
+                    </button>
+                  </div>
+                </div>
+              </div>
+
+              <p className="text-[11px] text-base-content/60 leading-relaxed">
+                Tự động phát hiện các file <code>.json</code> trong thư mục. Bạn có thể xem trước nội dung,
+                nhấn <b>Build vào Database</b> để đồng bộ lên Supabase, và bấm <b>Kích hoạt</b> để chọn bộ đề đang hiển thị cho học viên trên ứng dụng Web.
+              </p>
+            </div>
+
+            {/* List of Detected Sources */}
+            <div className="space-y-3">
+              <h3 className="font-display font-bold text-sm text-base-content/80 flex items-center gap-2">
+                Danh sách bộ đề được phát hiện trong thư mục ({folderSources.length})
+              </h3>
+
+              {folderSources.length === 0 ? (
+                <div className="text-center py-12 bg-base-200/50 rounded-3xl border border-dashed border-base-300 text-xs text-base-content/60">
+                  Không tìm thấy file <code>.json</code> nào trong thư mục được chọn.
+                </div>
+              ) : (
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  {folderSources.map((source, idx) => {
+                    const isSynced = Boolean(source.syncedSet);
+                    const isActive = Boolean(source.syncedSet?.isActive);
+
+                    return (
+                      <div
+                        key={source.fileName || idx}
+                        className={`card bg-base-100 border p-5 rounded-3xl transition-all shadow-sm space-y-3 ${
+                          isActive
+                            ? 'border-primary shadow-md shadow-primary/10'
+                            : isSynced
+                            ? 'border-base-300'
+                            : 'border-dashed border-base-300/80 bg-base-200/30'
+                        }`}
+                      >
+                        {/* Source Header */}
+                        <div className="flex justify-between items-start gap-2">
+                          <div className="min-w-0">
+                            <div className="flex items-center gap-2 flex-wrap">
+                              <h4 className="font-display font-bold text-base text-base-content truncate">
+                                {source.title}
+                              </h4>
+                              {isActive ? (
+                                <span className="badge badge-primary badge-sm text-[10px] font-bold gap-1 text-white">
+                                  <Sparkles className="w-3 h-3" /> Đang kích hoạt
+                                </span>
+                              ) : isSynced ? (
+                                <span className="badge badge-success badge-sm text-[10px] font-bold text-white gap-1">
+                                  <Check className="w-3 h-3" /> Đã nạp DB
+                                </span>
+                              ) : (
+                                <span className="badge badge-ghost badge-sm text-[10px] text-base-content/60">
+                                  Chưa nạp DB
+                                </span>
+                              )}
+                            </div>
+                            <div className="text-[11px] font-mono text-base-content/50 mt-0.5 truncate">
+                              File: {source.fileName} ({Math.round(source.fileSizeBytes / 1024)} KB)
+                            </div>
+                          </div>
+                        </div>
+
+                        {/* Meta stats */}
+                        <div className="flex items-center gap-3 text-xs bg-base-200/60 p-2.5 rounded-2xl">
+                          <div>
+                            <span className="text-base-content/60 text-[11px]">Bài học: </span>
+                            <b className="font-display text-primary">{source.lessonsCount} bài</b>
+                          </div>
+                          <span className="text-base-content/30">•</span>
+                          <div>
+                            <span className="text-base-content/60 text-[11px]">Tổng số câu: </span>
+                            <b className="font-display text-primary">{source.questionsCount} câu</b>
+                          </div>
+                          <span className="text-base-content/30">•</span>
+                          <div>
+                            <span className="text-base-content/60 text-[11px]">Mã slug: </span>
+                            <code className="text-[10px] font-bold">{source.slug}</code>
+                          </div>
+                        </div>
+
+                        {/* Actions */}
+                        <div className="flex items-center justify-between gap-2 pt-2 border-t border-base-300/60">
+                          <button
+                            type="button"
+                            onClick={() => handlePreview(source.fileName)}
+                            className="btn btn-ghost btn-xs rounded-xl font-display"
+                          >
+                            <Eye className="w-3.5 h-3.5 mr-1" />
+                            Xem trước ({source.questionsCount} câu)
+                          </button>
+
+                          <div className="flex items-center gap-2">
+                            {isSynced && !isActive && source.syncedSet?.id && (
+                              <button
+                                type="button"
+                                disabled={folderLoading}
+                                onClick={() =>
+                                  handleSetActive(source.syncedSet!.id, source.title)
+                                }
+                                className="btn btn-outline btn-xs rounded-xl font-display font-bold"
+                              >
+                                Kích hoạt cho học viên
+                              </button>
+                            )}
+
+                            <button
+                              type="button"
+                              disabled={folderLoading || !source.isValid}
+                              onClick={() => handleBuildFolderSet(source.fileName)}
+                              className={`btn btn-xs rounded-xl font-display font-bold text-white shadow-sm ${
+                                isActive ? 'btn-neutral' : 'btn-primary'
+                              }`}
+                            >
+                              {isSynced ? 'Re-build lại set' : 'Build vào Database'}
+                            </button>
+                          </div>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+            </div>
           </div>
         )}
 
@@ -911,6 +1177,123 @@ export function AdminDashboard({ initialUsers, initialQuestions, hasEnv }: Admin
                 </button>
               </div>
             </form>
+          </div>
+        </div>
+      )}
+
+      {/* ==============================================================
+          MODAL: PREVIEW FOLDER SOURCE
+          ============================================================== */}
+      {previewData && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs overflow-y-auto">
+          <div className="w-full max-w-3xl bg-base-100 rounded-3xl p-6 border border-base-300 shadow-2xl space-y-4 my-8 max-h-[90vh] flex flex-col">
+            <div className="flex justify-between items-center pb-3 border-b border-base-300">
+              <div>
+                <h3 className="font-display font-bold text-base flex items-center gap-2">
+                  <FolderOpen className="w-5 h-5 text-primary" />
+                  Xem trước nội dung file: <span className="font-mono text-xs">{previewData.fileName}</span>
+                </h3>
+                <p className="text-xs text-base-content/60 mt-0.5">
+                  Gồm <b>{previewData.lessons.length} bài học</b> và <b>{previewData.questions.length} câu hỏi</b>
+                </p>
+              </div>
+              <button
+                type="button"
+                onClick={() => setPreviewData(null)}
+                className="btn btn-circle btn-xs btn-ghost"
+              >
+                ✕
+              </button>
+            </div>
+
+            {/* Scrollable Questions Content */}
+            <div className="flex-1 overflow-y-auto space-y-4 pr-1">
+              {/* Lessons overview */}
+              <div className="bg-base-200/50 p-3 rounded-2xl border border-base-300/80">
+                <h5 className="font-display font-bold text-xs mb-2 text-primary">Các bài học có trong đề:</h5>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs">
+                  {previewData.lessons.map((l) => (
+                    <div key={l.n} className="flex items-center gap-2 p-1.5 rounded-xl bg-base-100 border border-base-300/60">
+                      <span className="badge badge-sm badge-neutral font-mono font-bold text-[10px]">
+                        Bài {l.n}
+                      </span>
+                      <span className="truncate font-medium">{l.title}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {/* Sample questions */}
+              <div className="space-y-3">
+                <h5 className="font-display font-bold text-xs text-base-content/80">
+                  Danh sách câu hỏi mẫu ({previewData.questions.length} câu):
+                </h5>
+
+                {previewData.questions.slice(0, 30).map((q, idx) => (
+                  <div key={idx} className="p-3.5 bg-base-200/30 rounded-2xl border border-base-300 text-xs space-y-2">
+                    <div className="flex justify-between items-center text-[11px]">
+                      <span className="font-display font-bold text-primary">
+                        Câu {q.n} (Bài {q.lesson})
+                      </span>
+                      <span className="badge badge-success badge-xs text-white font-bold">
+                        Đáp án đúng: {q.ans}
+                      </span>
+                    </div>
+
+                    <p className="font-semibold text-base-content">{q.q}</p>
+
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-1.5 text-[11px]">
+                      {(['A', 'B', 'C', 'D'] as OptionKey[]).map((key) => (
+                        <div
+                          key={key}
+                          className={`p-1.5 px-2 rounded-lg border ${
+                            key === q.ans
+                              ? 'bg-success/15 border-success text-success-content font-bold'
+                              : 'bg-base-100 border-base-300/60 text-base-content/80'
+                          }`}
+                        >
+                          <span className="font-bold mr-1">{key}.</span> {q.opts[key]}
+                        </div>
+                      ))}
+                    </div>
+
+                    {q.exp && (
+                      <div className="text-[11px] text-base-content/70 italic border-t border-base-300/50 pt-1">
+                        <b>Giải thích:</b> {q.exp}
+                      </div>
+                    )}
+                  </div>
+                ))}
+
+                {previewData.questions.length > 30 && (
+                  <div className="text-center py-2 text-xs text-base-content/50">
+                    ... và {previewData.questions.length - 30} câu hỏi khác
+                  </div>
+                )}
+              </div>
+            </div>
+
+            {/* Modal footer */}
+            <div className="pt-3 border-t border-base-300 flex justify-end gap-2">
+              <button
+                type="button"
+                onClick={() => setPreviewData(null)}
+                className="btn btn-ghost btn-sm rounded-xl font-display"
+              >
+                Đóng
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  const fName = previewData.fileName;
+                  setPreviewData(null);
+                  handleBuildFolderSet(fName);
+                }}
+                className="btn btn-primary btn-sm rounded-xl font-display font-bold text-white shadow-sm"
+              >
+                Build bộ đề này vào Database
+              </button>
+            </div>
           </div>
         </div>
       )}

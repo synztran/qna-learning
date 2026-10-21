@@ -96,3 +96,12 @@ export interface QuizAttemptRecord {
   wrongQuestionIds?: string[];
   createdAt?: string;
 }
+
+declare global {
+  namespace React {
+    interface HTMLAttributes<T> {
+      safe_top?: string | boolean;
+      safe_bot?: string | boolean;
+    }
+  }
+}
