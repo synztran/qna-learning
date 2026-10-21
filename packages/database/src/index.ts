@@ -4,6 +4,7 @@ import seedDataRaw from './seed/sc5_mon_md1.json';
 export * from './client';
 export * from './admin';
 export * from './types';
+export * from './doc-converter';
 
 export const DEFAULT_SEED_DATA = seedDataRaw as QuizRawData;
 

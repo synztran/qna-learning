@@ -4,30 +4,42 @@ import { createClient } from '@/lib/supabase/server';
 import { DEFAULT_SEED_DATA, parseQuizJson } from '@qna/database';
 import type { Lesson, Question, QuizAttemptRecord } from '@qna/types';
 
-export async function getQuizData(): Promise<{ lessons: Lesson[]; questions: Question[] }> {
+export async function getQuizData(setId?: string): Promise<{
+  lessons: Lesson[]; questions: Question[];
+  sets: { id: string; title: string; questionCount: number }[];
+  selectedSetId?: string; error?: string;
+}> {
   const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
 
   if (!supabaseUrl) {
-    return parseQuizJson(DEFAULT_SEED_DATA);
+    return { ...parseQuizJson(DEFAULT_SEED_DATA), sets: [] };
   }
 
   try {
     const supabase = await createClient();
 
     // Query active sets, lessons, and questions
-    const { data: sets } = await supabase
+    const { data: sets, error: setsError } = await supabase
       .from('quiz_sets')
-      .select('id, title, slug')
+      .select('id, title, slug, questions(count)')
       .eq('is_active', true)
-      .limit(1);
+      .eq('questions.is_active', true)
+      .order('title', { ascending: true })
+      .order('id', { ascending: true });
 
-    const activeSetId = sets?.[0]?.id;
+    if (setsError) throw setsError;
+    const availableSets = (sets || []).map(set => ({
+      id: set.id, title: set.title, questionCount: set.questions?.[0]?.count || 0,
+    }));
+
+    const activeSetId = setId ? availableSets.find(set => set.id === setId)?.id : availableSets[0]?.id;
 
     if (!activeSetId) {
-      return parseQuizJson(DEFAULT_SEED_DATA);
+      return { lessons: [], questions: [], sets: availableSets,
+        error: setId ? 'Bộ đề không tồn tại hoặc chưa được kích hoạt.' : 'Chưa có bộ đề được kích hoạt.' };
     }
 
-    const [{ data: lessonsData }, { data: questionsData }] = await Promise.all([
+    const [{ data: lessonsData, error: lessonsError }, { data: questionsData, error: questionsError }] = await Promise.all([
       supabase
         .from('lessons')
         .select('*')
@@ -41,9 +53,12 @@ export async function getQuizData(): Promise<{ lessons: Lesson[]; questions: Que
         .order('question_order', { ascending: true }),
     ]);
 
-    if (!lessonsData || lessonsData.length === 0 || !questionsData || questionsData.length === 0) {
-      return parseQuizJson(DEFAULT_SEED_DATA);
-    }
+    if (lessonsError) throw lessonsError;
+    if (questionsError) throw questionsError;
+    if (!lessonsData?.length || !questionsData?.length) return {
+      lessons: [], questions: [], sets: availableSets, selectedSetId: activeSetId,
+      error: 'Bộ đề chưa có đầy đủ bài học và câu hỏi. Vui lòng liên hệ quản trị viên.',
+    };
 
     const lessons: Lesson[] = lessonsData.map((l) => ({
       id: l.id,
@@ -67,10 +82,10 @@ export async function getQuizData(): Promise<{ lessons: Lesson[]; questions: Que
       src: q.source_ref || '',
     }));
 
-    return { lessons, questions };
+    return { lessons, questions, sets: availableSets, selectedSetId: activeSetId };
   } catch (err) {
-    console.error('Failed to fetch from Supabase, using seed fallback:', err);
-    return parseQuizJson(DEFAULT_SEED_DATA);
+    console.error('Failed to fetch quiz data from Supabase:', err);
+    return { lessons: [], questions: [], sets: [], error: 'Không thể tải bộ đề từ Supabase. Vui lòng thử lại hoặc liên hệ quản trị viên.' };
   }
 }
 

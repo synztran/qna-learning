@@ -42,6 +42,8 @@ export interface QuizSet {
 }
 
 export interface QuizRawData {
+  title?: string;
+  slug?: string;
   lessons: Array<{
     n: number;
     title: string;

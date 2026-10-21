@@ -1,4 +1,4 @@
-import { listUsers, listQuestions, listQuestionSourcesFromFolder } from './actions/admin';
+import { listUsers, listQuestions, listQuestionSets, listQuestionSourcesFromFolder } from './actions/admin';
 import { AdminDashboard } from '@/components/AdminDashboard';
 import { parseQuizJson, DEFAULT_SEED_DATA } from '@qna/database';
 import type { Question, UserProfile } from '@qna/types';
@@ -11,23 +11,21 @@ export default async function AdminHomePage() {
   let users: UserProfile[] = [];
   let questions: Question[] = [];
 
-  const [folderSourcesRes, usersRes, questionsRes] = await Promise.all([
+  const [folderSourcesRes, usersRes, questionsRes, setsRes] = await Promise.all([
     listQuestionSourcesFromFolder(),
     hasEnv ? listUsers() : Promise.resolve({ users: [] }),
     hasEnv ? listQuestions() : Promise.resolve({ questions: [] }),
+    hasEnv ? listQuestionSets() : Promise.resolve({ sets: [] }),
   ]);
 
   if (hasEnv) {
     users = usersRes.users || [];
     questions = questionsRes.questions || [];
-  }
-
-  // Fallback to sample data for local preview if DB is empty or env not set
-  if (questions.length === 0) {
-    questions = parseQuizJson(DEFAULT_SEED_DATA).questions;
-  }
-
-  if (users.length === 0) {
+  } else {
+    // Fallback to sample data for local preview only when env is not set
+    if (questions.length === 0) {
+      questions = parseQuizJson(DEFAULT_SEED_DATA).questions;
+    }
     users = [
       {
         id: 'sample-admin-1',
@@ -54,6 +52,7 @@ export default async function AdminHomePage() {
     <AdminDashboard
       initialUsers={users}
       initialQuestions={questions}
+      initialSets={setsRes.sets}
       initialFolderSources={folderSourcesRes.sources || []}
       initialFolderPath={folderSourcesRes.folderPath || ''}
       hasEnv={hasEnv}

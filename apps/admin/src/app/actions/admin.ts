@@ -1,10 +1,17 @@
 'use server';
 
-import { createSupabaseAdminClient, parseQuizJson, DEFAULT_SEED_DATA } from '@qna/database';
+import {
+  createSupabaseAdminClient,
+  parseQuizJson,
+  DEFAULT_SEED_DATA,
+  convertDocxBufferToQuizData,
+  parseTextToQuizData,
+} from '@qna/database';
 import type { Question, QuizRawData, UserProfile } from '@qna/types';
 import { revalidatePath } from 'next/cache';
 import fs from 'fs';
 import path from 'path';
+import { readSource, writeSource } from '../../lib/question-source';
 
 function getAdmin() {
   return createSupabaseAdminClient();
@@ -12,6 +19,7 @@ function getAdmin() {
 
 export interface FolderQuestionSource {
   fileName: string;
+  fileType: 'json' | 'docx';
   fullPath: string;
   slug: string;
   title: string;
@@ -34,24 +42,71 @@ export interface FolderQuestionSource {
 export async function listUsers(): Promise<{ users: UserProfile[]; error?: string }> {
   try {
     const supabase = getAdmin();
-    const { data: profiles, error } = await supabase
-      .from('profiles')
-      .select('*')
-      .order('created_at', { ascending: false });
 
-    if (error) {
-      return { users: [], error: error.message };
+    // 1. Get all authentic users directly from Supabase Auth
+    const { data: authData, error: authError } = await supabase.auth.admin.listUsers({
+      page: 1,
+      perPage: 1000,
+    });
+
+    if (authError) {
+      console.error('Error querying auth users:', authError);
+      return { users: [], error: authError.message };
     }
 
-    const users: UserProfile[] = (profiles || []).map((p) => ({
-      id: p.id,
-      email: p.email,
-      displayName: p.display_name,
-      isBanned: p.is_banned,
-      role: p.role,
-      createdAt: p.created_at,
-      updatedAt: p.updated_at,
-    }));
+    const authUsers = authData?.users || [];
+
+    // 2. Get profiles table for soft-ban status and display name
+    const { data: profiles, error: profileError } = await supabase
+      .from('profiles')
+      .select('*');
+
+    const profileMap = new Map<string, any>();
+    if (profiles) {
+      profiles.forEach((p) => profileMap.set(p.id, p));
+    }
+
+    // 3. Merge Auth users with profiles and auto-sync missing profiles
+    const missingProfiles: any[] = [];
+    const users: UserProfile[] = authUsers.map((u) => {
+      const p = profileMap.get(u.id);
+      const isBanned = Boolean(p?.is_banned);
+      const role = (p?.role || u.user_metadata?.role || 'student') as 'admin' | 'student';
+      const displayName =
+        p?.display_name || u.user_metadata?.display_name || u.email?.split('@')[0] || '';
+
+      if (!p) {
+        missingProfiles.push({
+          id: u.id,
+          email: u.email || '',
+          display_name: displayName,
+          role,
+          is_banned: false,
+        });
+      }
+
+      return {
+        id: u.id,
+        email: u.email || '',
+        displayName,
+        isBanned,
+        role,
+        createdAt: u.created_at,
+        updatedAt: p?.updated_at || u.updated_at || u.created_at,
+      };
+    });
+
+    // Auto-sync missing profiles
+    if (missingProfiles.length > 0) {
+      try {
+        await supabase.from('profiles').upsert(missingProfiles, { onConflict: 'id' });
+      } catch (e) {
+        console.warn('Could not auto-upsert profiles:', e);
+      }
+    }
+
+    // Sort newest first
+    users.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
 
     return { users };
   } catch (err: any) {
@@ -107,13 +162,21 @@ export async function createStudentUser(formData: FormData) {
 export async function toggleSoftBan(userId: string, isBanned: boolean) {
   try {
     const supabase = getAdmin();
-    const { error } = await supabase
-      .from('profiles')
-      .update({ is_banned: isBanned, updated_at: new Date().toISOString() })
-      .eq('id', userId);
 
-    if (error) {
-      return { success: false, error: error.message };
+    // 1. Update auth user metadata so ban works even if profiles table not created
+    await supabase.auth.admin.updateUserById(userId, {
+      user_metadata: { is_banned: isBanned },
+      ban_duration: isBanned ? '876000h' : 'none',
+    });
+
+    // 2. Also try updating profiles table if present
+    try {
+      await supabase
+        .from('profiles')
+        .update({ is_banned: isBanned, updated_at: new Date().toISOString() })
+        .eq('id', userId);
+    } catch {
+      // ignore table missing error
     }
 
     revalidatePath('/');
@@ -317,6 +380,22 @@ export async function seedDefaultSc5Data() {
 // -------------------------------------------------------------
 // QUESTION EDITOR ACTIONS
 // -------------------------------------------------------------
+export interface AdminQuizSet {
+  id: string;
+  title: string;
+  isActive: boolean;
+}
+
+export async function listQuestionSets(): Promise<{ sets: AdminQuizSet[]; error?: string }> {
+  try {
+    const { data, error } = await getAdmin().from('quiz_sets').select('id, title, is_active').order('title').order('id');
+    if (error) return { sets: [], error: error.message };
+    return { sets: (data || []).map(set => ({ id: set.id, title: set.title, isActive: set.is_active })) };
+  } catch (error) {
+    return { sets: [], error: error instanceof Error ? error.message : 'Không thể tải bộ đề.' };
+  }
+}
+
 export async function listQuestions(setId?: string): Promise<{ questions: Question[]; error?: string }> {
   try {
     const supabase = getAdmin();
@@ -326,8 +405,14 @@ export async function listQuestions(setId?: string): Promise<{ questions: Questi
       query = query.eq('set_id', setId);
     }
 
-    const { data, error } = await query;
-    if (error) return { questions: [], error: error.message };
+    // Page explicitly: PostgREST otherwise caps results at its configured row limit.
+    const data: any[] = [];
+    for (let offset = 0; ; offset += 500) {
+      const { data: page, error } = await query.order('id', { ascending: true }).range(offset, offset + 499);
+      if (error) return { questions: [], error: error.message };
+      data.push(...(page || []));
+      if (!page || page.length < 500) break;
+    }
 
     const questions: Question[] = (data || []).map((q) => ({
       id: q.id,
@@ -441,7 +526,9 @@ export async function listQuestionSourcesFromFolder(customPath?: string): Promis
     }
 
     const files = await fs.promises.readdir(targetDir);
-    const jsonFiles = files.filter((f) => f.endsWith('.json'));
+    const targetFiles = files.filter(
+      (f) => f.endsWith('.json') || f.toLowerCase().endsWith('.docx')
+    );
 
     let syncedSetsMap: Record<string, { id: string; slug: string; title: string; isActive: boolean }> = {};
     if (process.env.SUPABASE_SERVICE_ROLE_KEY) {
@@ -465,26 +552,46 @@ export async function listQuestionSourcesFromFolder(customPath?: string): Promis
 
     const sources: FolderQuestionSource[] = [];
 
-    for (const f of jsonFiles) {
+    for (const f of targetFiles) {
       const fullPath = path.join(targetDir, f);
       const stat = await fs.promises.stat(fullPath);
-      const baseSlug = f.replace(/\.json$/i, '').replace(/_/g, '-').toLowerCase();
+      const isDocx = f.toLowerCase().endsWith('.docx');
+      const baseSlug = f
+        .replace(/\.(json|docx)$/i, '')
+        .replace(/_/g, '-')
+        .toLowerCase();
 
       try {
-        const content = await fs.promises.readFile(fullPath, 'utf-8');
-        const parsed = JSON.parse(content);
+        let lessonsCount = 0;
+        let questionsCount = 0;
+        let title = '';
 
-        const lessonsCount = Array.isArray(parsed.lessons) ? parsed.lessons.length : 0;
-        const questionsCount = Array.isArray(parsed.qs) ? parsed.qs.length : 0;
-        const title =
-          parsed.title ||
-          f
-            .replace(/\.json$/i, '')
-            .replace(/[-_]/g, ' ')
-            .toUpperCase();
+        if (isDocx) {
+          const buf = await fs.promises.readFile(fullPath);
+          const docRes = await convertDocxBufferToQuizData(buf, { fileName: f });
+          if (docRes.success && docRes.data) {
+            lessonsCount = docRes.data.lessons.length;
+            questionsCount = docRes.data.qs.length;
+            title = docRes.data.title || f;
+          } else {
+            throw new Error(docRes.error || 'Lỗi đọc file DOCX');
+          }
+        } else {
+          const content = await fs.promises.readFile(fullPath, 'utf-8');
+          const parsed = JSON.parse(content);
+          lessonsCount = Array.isArray(parsed.lessons) ? parsed.lessons.length : 0;
+          questionsCount = Array.isArray(parsed.qs) ? parsed.qs.length : 0;
+          title =
+            parsed.title ||
+            f
+              .replace(/\.json$/i, '')
+              .replace(/[-_]/g, ' ')
+              .toUpperCase();
+        }
 
         sources.push({
           fileName: f,
+          fileType: isDocx ? 'docx' : 'json',
           fullPath,
           slug: baseSlug,
           title,
@@ -497,6 +604,7 @@ export async function listQuestionSourcesFromFolder(customPath?: string): Promis
       } catch (err: any) {
         sources.push({
           fileName: f,
+          fileType: isDocx ? 'docx' : 'json',
           fullPath,
           slug: baseSlug,
           title: f,
@@ -532,13 +640,37 @@ export async function buildSetFromFolderSource(fileName: string, customPath?: st
       return { success: false, error: `File không tồn tại: ${fullPath}` };
     }
 
-    const content = await fs.promises.readFile(fullPath, 'utf-8');
-    const parsedData: QuizRawData = JSON.parse(content);
-    const slug = fileName.replace(/\.json$/i, '').replace(/_/g, '-').toLowerCase();
+    const isDocx = fileName.toLowerCase().endsWith('.docx');
+    let parsedData: QuizRawData;
+
+    if (isDocx) {
+      const buffer = await fs.promises.readFile(fullPath);
+      const docRes = await convertDocxBufferToQuizData(buffer, { fileName });
+      if (!docRes.success || !docRes.data) {
+        return { success: false, error: docRes.error || 'Lỗi chuyển đổi DOCX' };
+      }
+      parsedData = docRes.data;
+
+      // Auto-save the JSON counterpart to folder as well
+      const jsonDest = fullPath.replace(/\.docx$/i, '.json');
+      try {
+        await fs.promises.writeFile(jsonDest, JSON.stringify(parsedData, null, 2), 'utf-8');
+      } catch (err) {
+        console.warn('Could not auto-save JSON file:', err);
+      }
+    } else {
+      const content = await fs.promises.readFile(fullPath, 'utf-8');
+      parsedData = JSON.parse(content);
+    }
+
+    const slug = fileName
+      .replace(/\.(json|docx)$/i, '')
+      .replace(/_/g, '-')
+      .toLowerCase();
     const title =
       (parsedData as any).title ||
       fileName
-        .replace(/\.json$/i, '')
+        .replace(/\.(json|docx)$/i, '')
         .replace(/[-_]/g, ' ')
         .toUpperCase();
 
@@ -561,6 +693,15 @@ export async function buildSetFromFolderSource(fileName: string, customPath?: st
       .single();
 
     if (setError || !setRecord) {
+      if (setError?.code === 'PGRST205') {
+        revalidatePath('/');
+        return {
+          success: true,
+          message: isDocx
+            ? `Đã chuyển đổi thành công sang file JSON (${parsedData.qs.length} câu)! Bộ đề sẵn sàng hoạt động ở chế độ file.`
+            : `Bộ đề file JSON (${parsedData.qs.length} câu) đã sẵn sàng hoạt động ở chế độ file!`,
+        };
+      }
       return { success: false, error: setError?.message || 'Lỗi tạo bộ đề' };
     }
 
@@ -616,13 +757,11 @@ export async function buildSetFromFolderSource(fileName: string, customPath?: st
   }
 }
 
-export async function setActiveQuizSet(setId: string) {
+export async function setActiveQuizSet(setId: string, isActive = true) {
   try {
     const supabase = getAdmin();
-    // Set all to false first
-    await supabase.from('quiz_sets').update({ is_active: false }).neq('id', setId);
-    // Set target to active
-    const { error } = await supabase.from('quiz_sets').update({ is_active: true }).eq('id', setId);
+    // Activation is independent: multiple sets can be available to learners.
+    const { error } = await supabase.from('quiz_sets').update({ is_active: isActive }).eq('id', setId).select('id').single();
 
     if (error) return { success: false, error: error.message };
 
@@ -637,10 +776,98 @@ export async function previewFolderSource(fileName: string, customPath?: string)
   try {
     const targetDir = resolveSourceFolder(customPath);
     const fullPath = path.join(targetDir, fileName);
+
+    if (!fs.existsSync(fullPath)) {
+      return { success: false, error: `File không tồn tại: ${fullPath}` };
+    }
+
+    if (fileName.toLowerCase().endsWith('.docx')) {
+      const buffer = await fs.promises.readFile(fullPath);
+      const res = await convertDocxBufferToQuizData(buffer, { fileName });
+      if (!res.success || !res.data) {
+        return { success: false, error: res.error || 'Lỗi parse DOCX' };
+      }
+      const { lessons, questions } = parseQuizJson(res.data);
+      return { success: true, lessons, questions, warnings: res.warnings };
+    }
+
     const content = await fs.promises.readFile(fullPath, 'utf-8');
     const parsedData: QuizRawData = JSON.parse(content);
     const { lessons, questions } = parseQuizJson(parsedData);
     return { success: true, lessons, questions };
+  } catch (err: any) {
+    return { success: false, error: err.message };
+  }
+}
+
+export async function loadQuestionSource(fileName: string, customPath?: string) {
+  try {
+    return { success: true as const, ...await readSource(resolveSourceFolder(customPath), fileName) };
+  } catch (error) {
+    return { success: false as const, error: error instanceof Error ? error.message : 'Không thể đọc nguồn.' };
+  }
+}
+
+export async function saveQuestionSource(fileName: string, data: QuizRawData, version: string, customPath?: string) {
+  try {
+    const result = await writeSource(resolveSourceFolder(customPath), fileName, data, version);
+    revalidatePath('/');
+    return { success: true as const, ...result };
+  } catch (error) {
+    return { success: false as const, error: error instanceof Error ? error.message : 'Không thể lưu nguồn.' };
+  }
+}
+
+export async function convertUploadedDocAction(formData: FormData): Promise<{
+  success: boolean;
+  data?: QuizRawData;
+  jsonFileName?: string;
+  totalQuestions?: number;
+  warnings?: string[];
+  error?: string;
+}> {
+  try {
+    const file = formData.get('file') as File;
+    if (!(file instanceof File) || file.size === 0) {
+      return { success: false, error: 'Chưa chọn file tài liệu.' };
+    }
+    if (file.size > 5 * 1024 * 1024) return { success: false, error: 'File tối đa 5 MB.' };
+
+    const fileName = file.name;
+    const arrayBuffer = await file.arrayBuffer();
+    const buffer = Buffer.from(arrayBuffer);
+
+    let res;
+    if (fileName.toLowerCase().endsWith('.docx')) {
+      res = await convertDocxBufferToQuizData(buffer, { fileName });
+    } else if (fileName.toLowerCase().endsWith('.txt') || fileName.toLowerCase().endsWith('.md')) {
+      const text = buffer.toString('utf-8');
+      res = parseTextToQuizData(text, { fileName });
+    } else {
+      return {
+        success: false,
+        error: 'Chỉ hỗ trợ file định dạng .docx, .txt hoặc .md',
+      };
+    }
+
+    if (!res.success || !res.data) {
+      return { success: false, error: res.error || 'Lỗi đọc tài liệu', warnings: res.warnings };
+    }
+
+    // Save JSON to standard question sources folders
+    const jsonFileName = `${res.data.slug || 'question-source'}-${crypto.randomUUID().slice(0, 8)}.json`;
+    const targetDir = resolveSourceFolder(formData.get('folderPath')?.toString());
+    await fs.promises.mkdir(targetDir, { recursive: true });
+    await fs.promises.writeFile(path.join(targetDir, jsonFileName), JSON.stringify(res.data, null, 2), { flag: 'wx' });
+
+    revalidatePath('/');
+    return {
+      success: true,
+      data: res.data,
+      jsonFileName,
+      totalQuestions: res.totalQuestions,
+      warnings: res.warnings,
+    };
   } catch (err: any) {
     return { success: false, error: err.message };
   }

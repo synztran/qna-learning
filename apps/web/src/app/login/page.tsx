@@ -95,7 +95,7 @@ function LoginForm() {
         <button
           type="submit"
           disabled={loading}
-          className="btn btn-primary w-full rounded-2xl mt-4 font-display font-bold shadow-md shadow-primary/20 text-white"
+          className="btn btn-primary w-full rounded-2xl mt-4 font-display font-bold shadow-md shadow-primary/20 text-primary-content"
         >
           {loading ? (
             <span className="loading loading-spinner loading-sm"></span>
@@ -128,8 +128,8 @@ export default function LoginPage() {
             <BookOpen className="w-5 h-5" />
           </div>
           <div>
-            <h1 className="font-display font-bold text-lg leading-tight tracking-tight">SC5 - MĐ1</h1>
-            <p className="text-[11px] text-base-content/60 font-medium">Study with Ms. Nhung</p>
+            <h1 className="font-display font-bold text-lg leading-tight tracking-tight">Phần mềm hỗ trợ học thuật</h1>
+            <p className="text-[11px] text-base-content/60 font-medium">Study with NoobTeam</p>
           </div>
         </div>
         <ThemeToggle />
@@ -144,7 +144,7 @@ export default function LoginPage() {
 
       {/* Footer */}
       <footer className="w-full max-w-md text-center py-2 text-xs text-base-content/50">
-        be your language partner · Study With Ms. Nhung
+        be your knowledge partner · Study With NoobTeam
       </footer>
     </div>
   );
