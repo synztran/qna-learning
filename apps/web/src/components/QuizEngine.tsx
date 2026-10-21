@@ -29,6 +29,7 @@ import { getQuizData, saveQuizAttempt } from "../app/actions/quiz";
 import { signOut } from "../app/actions/auth";
 import { InstallApp } from './InstallApp';
 import { LearningActions } from './LearningActions';
+import { PerfectScoreCelebration } from './PerfectScoreCelebration';
 import type { QuizSubmission } from '@/lib/submissions';
 
 const OPTION_KEYS: OptionKey[] = ["A", "B", "C", "D"];
@@ -801,6 +802,9 @@ export function QuizEngine({
 				<h2 className="font-display text-2xl font-bold tracking-tight">
 					Kết quả ôn tập
 				</h2>
+				{stats.total > 0 && stats.okCount === stats.total && (
+					<PerfectScoreCelebration total={stats.total} />
+				)}
 				<div className="my-3 text-sm" aria-live="polite">
 					{saveState === 'saving' && <p role="status">Đang lưu bài nộp…</p>}
 					{saveState === 'saved' && <p role="status">Đã lưu bài nộp vào lịch sử.</p>}
@@ -815,11 +819,11 @@ export function QuizEngine({
 
 				{/* Score Badge */}
 				<div className="my-5 p-4 rounded-2xl bg-base-100 border border-base-300 inline-flex flex-col items-center">
-					<div className="text-4xl sm:text-5xl font-display font-extrabold text-primary">
+					<div className="text-6xl sm:text-7xl font-display font-extrabold text-primary">
 						{stats.score.toString().replace(".", ",")}
-						<span className="text-xl font-medium text-base-content/40">
+						{/* <span className="text-xl font-medium text-base-content/40">
 							/10
-						</span>
+						</span> */}
 					</div>
 					<span className="text-xs font-semibold text-base-content/80 mt-1">
 						{stats.okCount}/{stats.total} câu đúng ngay lần đầu
@@ -893,13 +897,22 @@ export function QuizEngine({
 			</div>
 
 			{/* Action Buttons */}
-			<div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+			<div className="text-center">
+				<button
+					type="button"
+					onClick={() => setView("setup")}
+					className="btn btn-outline btn-sm font-display text-xs">
+					<Home className="w-4 h-4 mr-1.5" />
+					Về màn hình chọn bài
+				</button>
+			</div>
+			<div className="grid grid-cols-2 gap-2 sm:gap-3">
 				<button
 					type="button"
 					disabled={stats.badCount === 0 || saveState === 'saving' || starting}
 					onClick={handleRetryWrong}
-					className="btn btn-warning rounded-2xl font-display font-bold text-xs sm:text-sm shadow-sm">
-					<RotateCcw className="w-4 h-4 mr-1.5" />
+					className="btn btn-warning min-w-0 h-auto min-h-12 gap-1 px-2 py-3 rounded-2xl font-display font-bold text-xs sm:text-sm shadow-sm">
+					<RotateCcw className="w-4 h-4 shrink-0" />
 					Làm lại {stats.badCount} câu sai
 				</button>
 
@@ -907,9 +920,9 @@ export function QuizEngine({
 					type="button"
 					onClick={() => startQuiz()}
 					disabled={saveState === 'saving' || starting}
-					className="btn btn-primary rounded-2xl font-display font-bold text-xs sm:text-sm text-primary-content shadow-sm">
-					<RefreshCw className="w-4 h-4 mr-1.5" />
-					Làm lại toàn bộ lượt này
+					className="btn btn-primary min-w-0 h-auto min-h-12 gap-1 px-2 py-3 rounded-2xl font-display font-bold text-xs sm:text-sm text-primary-content shadow-sm">
+					<RefreshCw className="w-4 h-4 shrink-0" />
+					Làm lại toàn bộ
 				</button>
 			</div>
 
@@ -978,7 +991,7 @@ export function QuizEngine({
 											Bài {q.lesson} · Câu {q.n}
 										</span>
 										<span
-											className={`badge badge-xs text-[10px] font-bold ${
+											className={`badge badge-xs text-[10px] font-bold py-2 ${
 												ok
 													? "badge-success text-white"
 													: "badge-error text-white"
@@ -1025,16 +1038,6 @@ export function QuizEngine({
 				</div>
 			</section>
 
-			{/* Return to Setup */}
-			<div className="text-center pt-2">
-				<button
-					type="button"
-					onClick={() => setView("setup")}
-					className="btn btn-ghost btn-sm font-display text-xs">
-					<Home className="w-4 h-4 mr-1.5" />
-					Về màn hình chọn bài
-				</button>
-			</div>
 		</div>
 	);
 }
