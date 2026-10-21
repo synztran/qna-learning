@@ -131,7 +131,7 @@ export default function LoginPage() {
           </div>
           <div>
             <h1 className="font-display font-bold text-lg leading-tight tracking-tight">Phần mềm hỗ trợ học thuật</h1>
-            <p className="text-[11px] text-base-content/60 font-medium">Study with NoobTeam</p>
+            <p className="text-[11px] text-base-content/60 font-medium">Study with QNA Learning</p>
           </div>
         </div>
         <ThemeToggle />
@@ -146,7 +146,7 @@ export default function LoginPage() {
 
       {/* Footer */}
       <footer className="w-full max-w-md text-center py-2 text-xs text-base-content/50">
-        be your knowledge partner · Study With NoobTeam
+        be your knowledge partner · Study With QNA Learning
       </footer>
     </div>
   );

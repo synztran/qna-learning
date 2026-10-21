@@ -261,7 +261,7 @@ export function AdminDashboard({
 	const handleSeedDefault = async () => {
 		if (
 			!confirm(
-				"Bạn có muốn khởi tạo ngân hàng 90 câu mẫu NoobTeam vào Supabase không?",
+				"Bạn có muốn khởi tạo ngân hàng 90 câu mẫu QNA Learning vào Supabase không?",
 			)
 		)
 			return;
@@ -271,7 +271,7 @@ export function AdminDashboard({
 		if (res.success) {
 			setUploadMsg({
 				type: "ok",
-				text: `Đã nạp thành công 90 câu hỏi NoobTeam vào database!`,
+				text: `Đã nạp thành công 90 câu hỏi QNA Learning vào database!`,
 			});
 		} else {
 			setUploadMsg({ type: "err", text: res.error || "Lỗi nạp dữ liệu" });
@@ -1061,7 +1061,7 @@ export function AdminDashboard({
 										<input
 											type="text"
 											name="title"
-											defaultValue="NoobTeam"
+											defaultValue="QNA Learning"
 											required
 											className="input input-sm input-bordered bg-base-100 rounded-xl text-xs"
 										/>
@@ -1126,7 +1126,7 @@ export function AdminDashboard({
 						<div className="card bg-base-200/30 border border-dashed border-base-300 p-5 rounded-3xl flex flex-row items-center justify-between">
 							<div>
 								<h4 className="font-display font-bold text-sm">
-									Nạp sẵn bộ câu hỏi NoobTeam gốc
+									Nạp sẵn bộ câu hỏi QNA Learning gốc
 								</h4>
 								<p className="text-xs text-base-content/60">
 									Khởi tạo 90 câu trắc nghiệm chính thức từ

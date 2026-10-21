@@ -2,7 +2,7 @@ import type { Metadata } from 'next';
 import './globals.css';
 
 export const metadata: Metadata = {
-  title: 'NoobTeam Admin Portal | Quản lý câu hỏi & Học viên',
+  title: 'QNA Learning Admin Portal | Quản lý câu hỏi & Học viên',
   description: 'Trang quản trị nội bộ: quản lý tài khoản, soft-ban, upload đề thi, chỉnh sửa câu hỏi.',
 };
 

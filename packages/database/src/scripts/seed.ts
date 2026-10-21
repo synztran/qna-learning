@@ -13,7 +13,7 @@ async function runSeed() {
   }
 
   const supabase = createClient<Database>(supabaseUrl, serviceRoleKey);
-  console.log('🌱 Starting seed for NoobTeam...');
+  console.log('🌱 Starting seed for QNA Learning...');
 
   // 1. Quiz Set
   const { data: setRecord, error: setError } = await supabase
@@ -21,7 +21,7 @@ async function runSeed() {
     .upsert(
       {
         slug: 'sc5-mon-md1',
-        title: 'NoobTeam',
+        title: 'QNA Learning',
         description: 'Ngân hàng câu hỏi trắc nghiệm Hàng không dân dụng',
         is_active: true,
         storage_file_path: 'sc5_mon_md1.json',
