@@ -130,6 +130,7 @@ export function AdminDashboard({
 
 	// Question Editor state
 	const [qSearch, setQSearch] = useState("");
+	const [setStatusSaving, setSetStatusSaving] = useState(false);
 	const [qLessonFilter, setQLessonFilter] = useState<number | "all">("all");
 	const [editingQuestion, setEditingQuestion] =
 		useState<Partial<Question> | null>(null);
@@ -146,9 +147,8 @@ export function AdminDashboard({
 	});
 
 	// Filtered Questions
-	const activeSets = sets.filter(set => set.isActive);
 	const activeQuestions = questions.filter(q => q.setId
-		? activeSets.some(set => set.id === q.setId)
+		? sets.some(set => set.id === q.setId)
 		: !hasEnv);
 	const filteredQuestions = activeQuestions.filter((q) => {
 		const matchLesson =
@@ -367,22 +367,30 @@ export function AdminDashboard({
 
 	// Handler: Set Active Set for Students
 	const handleSetActive = async (setId: string, title: string, isActive: boolean) => {
+		if (setStatusSaving) return;
+		setSetStatusSaving(true);
 		setFolderLoading(true);
+		try {
 		const res = await setActiveQuizSet(setId, isActive);
-		setFolderLoading(false);
 		if (res.success) {
 			setUserActionMsg({
 				type: "ok",
 				text: `Đã ${isActive ? 'kích hoạt' : 'tạm ẩn'} bộ đề "${title}".`,
 			});
-			const scanRes = await listQuestionSourcesFromFolder(folderPath);
-			if (scanRes.sources) setFolderSources(scanRes.sources);
 			setSets(previous => previous.map(set => set.id === setId ? { ...set, isActive } : set));
+			setFolderSources(previous => previous.map(source => source.syncedSet?.id === setId
+				? { ...source, syncedSet: { ...source.syncedSet, isActive } } : source));
 		} else {
 			setUserActionMsg({
 				type: "err",
 				text: res.error || "Lỗi kích hoạt bộ đề",
 			});
+		}
+		} catch {
+			setUserActionMsg({ type: 'err', text: 'Không thể cập nhật trạng thái bộ đề. Kiểm tra kết nối và thử lại.' });
+		} finally {
+			setFolderLoading(false);
+			setSetStatusSaving(false);
 		}
 	};
 
@@ -1196,7 +1204,7 @@ export function AdminDashboard({
 							<label className="text-sm font-semibold" htmlFor="question-set-filter">Bộ đề</label>
 							<select id="question-set-filter" value={qSetFilter} onChange={event => { setQSetFilter(event.target.value); setQLessonFilter('all'); }} className="select select-sm select-bordered max-w-full">
 								<option value="all">Tất cả bộ đề</option>
-								{activeSets.map(set => <option key={set.id} value={set.id}>{set.title}</option>)}
+								{sets.map(set => <option key={set.id} value={set.id}>{set.title}{set.isActive ? '' : ' · Inactive'}</option>)}
 							</select>
               <p role="status" className="text-xs text-base-content/70 ml-auto">Hiển thị {filteredQuestions.length}/{activeQuestions.length} câu hỏi</p>
 							<button type="button" disabled={questionsLoading} onClick={handleRefreshQuestions} className="btn btn-outline btn-sm " style={{marginLeft: "auto"}}>
@@ -1264,18 +1272,22 @@ export function AdminDashboard({
 
 						{/* Questions Table / List */}
 						<div className="space-y-3">
-							{filteredQuestions.length === 0 ? (
+							{filteredQuestions.length === 0 && sets.length === 0 ? (
 								<div className="text-center py-12 bg-base-200/50 rounded-3xl border border-base-300 text-xs text-base-content/50">
 									Không tìm thấy câu hỏi nào phù hợp bộ lọc.
 								</div>
 							) : (
-								Array.from(new Set(filteredQuestions.map(q => q.setId || 'preview'))).map(groupId => (
+								Array.from(new Set([
+									...sets.filter(set => qSetFilter === 'all' || set.id === qSetFilter).map(set => set.id),
+									...filteredQuestions.map(q => q.setId || 'preview'),
+								])).map(groupId => (
 									<details key={groupId} open className="rounded-2xl border border-base-300 p-4">
 										<summary className="cursor-pointer font-display font-bold text-sm">
 											{sets.find(set => set.id === groupId)?.title || (groupId === 'preview' ? 'Bộ đề xem trước' : `Bộ đề ${groupId}`)}
 											{' · '}{filteredQuestions.filter(q => (q.setId || 'preview') === groupId).length}/{questions.filter(q => (q.setId || 'preview') === groupId).length} câu
 										</summary>
 										<div className="mt-4 space-y-3">
+											<div className="flex flex-wrap items-center gap-3">
 											{groupId !== 'preview' && (renamingSetId === groupId ? (
 												<form onSubmit={handleRenameSet} className="space-y-2">
 													<label htmlFor={`set-title-${groupId}`} className="block text-xs font-semibold">Tên bộ đề</label>
@@ -1296,6 +1308,15 @@ export function AdminDashboard({
 													setRenameError('');
 												}} className="btn btn-ghost btn-sm gap-2"><Edit aria-hidden="true" className="h-3.5 w-3.5" />Đổi tên</button>
 											))}
+											{groupId !== 'preview' && <label className="inline-flex cursor-pointer items-center gap-2 text-xs font-semibold">
+												<input type="checkbox" role="switch" className="toggle toggle-success toggle-sm"
+													checked={Boolean(sets.find(set => set.id === groupId)?.isActive)}
+													disabled={setStatusSaving || folderLoading || questionsLoading}
+													aria-label={`Kích hoạt bộ đề ${sets.find(set => set.id === groupId)?.title || groupId}`}
+													onChange={event => handleSetActive(groupId, sets.find(set => set.id === groupId)?.title || '', event.target.checked)} />
+												{sets.find(set => set.id === groupId)?.isActive ? 'Active' : 'Inactive'}
+											</label>}
+											</div>
 								{filteredQuestions.filter(q => (q.setId || 'preview') === groupId).map((q, idx) => (
 									<div
 										key={q.id || idx}

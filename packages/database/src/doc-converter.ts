@@ -89,28 +89,50 @@ export function parseTextToQuizData(
 
   const slug = slugify(docTitle) || 'bo-de-trac-nghiem';
 
-  // 2. Scan Bottom Answer Key Section
+  // Only whole answer-key lines count; never search for answer-like fragments in prose.
+  const errors: string[] = [];
+  const keyLines = new Set<number>();
   const bottomAnswers = new Map<number, { ans: 'A' | 'B' | 'C' | 'D'; exp?: string }>();
+  const addKey = (num: number, ans: 'A' | 'B' | 'C' | 'D', exp = '') => {
+    const previous = bottomAnswers.get(num);
+    if (previous && previous.ans !== ans) errors.push(`Câu ${num}: đáp án mâu thuẫn.`);
+    bottomAnswers.set(num, { ans, exp: exp || previous?.exp });
+  };
 
   // Check for lines like:
   // "Câu 1: A - giải thích..." or "Câu 1. A" or "1: A" or "1. A"
-  for (const line of lines) {
+  let inKeySection = false;
+  for (const [index, line] of lines.entries()) {
+    if (/^(?:(?:BẢNG\s+)?ĐÁP ÁN(?:\s+(?:BỘ ĐỀ|VÀ GIẢI THÍCH|CHI TIẾT(?: ĐỐI CHIẾU)?))?|ANSWER KEY)\s*[:.]?$/i.test(line)) {
+      inKeySection = true;
+      keyLines.add(index);
+      continue;
+    }
+    if (inKeySection) {
+      keyLines.add(index);
+      // Mammoth flattens table cells to separate lines: number, then answer.
+      if (/^\d+$/.test(line) && /^[A-D]$/i.test(lines[index + 1] || '')) {
+        addKey(Number(line), lines[index + 1].toUpperCase() as 'A' | 'B' | 'C' | 'D');
+      }
+    }
     const m = line.match(/^(?:Câu\s+)?(\d+)\s*[:\.]\s*([A-D])\s*(?:[-–—:]\s*(.*))?$/i);
     if (m) {
       const num = parseInt(m[1], 10);
       const ans = m[2].toUpperCase() as 'A' | 'B' | 'C' | 'D';
       const exp = m[3] ? m[3].trim() : '';
-      bottomAnswers.set(num, { ans, exp });
+      addKey(num, ans, exp);
+      keyLines.add(index);
+      continue;
     }
 
     // Grid answer table like "1.A  2.B  3.C  4.D" or "1A 2B 3C"
-    const gridMatches = line.matchAll(/\b(\d+)\s*[\.:\-–]?\s*([A-D])\b/gi);
-    for (const gm of gridMatches) {
+    // Compact grids require an explicit heading and must consume the entire line.
+    if (!inKeySection || !/^(?:\d+\s*[.:\-–]?\s*[A-D](?:\s*[,;|]\s*|\s+|$))+$/i.test(line)) continue;
+    keyLines.add(index);
+    for (const gm of line.matchAll(/(\d+)\s*[.:\-–]?\s*([A-D])/gi)) {
       const num = parseInt(gm[1], 10);
       const ans = gm[2].toUpperCase() as 'A' | 'B' | 'C' | 'D';
-      if (!bottomAnswers.has(num)) {
-        bottomAnswers.set(num, { ans });
-      }
+      addKey(num, ans);
     }
   }
 
@@ -120,7 +142,7 @@ export function parseTextToQuizData(
     n: number;
     q: string;
     opts: Record<'A' | 'B' | 'C' | 'D', string>;
-    ans: 'A' | 'B' | 'C' | 'D';
+    ans?: 'A' | 'B' | 'C' | 'D';
     ansText?: string;
     exp: string;
     src?: string;
@@ -129,18 +151,24 @@ export function parseTextToQuizData(
   const questions: TempQ[] = [];
   let currentQ: TempQ | null = null;
   let currentLesson = 1;
+  let continuation: 'question' | 'explanation' | 'none' | 'A' | 'B' | 'C' | 'D' = 'question';
+  const seenNumbers = new Set<number>();
   const lessonTitles = new Map<number, string>();
   lessonTitles.set(1, options.defaultLessonTitle || `BÀI 1. ${docTitle.toUpperCase()}`);
 
   const finalizeCurrentQ = () => {
     if (!currentQ) return;
-    const optKeys = Object.keys(currentQ.opts) as ('A' | 'B' | 'C' | 'D')[];
+    const optKeys = (Object.keys(currentQ.opts) as ('A' | 'B' | 'C' | 'D')[]).filter(key => currentQ!.opts[key].trim());
     if (optKeys.length < 2) {
-      warnings.push(`Câu ${currentQ.n} có ít hơn 2 phương án trả lời.`);
+      errors.push(`Câu ${currentQ.n} có ít hơn 2 phương án trả lời.`);
     }
 
     // Fill ansText if not present
-    if (currentQ.opts[currentQ.ans]) {
+    if (!currentQ.ans) {
+      errors.push(`Câu ${currentQ.n}: thiếu đáp án rõ ràng (không suy đoán từ định dạng DOCX).`);
+    } else if (!currentQ.opts[currentQ.ans]?.trim()) {
+      errors.push(`Câu ${currentQ.n}: đáp án trỏ đến phương án trống.`);
+    } else {
       currentQ.ansText = currentQ.opts[currentQ.ans];
     }
 
@@ -148,12 +176,23 @@ export function parseTextToQuizData(
     currentQ = null;
   };
 
+  const setAnswer = (ans: 'A' | 'B' | 'C' | 'D') => {
+    if (!currentQ) return;
+    if (currentQ.ans && currentQ.ans !== ans) errors.push(`Câu ${currentQ.n}: đáp án mâu thuẫn.`);
+    currentQ.ans = ans;
+  };
+
   for (let i = 0; i < lines.length; i++) {
     const line = lines[i];
+    if (keyLines.has(i)) {
+      continuation = 'none';
+      continue;
+    }
 
     // Detect Lesson header
     const lessonMatch = line.match(/^(?:BÀI|CHƯƠNG|PHẦN)\s+(\d+)[\.:\-–—]?\s*(.*)/i);
     if (lessonMatch) {
+      finalizeCurrentQ();
       currentLesson = parseInt(lessonMatch[1], 10);
       const lTitle = lessonMatch[2] ? lessonMatch[2].trim() : `BÀI ${currentLesson}`;
       lessonTitles.set(currentLesson, `${lessonMatch[0].toUpperCase()}`);
@@ -168,6 +207,8 @@ export function parseTextToQuizData(
     if (qMatch && !/^[A-D]\s*[\.:]/i.test(line)) {
       finalizeCurrentQ();
       const qNum = parseInt(qMatch[1], 10);
+      if (seenNumbers.has(qNum)) errors.push(`Câu ${qNum}: số câu bị trùng, không thể ghép đáp án an toàn.`);
+      seenNumbers.add(qNum);
       const qText = qMatch[2].trim();
 
       const lookupAns = bottomAnswers.get(qNum);
@@ -176,50 +217,69 @@ export function parseTextToQuizData(
         n: qNum,
         q: qText,
         opts: { A: '', B: '', C: '', D: '' },
-        ans: lookupAns?.ans || 'A',
+        ans: lookupAns?.ans,
         exp: lookupAns?.exp || '',
         src: docTitle,
       };
+      continuation = 'question';
       continue;
     }
 
     // Detect Option line: "A. ...", "B. ...", "C) ...", "*A. ...", "(A) ..."
-    const optMatch = line.match(/^(\*)?\s*(?:\(?([A-D])\)|\b([A-D]))[\.:\)\-–—]\s*(.+)/i);
+    const optMatch = line.match(/^(\*)?\s*(?:\(([A-D])\)[.:]?|([A-D])[.:)\-–—])\s*(.*)$/i);
     if (optMatch && currentQ) {
       const isStarred = Boolean(optMatch[1]);
       const optKey = (optMatch[2] || optMatch[3]).toUpperCase() as 'A' | 'B' | 'C' | 'D';
       const optVal = optMatch[4].trim();
 
+      if (currentQ.opts[optKey]) errors.push(`Câu ${currentQ.n}: phương án ${optKey} bị trùng.`);
       currentQ.opts[optKey] = optVal;
+      continuation = optKey;
       if (isStarred) {
-        currentQ.ans = optKey;
+        setAnswer(optKey);
       }
       continue;
     }
 
     // Inline explanation or answer label under question
     if (currentQ) {
-      const ansLabelMatch = line.match(/^(?:Đáp án|Đ\/A|Answer)\s*[:\.]\s*([A-D])/i);
+      const ansLabelMatch = line.match(/^(?:Đáp án|Đ\/A|Answer)\s*[:\.]\s*([A-D])(?:\s*[-–—:]\s*(.*))?\s*$/i);
       if (ansLabelMatch) {
-        currentQ.ans = ansLabelMatch[1].toUpperCase() as 'A' | 'B' | 'C' | 'D';
+        setAnswer(ansLabelMatch[1].toUpperCase() as 'A' | 'B' | 'C' | 'D');
+        if (ansLabelMatch[2]) currentQ.exp = ansLabelMatch[2];
+        continuation = ansLabelMatch[2] ? 'explanation' : 'none';
         continue;
       }
 
       const expLabelMatch = line.match(/^(?:Giải thích|Hướng dẫn|Exp)\s*[:\.]\s*(.+)/i);
       if (expLabelMatch) {
         currentQ.exp = expLabelMatch[1].trim();
+        continuation = 'explanation';
         continue;
       }
 
       // If line is continuation of question text or previous option
       // If we don't have option A yet, append to question
-      if (!currentQ.opts.A && !currentQ.opts.B && !currentQ.opts.C && !currentQ.opts.D) {
+      if (continuation === 'question') {
         currentQ.q += ' ' + line;
+      } else if (continuation === 'explanation') {
+        currentQ.exp += ' ' + line;
+      } else if (continuation !== 'none') {
+        currentQ.opts[continuation] += ' ' + line;
       }
     }
   }
 
   finalizeCurrentQ();
+
+  for (const num of bottomAnswers.keys()) {
+    if (!seenNumbers.has(num)) errors.push(`Đáp án câu ${num}: không tìm thấy câu hỏi tương ứng.`);
+  }
+  if (errors.length) return {
+    success: false, totalQuestions: questions.length, rawText: text,
+    warnings: [...warnings, ...errors],
+    error: `Không thể chuyển đổi an toàn: ${errors.join(' ')}`,
+  };
 
   if (questions.length === 0) {
     return {
@@ -246,8 +306,8 @@ export function parseTextToQuizData(
       n: idx + 1,
       q: q.q,
       opts: q.opts,
-      ans: q.ans,
-      ansText: q.ansText || q.opts[q.ans] || '',
+      ans: q.ans!,
+      ansText: q.ansText || q.opts[q.ans!] || '',
       exp: q.exp || '',
       src: q.src || docTitle,
     })),

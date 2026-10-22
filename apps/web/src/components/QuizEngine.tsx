@@ -30,6 +30,8 @@ import { signOut } from "../app/actions/auth";
 import { InstallApp } from './InstallApp';
 import { LearningActions } from './LearningActions';
 import { PerfectScoreCelebration } from './PerfectScoreCelebration';
+import { StudyView } from './StudyView';
+import { getStudyProgress } from '../app/actions/study';
 import type { QuizSubmission } from '@/lib/submissions';
 
 const OPTION_KEYS: OptionKey[] = ["A", "B", "C", "D"];
@@ -72,7 +74,36 @@ export function QuizEngine({
 	availableSets = [],
 }: QuizEngineProps) {
 	// Navigation State
-	const [view, setView] = useState<"setup" | "quiz" | "result">("setup");
+	const [view, setView] = useState<"setup" | "quiz" | "result" | "study">("setup");
+	const [activeMode, setActiveMode] = useState<"exam" | "study">("exam");
+	const [studyProgress, setStudyProgress] = useState<Record<string, { reviewed: number; total: number }> | null>(null);
+	const [studyProgressError, setStudyProgressError] = useState('');
+	const [studyProgressLoading, setStudyProgressLoading] = useState(false);
+	const refreshStudyProgress = async () => {
+		setStudyProgressLoading(true);
+		setStudyProgressError('');
+		try {
+			const result = await getStudyProgress();
+			setStudyProgress(result.progress || null);
+			setStudyProgressError(result.error || '');
+		} catch {
+			setStudyProgress(null);
+			setStudyProgressError('Không thể tải tiến độ ôn tập. Vui lòng thử lại.');
+		} finally {
+			setStudyProgressLoading(false);
+		}
+	};
+	useEffect(() => {
+		if (view !== 'setup' || activeMode !== 'study' || !availableSets.length) return;
+		void refreshStudyProgress();
+		const refresh = () => { if (!document.hidden) void refreshStudyProgress(); };
+		window.addEventListener('focus', refresh);
+		document.addEventListener('visibilitychange', refresh);
+		return () => {
+			window.removeEventListener('focus', refresh);
+			document.removeEventListener('visibilitychange', refresh);
+		};
+	}, [view, activeMode]);
 
 	// Setup State
 	const [selectedSetId, setSelectedSetId] = useState(initialSetId);
@@ -166,6 +197,43 @@ export function QuizEngine({
 		setView("quiz");
 		setShowGridModal(false);
 		window.scrollTo({ top: 0, behavior: "instant" });
+		} catch {
+			setStartError("Không thể tải bộ đề. Kiểm tra kết nối và thử lại.");
+		} finally {
+			startingRef.current = false;
+			setStarting(false);
+		}
+	};
+
+	// Start Study Mode
+	const startStudy = async () => {
+		if (startingRef.current || savingRef.current) return;
+		startingRef.current = true;
+		setStarting(true);
+		setStartError("");
+		try {
+			let sourcePool = pool;
+			if (availableSets.length) {
+				if (!selectedSetId) {
+					setStartError("Vui lòng chọn một bộ đề để ôn tập.");
+					return;
+				}
+				const data = await getQuizData(selectedSetId);
+				if (data.error || data.selectedSetId !== selectedSetId || !data.questions.length) {
+					setStartError(data.error || "Bộ đề không có câu hỏi. Vui lòng chọn bộ đề khác.");
+					return;
+				}
+				sourcePool = data.questions;
+				setPool(data.questions);
+				setLessons(data.lessons);
+				setSetId(selectedSetId);
+			}
+			if (sourcePool.length === 0) {
+				setStartError("Chưa có câu hỏi nào để ôn tập.");
+				return;
+			}
+			setView("study");
+			window.scrollTo({ top: 0, behavior: "instant" });
 		} catch {
 			setStartError("Không thể tải bộ đề. Kiểm tra kết nối và thử lại.");
 		} finally {
@@ -268,34 +336,69 @@ export function QuizEngine({
 	if (view === "setup") {
 		return (
 			<div className="flex flex-1 flex-col justify-between gap-4">
-				{/* Header */}
-				<header className="flex flex-wrap justify-between items-center gap-3 pb-3 border-b border-base-300">
-					<div className="flex min-w-0 items-center gap-3">
-						<div className="w-10 h-10 rounded-2xl bg-primary/10 flex items-center justify-center text-primary shadow-sm">
-							<BookOpen className="w-5 h-5" />
+				{/* Sticky Header & Mode Switcher */}
+				<div className="sticky top-0 z-30 bg-base-100/95 backdrop-blur-md pt-1 pb-3 space-y-3 -mx-4 px-4 sm:-mx-6 sm:px-6 border-b border-base-300/80 shadow-xs">
+					{/* Header */}
+					<header className="flex flex-wrap justify-between items-center gap-3">
+						<div className="flex min-w-0 items-center gap-3">
+							<div className="w-10 h-10 rounded-2xl bg-primary/10 flex items-center justify-center text-primary shadow-sm">
+								<BookOpen className="w-5 h-5" />
+							</div>
+							<div>
+								<h1 className="font-display font-bold text-lg sm:text-xl leading-tight">
+									{"Ôn tập trắc nghiệm"}
+								</h1>
+								<p className="text-[11px] text-base-content/60">
+									{user?.displayName
+										? `Học viên: ${user.displayName}`
+										: "Study with QNA Learning"}
+								</p>
+							</div>
 						</div>
-						<div>
-							<h1 className="font-display font-bold text-lg sm:text-xl leading-tight">
-								{"Ôn tập trắc nghiệm"}
-							</h1>
-							<p className="text-[11px] text-base-content/60">
-								{user?.displayName
-									? `Học viên: ${user.displayName}`
-									: "Study with QNA Learning"}
-							</p>
+						<div className="ml-auto flex shrink-0 items-center gap-1">
+							<LearningActions />
+							<ThemeToggle />
+							<button
+								onClick={() => signOut()}
+								title="Đăng xuất"
+								className="btn btn-ghost btn-circle btn-sm text-base-content/60 hover:text-error">
+								<LogOut className="w-4 h-4" />
+							</button>
 						</div>
-					</div>
-					<div className="ml-auto flex shrink-0 items-center gap-1">
-						<LearningActions />
-						<ThemeToggle />
+					</header>
+
+					{/* Mode Switcher Tabs */}
+					<div className="grid grid-cols-2 p-1 bg-base-200/90 rounded-2xl border border-base-300 gap-1 shadow-xs">
 						<button
-							onClick={() => signOut()}
-							title="Đăng xuất"
-							className="btn btn-ghost btn-circle btn-sm text-base-content/60 hover:text-error">
-							<LogOut className="w-4 h-4" />
+							type="button"
+							onClick={() => {
+								setActiveMode("exam");
+								setStartError("");
+							}}
+							className={`btn btn-sm rounded-xl font-display text-xs border-0 transition-all ${
+								activeMode === "exam"
+									? "btn-primary text-primary-content shadow-sm"
+									: "btn-ghost text-base-content/70 hover:bg-base-300/50"
+							}`}>
+							<ThiingsTarget className="w-4 h-4 mr-1.5" />
+							Thi thử
+						</button>
+						<button
+							type="button"
+							onClick={() => {
+								setActiveMode("study");
+								setStartError("");
+							}}
+							className={`btn btn-sm rounded-xl font-display text-xs border-0 transition-all ${
+								activeMode === "study"
+									? "btn-primary text-primary-content shadow-sm"
+									: "btn-ghost text-base-content/70 hover:bg-base-300/50"
+							}`}>
+							<BookOpen className="w-4 h-4 mr-1.5" />
+							Ôn tập
 						</button>
 					</div>
-				</header>
+				</div>
 
 				{/* Content */}
 				<main className="space-y-4">
@@ -310,15 +413,29 @@ export function QuizEngine({
 							</div>
 						</div>
 
-						<div className="space-y-3">
+						<div
+							role="region"
+							aria-label="Danh sách bộ đề ôn tập"
+							tabIndex={0}
+							className="max-h-[min(40dvh,320px)] overflow-y-auto overscroll-contain space-y-3 rounded-xl p-1 focus-visible:outline focus-visible:outline-2 focus-visible:outline-primary">
 							{availableSets.map((set) => (
 									<label key={set.id}
 										className={`flex cursor-pointer items-center gap-3 rounded-xl border p-3.5 ${set.id === selectedSetId ? "border-primary bg-base-100" : "border-base-300"}`}>
 										<input type="checkbox" checked={set.id === selectedSetId} disabled={starting}
 											onChange={() => { setSelectedSetId(set.id === selectedSetId ? undefined : set.id); setStartError(""); }}
 											className="checkbox checkbox-primary checkbox-sm shrink-0" />
-										<span className="flex-1 text-xs font-semibold leading-snug">
-											{set.title}
+										<span className="min-w-0 flex-1 text-xs font-semibold leading-snug">
+											<span>{set.title}</span>
+											{activeMode === 'study' && studyProgress?.[set.id] && !studyProgressLoading && (() => {
+												const { reviewed, total } = studyProgress[set.id];
+												return <span className="mt-2 block space-y-1">
+													<span className="flex flex-wrap items-center justify-between gap-1 text-[11px] text-base-content/70">
+														<span>Đã ôn {reviewed}/{total} câu</span>
+														{total > 0 && reviewed === total && <span className="badge badge-success badge-sm">Đã ôn tập</span>}
+													</span>
+													<progress className="progress progress-success block h-1.5 w-full" value={reviewed} max={Math.max(1, total)} aria-label={`Tiến độ ôn tập ${set.title}`} />
+												</span>;
+											})()}
 										</span>
 										<span className="badge badge-sm badge-ghost shrink-0 text-[10px]">
 											{set.questionCount} câu
@@ -327,120 +444,175 @@ export function QuizEngine({
 							))}
 							{availableSets.length === 0 && <p className="text-sm">Bộ câu hỏi mẫu — {poolCount} câu</p>}
 						</div>
+						{activeMode === 'study' && studyProgressLoading && <p role="status" className="mt-2 text-xs text-base-content/70">Đang tải tiến độ…</p>}
+						{activeMode === 'study' && studyProgressError && <div role="alert" className="mt-2 text-xs text-error">
+							{studyProgressError} <button type="button" onClick={() => void refreshStudyProgress()} className="btn btn-xs btn-ghost">Thử lại</button>
+						</div>}
 					</section>
 
-					{/* Question Count Selector */}
-					<section className="bg-base-200/50 backdrop-blur-sm p-4 sm:p-5 rounded-3xl border border-base-300 shadow-sm">
-						<h2 className="font-display font-bold text-sm mb-3 tracking-tight">
-							Số câu hỏi mỗi lượt
-						</h2>
+					{/* Question Count Selector (Exam Mode) or Study Info Box (Study Mode) */}
+					{activeMode === "exam" ? (
+						<section className="bg-base-200/50 backdrop-blur-sm p-4 sm:p-5 rounded-3xl border border-base-300 shadow-sm">
+							<h2 className="font-display font-bold text-sm mb-3 tracking-tight">
+								Số câu hỏi mỗi lượt
+							</h2>
 
-						<div className="grid grid-cols-4 gap-2 mb-3">
-							{(["20", "25", "all", "custom"] as const).map(
-								(mode) => {
-									const label =
-										mode === "20"
-											? "20 câu"
-											: mode === "25"
-												? "25 câu"
-												: mode === "all"
-													? "Toàn bộ"
-													: "Tự chọn";
-									const disabled =
-										starting || (mode === "20" && poolCount < 20) ||
-										(mode === "25" && poolCount < 25) ||
-										poolCount === 0;
+							<div className="grid grid-cols-4 gap-2 mb-3">
+								{(["20", "25", "all", "custom"] as const).map(
+									(mode) => {
+										const label =
+											mode === "20"
+												? "20 câu"
+												: mode === "25"
+													? "25 câu"
+													: mode === "all"
+														? "Toàn bộ"
+														: "Tự chọn";
+										const disabled =
+											starting || (mode === "20" && poolCount < 20) ||
+											(mode === "25" && poolCount < 25) ||
+											poolCount === 0;
 
-									return (
-										<button
-											key={mode}
-											type="button"
-											disabled={disabled}
-											onClick={() => setCountMode(mode)}
-											className={`btn btn-sm rounded-xl font-display text-xs border ${
-												countMode === mode
-													? "btn-primary text-primary-content border-primary shadow-sm"
-													: "btn-ghost bg-base-100 border-base-300"
-											}`}>
-											{label}
-										</button>
-									);
-								},
-							)}
-						</div>
-
-						{countMode === "custom" && (
-							<div className="p-3 bg-base-100 rounded-2xl border border-base-300 flex items-center gap-3">
-								<input
-									type="range"
-									min="1"
-									max={Math.max(1, poolCount)}
-									disabled={starting}
-									value={customCount}
-									onChange={(e) =>
-										setCustomCount(
-											parseInt(e.target.value, 10),
-										)
-									}
-									className="range range-primary range-xs flex-1"
-								/>
-								<input
-									type="number"
-									min="1"
-									max={Math.max(1, poolCount)}
-									disabled={starting}
-									value={customCount}
-									onChange={(e) =>
-										setCustomCount(
-											Math.max(
-												1,
-												parseInt(e.target.value, 10) ||
-													1,
-											),
-										)
-									}
-									className="input input-sm input-bordered w-16 text-center font-bold text-xs rounded-xl"
-								/>
+										return (
+											<button
+												key={mode}
+												type="button"
+												disabled={disabled}
+												onClick={() => setCountMode(mode)}
+												className={`btn btn-sm rounded-xl font-display text-xs border ${
+													countMode === mode
+														? "btn-primary text-primary-content border-primary shadow-sm"
+														: "btn-ghost bg-base-100 border-base-300"
+												}`}>
+												{label}
+											</button>
+										);
+									},
+								)}
 							</div>
-						)}
 
-						<div className="mt-3 pt-3 border-t border-base-300/80 flex flex-wrap gap-2 justify-between items-center text-xs text-base-content/70">
-							<span>
-								Ngân hàng đã chọn:{" "}
-								<b className="text-base-content">
-									{poolCount}
-								</b>{" "}
-								câu
-							</span>
-							<span>
-								Lượt này:{" "}
+							{countMode === "custom" && (
+								<div className="p-3 bg-base-100 rounded-2xl border border-base-300 flex items-center gap-3">
+									<input
+										type="range"
+										min="1"
+										max={Math.max(1, poolCount)}
+										disabled={starting}
+										value={customCount}
+										onChange={(e) =>
+											setCustomCount(
+												parseInt(e.target.value, 10),
+											)
+										}
+										className="range range-primary range-xs flex-1"
+									/>
+									<input
+										type="number"
+										min="1"
+										max={Math.max(1, poolCount)}
+										disabled={starting}
+										value={customCount}
+										onChange={(e) =>
+											setCustomCount(
+												Math.max(
+													1,
+													parseInt(e.target.value, 10) ||
+														1,
+												),
+											)
+										}
+										className="input input-sm input-bordered w-16 text-center font-bold text-xs rounded-xl"
+									/>
+								</div>
+							)}
+
+							<div className="mt-3 pt-3 border-t border-base-300/80 flex flex-wrap gap-2 justify-between items-center text-xs text-base-content/70">
+								<span>
+									Ngân hàng đã chọn:{" "}
+									<b className="text-base-content">
+										{poolCount}
+									</b>{" "}
+									câu
+								</span>
+								<span>
+									Lượt này:{" "}
+									<b className="text-primary text-sm font-display">
+										{targetCount}
+									</b>{" "}
+									câu
+								</span>
+							</div>
+						</section>
+					) : (
+						<section className="bg-base-200/50 backdrop-blur-sm p-4 sm:p-5 rounded-3xl border border-base-300 shadow-sm space-y-2">
+							<div className="flex items-center gap-2">
+								<span className="w-2 h-2 rounded-full bg-primary" />
+								<h2 className="font-display font-bold text-sm tracking-tight">
+									Chế độ Ôn tập
+								</h2>
+							</div>
+							<p className="text-xs text-base-content/70 leading-relaxed">
+								Đọc toàn bộ câu hỏi theo từng bài học. Đáp án mặc định được ẩn để bạn tự nhẩm trước, chạm vào từng câu hoặc phương án để xem đáp án chính xác và lời giải chi tiết.
+							</p>
+							<div className="pt-2 border-t border-base-300/80 flex justify-between items-center text-xs text-base-content/70">
+								<span>Tổng số câu hỏi trong bộ đề:</span>
 								<b className="text-primary text-sm font-display">
-									{targetCount}
-								</b>{" "}
-								câu
-							</span>
-						</div>
-					</section>
+									{poolCount} câu
+								</b>
+							</div>
+						</section>
+					)}
 				</main>
 
 				{/* Start Button */}
 				<footer>
 					{startError && <p role="alert" className="mb-3 text-sm text-error">{startError}</p>}
 					<div className="mb-3"><InstallApp /></div>
-					<p className="text-center text-[11px] text-base-content/60 mb-2">
-						Câu hỏi và 4 phương án được trộn ngẫu nhiên mỗi lượt ôn
-						tập
-					</p>
-					<button
-						type="button"
-						disabled={targetCount === 0 || starting}
-						aria-busy={starting}
-						onClick={() => startQuiz()}
-						className="btn btn-primary w-full py-3.5 rounded-2xl font-display font-bold text-base text-primary-content leading-[1]">
-						{starting ? "Đang tải bộ đề…" : `Bắt đầu làm bài (${targetCount} câu)`}
-					</button>
+					{activeMode === "exam" ? (
+						<>
+							<p className="text-center text-[11px] text-base-content/60 mb-2">
+								Câu hỏi và 4 phương án được trộn ngẫu nhiên mỗi lượt thi
+							</p>
+							<button
+								type="button"
+								disabled={targetCount === 0 || starting}
+								aria-busy={starting}
+								onClick={() => startQuiz()}
+								className="btn btn-primary w-full py-3.5 rounded-2xl font-display font-bold text-base text-primary-content leading-[1]">
+								{starting ? "Đang tải bộ đề…" : `Bắt đầu làm bài (${targetCount} câu)`}
+							</button>
+						</>
+					) : (
+						<>
+							<p className="text-center text-[11px] text-base-content/60 mb-2">
+								xem toàn bộ câu hỏi theo bài, không tính giờ, không tính điểm
+							</p>
+							<button
+								type="button"
+								disabled={poolCount === 0 || starting}
+								aria-busy={starting}
+								onClick={() => startStudy()}
+								className="btn btn-primary w-full py-3.5 rounded-2xl font-display font-bold text-base text-primary-content leading-[1]">
+								{starting ? "Đang tải bộ đề…" : `Bắt đầu ôn tập (${poolCount} câu)`}
+							</button>
+						</>
+					)}
 				</footer>
 			</div>
+		);
+	}
+
+	/* ==============================================================
+     2. STUDY VIEW
+     ============================================================== */
+	if (view === "study") {
+		return (
+			<StudyView
+				questions={pool}
+				lessons={initialLessons}
+				setTitle={setTitle}
+				onBack={() => setView("setup")}
+			/>
 		);
 	}
 

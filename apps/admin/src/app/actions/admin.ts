@@ -448,7 +448,7 @@ export interface AdminQuizSet {
 
 export async function listQuestionSets(): Promise<{ sets: AdminQuizSet[]; error?: string }> {
   try {
-    const { data, error } = await getAdmin().from('quiz_sets').select('id, title, is_active').eq('is_active', true).order('title').order('id');
+    const { data, error } = await getAdmin().from('quiz_sets').select('id, title, is_active').order('title').order('id');
     if (error) return { sets: [], error: error.message };
     return { sets: (data || []).map(set => ({ id: set.id, title: set.title, isActive: set.is_active })) };
   } catch (error) {
@@ -835,6 +835,9 @@ export async function buildSetFromFolderSource(fileName: string, customPath?: st
 }
 
 export async function setActiveQuizSet(setId: string, isActive = true) {
+  if (typeof setId !== 'string' || !/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(setId) || typeof isActive !== 'boolean') {
+    return { success: false, error: 'Bộ đề hoặc trạng thái không hợp lệ.' };
+  }
   try {
     const supabase = getAdmin();
     // Activation is independent: multiple sets can be available to learners.
