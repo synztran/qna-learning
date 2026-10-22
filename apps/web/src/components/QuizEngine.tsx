@@ -28,9 +28,10 @@ import { motion, AnimatePresence, useReducedMotion } from "motion/react";
 import { getQuizData, saveQuizAttempt } from "../app/actions/quiz";
 import { signOut } from "../app/actions/auth";
 import { InstallApp } from './InstallApp';
-import { LearningActions } from './LearningActions';
+import { FloatingLearningMenu } from './FloatingLearningMenu';
 import { PerfectScoreCelebration } from './PerfectScoreCelebration';
 import { StudyView } from './StudyView';
+import { PullToRefresh } from './PullToRefresh';
 import { getStudyProgress } from '../app/actions/study';
 import type { QuizSubmission } from '@/lib/submissions';
 
@@ -71,8 +72,9 @@ export function QuizEngine({
 	user,
 	setId: initialSetId,
 	setTitle: initialSetTitle,
-	availableSets = [],
+	availableSets: initialAvailableSets = [],
 }: QuizEngineProps) {
+	const [availableSets, setAvailableSets] = useState(initialAvailableSets);
 	// Navigation State
 	const [view, setView] = useState<"setup" | "quiz" | "result" | "study">("setup");
 	const [activeMode, setActiveMode] = useState<"exam" | "study">("exam");
@@ -335,6 +337,24 @@ export function QuizEngine({
      ============================================================== */
 	if (view === "setup") {
 		return (
+			<PullToRefresh disabled={starting || saveState === 'saving' || studyProgressLoading} onRefresh={async () => {
+				const data = await getQuizData(selectedSetId);
+				// A set may have been deactivated since selection. Reload available sets.
+				const fresh = data.error && data.sets.length > 0 ? await getQuizData() : data;
+				if (fresh.error) throw new Error(fresh.error);
+				setAvailableSets(fresh.sets);
+				setSelectedSetId(fresh.selectedSetId);
+				setSetId(fresh.selectedSetId);
+				setPool(fresh.questions);
+				setLessons(fresh.lessons);
+				setStartError('');
+				if (activeMode === 'study' && fresh.sets.length) {
+					const result = await getStudyProgress();
+					setStudyProgress(result.progress || null);
+					setStudyProgressError(result.error || '');
+					if (result.error) throw new Error(result.error);
+				}
+			}}>
 			<div className="flex flex-1 flex-col justify-between gap-4">
 				{/* Sticky Header & Mode Switcher */}
 				<div className="sticky top-0 z-30 bg-base-100/95 backdrop-blur-md pt-1 pb-3 space-y-3 -mx-4 px-4 sm:-mx-6 sm:px-6 border-b border-base-300/80 shadow-xs">
@@ -346,7 +366,7 @@ export function QuizEngine({
 							</div>
 							<div>
 								<h1 className="font-display font-bold text-lg sm:text-xl leading-tight">
-									{"Ôn tập trắc nghiệm"}
+									QnA Learning
 								</h1>
 								<p className="text-[11px] text-base-content/60">
 									{user?.displayName
@@ -355,8 +375,8 @@ export function QuizEngine({
 								</p>
 							</div>
 						</div>
-						<div className="ml-auto flex shrink-0 items-center gap-1">
-							<LearningActions />
+						<div className="ml-auto flex shrink-0 items-center gap-3">
+							<InstallApp />
 							<ThemeToggle />
 							<button
 								onClick={() => signOut()}
@@ -375,7 +395,7 @@ export function QuizEngine({
 								setActiveMode("exam");
 								setStartError("");
 							}}
-							className={`btn btn-sm rounded-xl font-display text-xs border-0 transition-all ${
+							className={`btn btn-sm rounded-xl font-display text-base border-0 transition-all ${
 								activeMode === "exam"
 									? "btn-primary text-primary-content shadow-sm"
 									: "btn-ghost text-base-content/70 hover:bg-base-300/50"
@@ -389,7 +409,7 @@ export function QuizEngine({
 								setActiveMode("study");
 								setStartError("");
 							}}
-							className={`btn btn-sm rounded-xl font-display text-xs border-0 transition-all ${
+							className={`btn btn-sm rounded-xl font-display text-base border-0 transition-all ${
 								activeMode === "study"
 									? "btn-primary text-primary-content shadow-sm"
 									: "btn-ghost text-base-content/70 hover:bg-base-300/50"
@@ -565,9 +585,10 @@ export function QuizEngine({
 				</main>
 
 				{/* Start Button */}
+				<div className="space-y-[1.5rem]">
+				<FloatingLearningMenu />
 				<footer>
 					{startError && <p role="alert" className="mb-3 text-sm text-error">{startError}</p>}
-					<div className="mb-3"><InstallApp /></div>
 					{activeMode === "exam" ? (
 						<>
 							<p className="text-center text-[11px] text-base-content/60 mb-2">
@@ -598,7 +619,9 @@ export function QuizEngine({
 						</>
 					)}
 				</footer>
+				</div>
 			</div>
+			</PullToRefresh>
 		);
 	}
 

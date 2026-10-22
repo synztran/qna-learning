@@ -1,7 +1,7 @@
 'use client';
 
-import { useEffect, useState } from 'react';
-import { Download, Share, SquarePlus } from 'lucide-react';
+import { useEffect, useRef, useState } from 'react';
+import { Download, Share, SquarePlus, X } from 'lucide-react';
 
 interface InstallPromptEvent extends Event {
   prompt(): Promise<void>;
@@ -9,6 +9,7 @@ interface InstallPromptEvent extends Event {
 }
 
 export function InstallApp() {
+  const dialog = useRef<HTMLDialogElement>(null);
   const [visible, setVisible] = useState(false);
   const [safari, setSafari] = useState(false);
   const [android, setAndroid] = useState(false);
@@ -67,8 +68,24 @@ export function InstallApp() {
 
   if (!visible) return null;
 
-  if (android) return (
-    <div className="rounded-xl border border-base-300 bg-base-200/50 text-sm">
+  return <>
+    <div className="flex justify-center">
+      <button type="button" onClick={() => dialog.current?.showModal()}
+        aria-label="Hướng dẫn cài ứng dụng" aria-haspopup="dialog" title="Cài ứng dụng"
+        className="btn btn-ghost btn-circle btn-sm text-primary">
+        <Download aria-hidden="true" className="h-5 w-5" />
+      </button>
+    </div>
+    <dialog ref={dialog} className="modal" aria-labelledby="install-guide-title">
+      <div className="modal-box max-w-md space-y-4 text-sm">
+        <div className="flex items-start justify-between gap-3">
+          <h2 id="install-guide-title" className="font-display text-lg font-bold">
+            {android ? 'Cài ứng dụng trên Android' : 'Cài ứng dụng trên iPhone / iPad'}
+          </h2>
+          <button type="button" autoFocus onClick={() => dialog.current?.close()} aria-label="Đóng hướng dẫn cài đặt"
+            className="btn btn-ghost btn-circle btn-sm shrink-0"><X aria-hidden="true" className="h-4 w-4" /></button>
+        </div>
+        {android ? <div className="space-y-3">
       {(installPrompt || installing) && (
         <button type="button" onClick={install} disabled={installing} aria-busy={installing}
           className="btn btn-ghost w-full justify-start gap-2 text-primary normal-case">
@@ -77,13 +94,7 @@ export function InstallApp() {
         </button>
       )}
       {installError && <p role="alert" className="px-4 pt-3 text-error">{installError}</p>}
-      <details>
-        <summary className="list-none [&::-webkit-details-marker]:hidden cursor-pointer p-3 font-semibold text-primary focus-visible:outline focus-visible:outline-2 focus-visible:outline-primary rounded-xl">
-          <span className="inline-flex items-center gap-2"><Download aria-hidden="true" className="h-4 w-4" />
-            {installPrompt || installing ? 'Hướng dẫn cài đặt thủ công' : 'Cài ứng dụng trên Android'}
-          </span>
-        </summary>
-        <div className="px-4 pb-4 space-y-3 text-base-content">
+        <div className="space-y-3 text-base-content">
           <ol className="list-decimal pl-5 space-y-2">
             <li>Mở trang này bằng Chrome trên Android.</li>
             <li>Nhấn menu <b>⋮</b>, chọn <b>Cài đặt ứng dụng</b> hoặc <b>Thêm vào màn hình chính</b>.</li>
@@ -91,16 +102,7 @@ export function InstallApp() {
           </ol>
           <p className="text-xs text-base-content/70">Nếu chưa thấy tùy chọn cài đặt, hãy thử lại bằng Chrome ngoài trình duyệt trong ứng dụng. Ứng dụng vẫn cần mạng để đăng nhập, tải bộ đề và lưu kết quả.</p>
         </div>
-      </details>
-    </div>
-  );
-
-  return (
-    <details className="rounded-xl border border-base-300 bg-base-200/50 text-sm">
-      <summary className="list-none [&::-webkit-details-marker]:hidden cursor-pointer p-3 font-semibold text-primary focus-visible:outline focus-visible:outline-2 focus-visible:outline-primary rounded-xl">
-        <span className="inline-flex items-center gap-2"><Download aria-hidden="true" className="h-4 w-4" />Cài ứng dụng trên iPhone / iPad</span>
-      </summary>
-      <div className="px-4 pb-4 space-y-3 text-base-content">
+        </div> : <div className="space-y-3 text-base-content">
         {!safari && <p>Mở trang này bằng Safari trước, rồi thực hiện các bước bên dưới.</p>}
         <ol className="list-decimal pl-5 space-y-2">
           <li>Trong Safari, mở menu và chọn <span className="inline-flex items-center gap-1 font-semibold"><Share aria-hidden="true" className="h-4 w-4" />Chia sẻ</span>.</li>
@@ -108,7 +110,11 @@ export function InstallApp() {
           <li>Nếu có, bật <b>Mở dưới dạng ứng dụng web</b>, sau đó nhấn <b>Thêm</b>.</li>
         </ol>
         <p className="text-xs text-base-content/70">Mở biểu tượng QnA Learning trên Màn hình chính để học. Ứng dụng vẫn cần mạng để đăng nhập, tải bộ đề và lưu kết quả.</p>
+        </div>}
+        <div className="modal-action">
+          <button type="button" onClick={() => dialog.current?.close()} className="btn btn-primary btn-sm">Đã hiểu</button>
+        </div>
       </div>
-    </details>
-  );
+    </dialog>
+  </>;
 }
