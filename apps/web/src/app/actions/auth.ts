@@ -5,7 +5,7 @@ import { revalidatePath } from 'next/cache';
 import { redirect } from 'next/navigation';
 
 export async function signIn(formData: FormData) {
-  const email = (formData.get('email') as string)?.trim();
+  const email = (formData.get('email') as string)?.trim().toLowerCase();
   const password = formData.get('password') as string;
 
   if (!email || !password) {
@@ -19,10 +19,28 @@ export async function signIn(formData: FormData) {
   }
 
   const supabase = await createClient();
-  const { data, error } = await supabase.auth.signInWithPassword({
-    email,
-    password,
-  });
+  if (email.length > 254 || password.length > 1024) return { error: 'Sai thông tin đăng nhập' };
+  let result;
+  if (email.includes('@')) {
+    result = await supabase.auth.signInWithPassword({ email, password });
+  } else {
+    if (!/^[a-z0-9][a-z0-9._-]{2,31}$/.test(email)) return { error: 'Sai thông tin đăng nhập' };
+    try {
+      const response = await fetch(`${supabaseUrl}/functions/v1/username-login`, {
+        method: 'POST', cache: 'no-store',
+        headers: { 'Content-Type': 'application/json', apikey: process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || '',
+          Authorization: `Bearer ${process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || ''}` },
+        body: JSON.stringify({ username: email, password }),
+      });
+      if (!response.ok) return { error: response.status === 401 ? 'Sai thông tin đăng nhập'
+        : response.status === 429 ? 'Vui lòng thử lại sau.' : 'Không thể đăng nhập. Vui lòng thử lại.' };
+      const tokens = await response.json();
+      result = await supabase.auth.setSession(tokens);
+    } catch {
+      return { error: 'Không thể đăng nhập. Vui lòng thử lại.' };
+    }
+  }
+  const { data, error } = result;
 
   if (error) {
     return { error: error.code === 'invalid_credentials' || error.message === 'Invalid login credentials'

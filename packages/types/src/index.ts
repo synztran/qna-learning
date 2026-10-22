@@ -62,6 +62,7 @@ export interface QuizRawData {
 }
 
 export interface UserProfile {
+  userName?: string;
   id: string;
   email: string;
   displayName?: string;

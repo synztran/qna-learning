@@ -87,6 +87,7 @@ export async function listUsers(): Promise<{ users: UserProfile[]; error?: strin
       return {
         id: u.id,
         email: u.email || '',
+        userName: p?.username || undefined,
         displayName,
         isBanned,
         role,
@@ -116,6 +117,7 @@ export async function listUsers(): Promise<{ users: UserProfile[]; error?: strin
 export async function createStudentUser(formData: FormData) {
   try {
     const email = (formData.get('email') as string)?.trim();
+    const userName = (formData.get('userName') as string)?.trim().toLowerCase();
     const password = formData.get('password') as string;
     const displayName = (formData.get('displayName') as string)?.trim();
     const role = (formData.get('role') as string) || 'student';
@@ -125,6 +127,13 @@ export async function createStudentUser(formData: FormData) {
     }
 
     const supabase = getAdmin();
+
+    if (!userName || !/^[a-z0-9][a-z0-9._-]{2,31}$/.test(userName)) {
+      return { success: false, error: 'Tên đăng nhập: 3–32 ký tự, gồm chữ không dấu, số, dấu chấm, gạch dưới hoặc gạch ngang.' };
+    }
+    const { data: existing, error: lookupError } = await supabase.from('profiles').select('id').eq('username', userName).maybeSingle();
+    if (lookupError) return { success: false, error: 'Không thể kiểm tra tên đăng nhập. Kiểm tra migration username.' };
+    if (existing) return { success: false, error: 'Tên đăng nhập đã được sử dụng.' };
 
     const { data, error } = await supabase.auth.admin.createUser({
       email,
@@ -142,19 +151,71 @@ export async function createStudentUser(formData: FormData) {
 
     // Ensure profile is synced
     if (data.user) {
-      await supabase.from('profiles').upsert({
+      const { error: profileError } = await supabase.from('profiles').upsert({
         id: data.user.id,
+        username: userName,
         email,
         display_name: displayName || email.split('@')[0],
         is_banned: false,
         role,
       });
+      if (profileError) {
+        await supabase.auth.admin.deleteUser(data.user.id);
+        return { success: false, error: profileError.code === '23505' ? 'Tên đăng nhập đã được sử dụng.' : 'Không thể lưu tên đăng nhập. Vui lòng thử lại.' };
+      }
     }
 
     revalidatePath('/');
     return { success: true, user: data.user };
   } catch (err: any) {
     return { success: false, error: err.message };
+  }
+}
+
+export async function updateStudentInformation(formData: FormData) {
+  const id = formData.get('id');
+  const rawUsername = formData.get('userName');
+  const rawEmail = formData.get('email');
+  const rawName = formData.get('displayName');
+  if (typeof id !== 'string' || !/^[0-9a-f-]{36}$/i.test(id) ||
+      typeof rawUsername !== 'string' || typeof rawEmail !== 'string' || typeof rawName !== 'string') {
+    return { success: false, error: 'Thông tin không hợp lệ.' };
+  }
+  const username = rawUsername.trim().toLowerCase();
+  const email = rawEmail.trim().toLowerCase();
+  const displayName = rawName.trim();
+  if (!/^[a-z0-9][a-z0-9._-]{2,31}$/.test(username) ||
+      !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email) || email.length > 254 || displayName.length > 100) {
+    return { success: false, error: 'Kiểm tra email, tên đăng nhập (3–32 ký tự) và tên học viên (tối đa 100 ký tự).' };
+  }
+  try {
+    const admin = getAdmin();
+    const { data: previous, error: readError } = await admin.from('profiles')
+      .select('username,email,display_name').eq('id', id).single();
+    const { data: authData, error: authReadError } = await admin.auth.admin.getUserById(id);
+    if (readError || authReadError || !previous || !authData.user) {
+      return { success: false, error: 'Không thể tải tài khoản. Làm mới danh sách và thử lại.' };
+    }
+    const { error: profileError } = await admin.from('profiles').update({
+      username, email, display_name: displayName, updated_at: new Date().toISOString(),
+    }).eq('id', id).select('id').single();
+    if (profileError) return { success: false, error: profileError.code === '23505'
+      ? 'Tên đăng nhập đã được sử dụng.' : 'Không thể cập nhật hồ sơ.' };
+    const { error: authError } = await admin.auth.admin.updateUserById(id, {
+      ...(email !== authData.user.email?.toLowerCase() ? { email } : {}),
+      user_metadata: { ...authData.user.user_metadata, display_name: displayName },
+    });
+    if (authError) {
+      const { error: rollbackError } = await admin.from('profiles').update(previous)
+        .eq('id', id).eq('username', username).eq('email', email).eq('display_name', displayName).select('id').single();
+      return { success: false, error: rollbackError
+        ? 'Cập nhật Auth thất bại và không thể hoàn tác hồ sơ. Làm mới và kiểm tra email trong Supabase Auth trước khi thử lại.'
+        : 'Không thể cập nhật tài khoản Auth. Email có thể đã được sử dụng. Hồ sơ đã được hoàn tác.' };
+    }
+    revalidatePath('/');
+    return { success: true, updated: { id, email, userName: username, displayName } };
+  } catch {
+    return { success: false, error: 'Không thể hoàn tất cập nhật. Làm mới và kiểm tra tài khoản trước khi thử lại.' };
   }
 }
 

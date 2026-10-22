@@ -23,6 +23,7 @@ import {
 	type FolderQuestionSource,
 } from "../app/actions/admin";
 import { ThemeToggle } from "@qna/ui";
+import { EditUserDialog } from './EditUserDialog';
 import {
 	Users,
 	Database,
@@ -107,6 +108,8 @@ export function AdminDashboard({
 	const [userSearch, setUserSearch] = useState("");
 	const [showAddUserModal, setShowAddUserModal] = useState(false);
 	const [newEmail, setNewEmail] = useState("");
+	const [editingUser, setEditingUser] = useState<UserProfile | null>(null);
+	const [newUserName, setNewUserName] = useState("");
 	const [newPassword, setNewPassword] = useState("");
 	const [newDisplayName, setNewDisplayName] = useState("");
 	const [userActionMsg, setUserActionMsg] = useState<{
@@ -137,6 +140,7 @@ export function AdminDashboard({
 		const q = userSearch.toLowerCase();
 		return (
 			u.email.toLowerCase().includes(q) ||
+			(u.userName || '').toLowerCase().includes(q) ||
 			(u.displayName || "").toLowerCase().includes(q)
 		);
 	});
@@ -169,6 +173,7 @@ export function AdminDashboard({
 		setUserActionMsg(null);
 		const fd = new FormData();
 		fd.append("email", newEmail);
+		fd.append("userName", newUserName);
 		fd.append("password", newPassword);
 		fd.append("displayName", newDisplayName);
 		fd.append("role", "student");
@@ -179,6 +184,7 @@ export function AdminDashboard({
 				{
 					id: res.user.id,
 					email: newEmail,
+					userName: newUserName.trim().toLowerCase(),
 					displayName: newDisplayName || newEmail.split("@")[0],
 					isBanned: false,
 					role: "student",
@@ -189,6 +195,7 @@ export function AdminDashboard({
 			]);
 			setShowAddUserModal(false);
 			setNewEmail("");
+			setNewUserName("");
 			setNewPassword("");
 			setNewDisplayName("");
 			setUserActionMsg({
@@ -979,6 +986,7 @@ export function AdminDashboard({
 													<div className="text-[11px] text-base-content/60">
 														{u.email}
 													</div>
+													{u.userName && <div className="text-[11px] text-base-content/70">@{u.userName}</div>}
 												</td>
 												<td>
 													<span
@@ -1011,6 +1019,9 @@ export function AdminDashboard({
 													)}
 												</td>
 												<td className="text-right space-x-2">
+													<button type="button" onClick={() => setEditingUser(u)} className="btn btn-xs btn-ghost border border-base-300 rounded-xl">
+														<Edit aria-hidden="true" className="h-3.5 w-3.5" />Sửa thông tin
+													</button>
 													<button
 														type="button"
 														onClick={() =>
@@ -1372,6 +1383,11 @@ export function AdminDashboard({
 			{/* ==============================================================
           MODAL: ADD STUDENT USER
           ============================================================== */}
+			{editingUser && <EditUserDialog key={editingUser.id} user={editingUser} onClose={() => setEditingUser(null)} onSaved={updated => {
+				setUsers(previous => previous.map(user => user.id === updated.id ? { ...user, ...updated } : user));
+				setEditingUser(null);
+				setUserActionMsg({ type: 'ok', text: 'Đã cập nhật thông tin học viên.' });
+			}} />}
 			{showAddUserModal && (
 				<div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-xs">
 					<div className="w-full max-w-md bg-base-100 rounded-3xl p-6 border border-base-300 shadow-2xl space-y-4">
@@ -1407,7 +1423,19 @@ export function AdminDashboard({
 							<div className="form-control">
 								<label className="label py-1">
 									<span className="label-text text-xs font-semibold">
-										Email đăng nhập *
+										Tên đăng nhập *
+									</span>
+								</label>
+								<input type="text" required minLength={3} maxLength={32}
+									pattern="[a-zA-Z0-9][a-zA-Z0-9._\-]{2,31}" autoCapitalize="none" autoComplete="off"
+									placeholder="student1" value={newUserName} onChange={e => setNewUserName(e.target.value)}
+									aria-label="Tên đăng nhập" className="input input-sm input-bordered rounded-xl text-xs" />
+								<p className="text-xs text-base-content/70 mt-1">Tên đăng nhập: 3–32 ký tự, không gồm @ hoặc dấu cách.</p>
+							</div>
+							<div className="form-control">
+								<label className="label py-1">
+									<span className="label-text text-xs font-semibold">
+										Email *
 									</span>
 								</label>
 								<input

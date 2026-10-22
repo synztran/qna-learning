@@ -62,19 +62,19 @@ function LoginForm() {
       <form onSubmit={handleSubmit} className="space-y-4">
         <div className="form-control">
           <label className="label py-1">
-            <span className="label-text text-xs font-semibold">Email học viên</span>
+            <span className="label-text text-xs font-semibold">Tên đăng nhập hoặc email</span>
           </label>
           <label className="input input-bordered flex items-center gap-3 bg-base-100 rounded-2xl focus-within:border-primary">
             <User className="w-4 h-4 text-base-content/50" />
             <input
-              type="email"
+              type="text"
               required
-              placeholder="student@studywithmsnhung.edu"
+              placeholder="student hoặc student@gmail.com"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               className="grow text-sm"
               autoCapitalize="none"
-              autoComplete="email"
+              autoComplete="username"
             />
           </label>
         </div>
