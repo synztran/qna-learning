@@ -23,6 +23,7 @@ interface StudyViewProps {
 	lessons: Lesson[];
 	setTitle?: string;
 	onBack: () => void;
+	onProgressSaved?: () => void;
 }
 
 export function StudyView({
@@ -30,6 +31,7 @@ export function StudyView({
 	lessons,
 	setTitle,
 	onBack,
+	onProgressSaved,
 }: StudyViewProps) {
 	const [searchQuery, setSearchQuery] = useState("");
 	const pendingProgress = useRef(new Set<string>());
@@ -46,6 +48,7 @@ export function StudyView({
 				const batch = [...pendingProgress.current].slice(0, 200);
 				const result = await recordStudyProgress(batch);
 				if (!result.success) throw new Error(result.error);
+				onProgressSaved?.();
 				batch.forEach(id => pendingProgress.current.delete(id));
 			}
 		} catch {

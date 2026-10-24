@@ -5,6 +5,7 @@ import { useSearchParams } from 'next/navigation';
 import { signIn } from '../actions/auth';
 import { ThemeToggle } from '@qna/ui';
 import { InstallApp } from '@/components/InstallApp';
+import { setNavigationPending } from '@/components/NavigationOverlay';
 import { Lock, User, ShieldAlert, Sparkles, BookOpen } from 'lucide-react';
 
 function LoginForm() {
@@ -26,6 +27,7 @@ function LoginForm() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (loading) return;
     setLoading(true);
     setErrorMessage('');
 
@@ -33,9 +35,21 @@ function LoginForm() {
     formData.append('email', email);
     formData.append('password', password);
 
-    const res = await signIn(formData);
-    if (res?.error) {
-      setErrorMessage(res.error);
+    try {
+      const res = await signIn(formData);
+      if (res?.error) {
+        setErrorMessage(res.error);
+        setLoading(false);
+      } else if (res?.success) {
+        setNavigationPending(true);
+        window.location.href = '/';
+      } else {
+        setErrorMessage('Không thể đăng nhập. Vui lòng thử lại.');
+        setLoading(false);
+      }
+    } catch {
+      setNavigationPending(false);
+      setErrorMessage('Không thể đăng nhập. Vui lòng kiểm tra kết nối và thử lại.');
       setLoading(false);
     }
   };
@@ -59,7 +73,7 @@ function LoginForm() {
         </div>
       )}
 
-      <form onSubmit={handleSubmit} className="space-y-4">
+      <form onSubmit={handleSubmit} aria-busy={loading} className="space-y-4">
         <div className="form-control">
           <label className="label py-1">
             <span className="label-text text-xs font-semibold">Tên đăng nhập hoặc email</span>
@@ -75,6 +89,7 @@ function LoginForm() {
               className="grow text-sm"
               autoCapitalize="none"
               autoComplete="username"
+              disabled={loading}
             />
           </label>
         </div>
@@ -93,6 +108,7 @@ function LoginForm() {
               onChange={(e) => setPassword(e.target.value)}
               className="grow text-sm"
               autoComplete="current-password"
+              disabled={loading}
             />
           </label>
         </div>
@@ -109,7 +125,6 @@ function LoginForm() {
           )}
         </button>
       </form>
-      <div className="mt-4"><InstallApp /></div>
 
       <div className="divider my-4 text-[11px] text-base-content/40">LƯU Ý</div>
 
@@ -128,17 +143,20 @@ export default function LoginPage() {
       className="min-h-[100dvh] flex flex-col justify-between items-center p-4 sm:p-6 bg-base-100"
     >
       {/* Top Header */}
-      <div className="w-full max-w-md flex justify-between items-center pt-2">
+      <div className="w-full max-w-md flex flex-wrap gap-3 justify-between items-center pt-2">
         <div className="flex items-center gap-2">
           <div className="w-9 h-9 rounded-xl bg-primary/10 flex items-center justify-center text-primary">
             <BookOpen className="w-5 h-5" />
           </div>
           <div>
-            <h1 className="font-display font-bold text-lg leading-tight tracking-tight">Phần mềm hỗ trợ học thuật</h1>
+            <h1 className="font-display font-bold text-lg leading-tight tracking-tight">QnA Learning</h1>
             <p className="text-[11px] text-base-content/60 font-medium">Study with QNA Learning</p>
           </div>
         </div>
-        <ThemeToggle />
+        <div className="ml-auto flex shrink-0 items-center gap-2">
+          <InstallApp />
+          <ThemeToggle />
+        </div>
       </div>
 
       {/* Main Card */}

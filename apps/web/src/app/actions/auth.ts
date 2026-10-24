@@ -1,6 +1,7 @@
 'use server';
 
 import { createClient } from '@/lib/supabase/server';
+import { createClient as createSupabaseClient } from '@supabase/supabase-js';
 import { revalidatePath } from 'next/cache';
 import { redirect } from 'next/navigation';
 
@@ -57,22 +58,77 @@ export async function signIn(formData: FormData) {
       : 'Phiên đăng nhập đã bị thay thế hoặc tài khoản bị khóa. Vui lòng đăng nhập lại.' };
   }
 
-  // Check if soft banned
-  if (data.user) {
-    const { data: profile, error: profileError } = await supabase
-      .from('profiles')
-      .select('is_banned')
-      .eq('id', data.user.id)
-      .single();
+  return { success: true };
+}
 
-    if (profileError || !profile || profile.is_banned) {
-      await supabase.auth.signOut({ scope: 'local' });
-      return { error: 'Tài khoản của bạn đã bị tạm khoá (banned). Vui lòng liên hệ quản trị viên.' };
-    }
+export async function updatePassword(formData: FormData) {
+  const oldPassword = formData.get('oldPassword');
+  const newPassword = formData.get('newPassword');
+  const confirmPassword = formData.get('confirmPassword');
+
+  if (typeof oldPassword !== 'string' || !oldPassword || oldPassword.length > 1024) {
+    return { error: 'Vui lòng nhập mật khẩu hiện tại.' };
   }
 
-  revalidatePath('/', 'layout');
-  redirect('/');
+  if (typeof newPassword !== 'string' || newPassword.length < 6 || newPassword.length > 1024) {
+    return { error: 'Mật khẩu mới phải có ít nhất 6 ký tự.' };
+  }
+
+  if (newPassword === oldPassword) {
+    return { error: 'Mật khẩu mới không được trùng mật khẩu hiện tại.' };
+  }
+
+  if (newPassword !== confirmPassword) {
+    return { error: 'Mật khẩu xác nhận không khớp.' };
+  }
+
+  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const anonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+  if (!supabaseUrl || !anonKey) {
+    return { success: true };
+  }
+
+  const supabase = await createClient();
+  const {
+    data: { user },
+    error: userError,
+  } = await supabase.auth.getUser();
+
+  if (userError || !user || !user.email) {
+    return { error: 'Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại.' };
+  }
+
+  const { data: active, error: sessionError } = await supabase.rpc('is_active_user');
+  if (sessionError || active !== true) {
+    return { error: 'Phiên đăng nhập không hợp lệ. Vui lòng đăng nhập lại.' };
+  }
+
+  // Verify current password against Supabase Auth
+  const verifyClient = createSupabaseClient(supabaseUrl, anonKey, {
+    auth: { persistSession: false, autoRefreshToken: false },
+  });
+
+  const { error: verifyError } = await verifyClient.auth.signInWithPassword({
+    email: user.email,
+    password: oldPassword,
+  });
+
+  if (verifyError) {
+    return { error: 'Mật khẩu hiện tại không chính xác.' };
+  }
+
+  // Revoke only the temporary verification session, not the student's session.
+  await verifyClient.auth.signOut({ scope: 'local' });
+
+  const { error } = await supabase.auth.updateUser({
+    password: newPassword,
+  });
+
+  if (error) {
+    return { error: error.message || 'Không thể cập nhật mật khẩu.' };
+  }
+
+  return { success: true };
 }
 
 export async function signOut() {
@@ -118,6 +174,7 @@ export async function getCurrentUser() {
     id: user.id,
     email: user.email || '',
     displayName: profile?.display_name || user.email?.split('@')[0],
+    userName: profile?.username || user.email?.split('@')[0],
     isBanned: profile?.is_banned || false,
     role: profile?.role || 'student',
   };

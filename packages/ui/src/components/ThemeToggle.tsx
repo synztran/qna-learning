@@ -36,12 +36,12 @@ export function ThemeToggle({ className = '' }: { className?: string }) {
       type="button"
       onClick={toggle}
       aria-label="Toggle theme"
-      className={`btn btn-circle btn-sm btn-ghost transition-transform duration-200 active:scale-95 ${className}`}
+      className={`btn btn-circle btn-xs btn-ghost transition-transform duration-200 active:scale-95 ${className}`}
     >
       {theme === 'light' ? (
-        <Moon className="w-4 h-4 text-brand-burgundy dark:text-brand-rose" />
+        <Moon className="w-5 h-5 text-brand-burgundy dark:text-brand-rose" />
       ) : (
-        <Sun className="w-4 h-4 text-brand-gold" />
+        <Sun className="w-5 h-5 text-brand-gold" />
       )}
     </button>
   );

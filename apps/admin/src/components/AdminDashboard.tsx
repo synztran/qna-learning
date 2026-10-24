@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState } from "react";
-import type { Question, UserProfile, OptionKey, Lesson, QuizRawData } from "@qna/types";
+import type { Question, UserProfile, OptionKey, Lesson, QuizRawData, FeedbackItem, FeedbackStatus, FeedbackType } from "@qna/types";
 import {
 	createStudentUser,
 	toggleSoftBan,
@@ -21,6 +21,8 @@ import {
 	type AdminQuizSet,
 	convertUploadedDocAction,
 	type FolderQuestionSource,
+	listFeedbacks,
+	updateFeedbackStatus,
 } from "../app/actions/admin";
 import { ThemeToggle } from "@qna/ui";
 import { EditUserDialog } from './EditUserDialog';
@@ -50,6 +52,9 @@ import {
 	Download,
 	AlertTriangle,
 	FileCode,
+	MessageSquare,
+	Bug,
+	CheckCheck,
 } from "lucide-react";
 
 interface AdminDashboardProps {
@@ -58,6 +63,7 @@ interface AdminDashboardProps {
 	initialSets: AdminQuizSet[];
 	initialFolderSources: FolderQuestionSource[];
 	initialFolderPath: string;
+	initialFeedbacks: FeedbackItem[];
 	hasEnv: boolean;
 }
 
@@ -67,10 +73,11 @@ export function AdminDashboard({
 	initialSets,
 	initialFolderSources,
 	initialFolderPath,
+	initialFeedbacks,
 	hasEnv,
 }: AdminDashboardProps) {
 	const [tab, setTab] = useState<
-		"users" | "folderSources" | "converter" | "upload" | "questions"
+		"users" | "folderSources" | "converter" | "upload" | "questions" | "feedbacks"
 	>("folderSources");
 	const [users, setUsers] = useState<UserProfile[]>(initialUsers);
 	const [questions, setQuestions] = useState<Question[]>(initialQuestions);
@@ -120,6 +127,56 @@ export function AdminDashboard({
 	// Password Modal
 	const [pwdModalUser, setPwdModalUser] = useState<UserProfile | null>(null);
 	const [resetPwdValue, setResetPwdValue] = useState("");
+
+	// Feedback State
+	const [feedbacks, setFeedbacks] = useState<FeedbackItem[]>(initialFeedbacks);
+	const [feedbackStatusFilter, setFeedbackStatusFilter] = useState<'all' | FeedbackStatus>('all');
+	const [feedbackTypeFilter, setFeedbackTypeFilter] = useState<'all' | FeedbackType>('all');
+	const [feedbackSearch, setFeedbackSearch] = useState('');
+	const [feedbackLoading, setFeedbackLoading] = useState(false);
+	const [feedbackActionLoading, setFeedbackActionLoading] = useState<string | null>(null);
+	const [feedbackActionMsg, setFeedbackActionMsg] = useState<{
+		type: "ok" | "err";
+		text: string;
+	} | null>(null);
+
+	const handleRefreshFeedbacks = async () => {
+		setFeedbackLoading(true);
+		setFeedbackActionMsg(null);
+		try {
+			const res = await listFeedbacks();
+			if (res.error) {
+				setFeedbackActionMsg({ type: "err", text: res.error });
+			} else {
+				setFeedbacks(res.feedbacks || []);
+			}
+		} catch (err: any) {
+			setFeedbackActionMsg({ type: "err", text: err.message });
+		} finally {
+			setFeedbackLoading(false);
+		}
+	};
+
+	const handleUpdateFeedbackStatus = async (id: string, newStatus: FeedbackStatus) => {
+		setFeedbackActionLoading(id);
+		setFeedbackActionMsg(null);
+		const prev = [...feedbacks];
+		setFeedbacks(curr => curr.map(f => f.id === id ? { ...f, status: newStatus } : f));
+		try {
+			const res = await updateFeedbackStatus(id, newStatus);
+			if (!res.success) {
+				setFeedbacks(prev);
+				setFeedbackActionMsg({ type: "err", text: res.error || "Không thể cập nhật trạng thái." });
+			} else {
+				setFeedbackActionMsg({ type: "ok", text: "Đã cập nhật trạng thái phản hồi." });
+			}
+		} catch (err: any) {
+			setFeedbacks(prev);
+			setFeedbackActionMsg({ type: "err", text: err.message });
+		} finally {
+			setFeedbackActionLoading(null);
+		}
+	};
 
 	// Upload state
 	const [uploadLoading, setUploadLoading] = useState(false);
@@ -610,6 +667,21 @@ export function AdminDashboard({
 						}`}>
 						<FileQuestion className="w-4 h-4" />
 						Biên tập câu hỏi ({activeQuestions.length})
+					</button>
+					<button
+						onClick={() => setTab("feedbacks")}
+						className={`tab gap-2 text-xs font-display font-bold rounded-xl transition-all ${
+							tab === "feedbacks"
+								? "tab-active !bg-primary !text-white"
+								: ""
+						}`}>
+						<MessageSquare className="w-4 h-4" />
+						Góp ý & Báo lỗi ({feedbacks.length})
+						{feedbacks.filter(f => f.status === 'pending').length > 0 && (
+							<span className="badge badge-warning badge-xs px-1">
+								{feedbacks.filter(f => f.status === 'pending').length}
+							</span>
+						)}
 					</button>
 				</div>
 
@@ -1372,7 +1444,7 @@ export function AdminDashboard({
 													key={key}
 													className={`p-1.5 px-2.5 rounded-lg border flex items-center gap-2 ${
 														key === q.ans
-															? "bg-success/10 border-success/40 text-success-content font-bold"
+															? "bg-success/80 border-success/40 text-success-content font-bold"
 															: "bg-base-100 border-base-300/60"
 													}`}>
 													<span className="font-display font-bold w-4">
@@ -1397,6 +1469,228 @@ export function AdminDashboard({
 								))
 							)}
 						</div>
+					</div>
+				)}
+
+				{/* ==============================================================
+            TAB: FEEDBACKS (GÓP Ý & BÁO LỖI)
+            ============================================================== */}
+				{tab === "feedbacks" && (
+					<div className="space-y-4">
+						{feedbackActionMsg && (
+							<div
+								className={`alert text-xs py-2 px-3 rounded-2xl flex items-center gap-2 ${
+									feedbackActionMsg.type === "ok" ? "alert-success text-success-content" : "alert-error"
+								}`}>
+								{feedbackActionMsg.type === "ok" ? (
+									<CheckCircle className="w-4 h-4 shrink-0" />
+								) : (
+									<ShieldAlert className="w-4 h-4 shrink-0" />
+								)}
+								<span>{feedbackActionMsg.text}</span>
+							</div>
+						)}
+
+						{/* Header and Refresh */}
+						<div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
+							<div>
+								<h2 className="font-display font-bold text-base">
+									Góp ý & Báo lỗi từ học viên
+								</h2>
+								<p className="text-xs text-base-content/60">
+									Tiếp nhận và xử lý các phản hồi tính năng hoặc báo cáo sự cố từ học viên
+								</p>
+							</div>
+							<button
+								type="button"
+								disabled={feedbackLoading}
+								onClick={handleRefreshFeedbacks}
+								className="btn btn-outline btn-sm gap-2 rounded-xl">
+								<RefreshCw className={`w-4 h-4 ${feedbackLoading ? "animate-spin" : ""}`} />
+								{feedbackLoading ? "Đang tải…" : "Làm mới"}
+							</button>
+						</div>
+
+						{/* Filter Toolbar */}
+						<div className="flex flex-wrap items-center gap-2 bg-base-100 p-3 rounded-2xl border border-base-300 shadow-xs">
+							{/* Search */}
+							<div className="relative flex-1 min-w-[200px]">
+								<Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-base-content/50" />
+								<input
+									type="text"
+									placeholder="Tìm nội dung, học viên, email..."
+									value={feedbackSearch}
+									onChange={(e) => setFeedbackSearch(e.target.value)}
+									className="input input-sm input-bordered w-full pl-9 rounded-xl text-xs"
+								/>
+							</div>
+
+							{/* Status Filter */}
+							<select
+								value={feedbackStatusFilter}
+								onChange={(e) => setFeedbackStatusFilter(e.target.value as any)}
+								className="select select-sm select-bordered rounded-xl text-xs">
+								<option value="all">Tất cả trạng thái</option>
+								<option value="pending">Chờ duyệt (Pending)</option>
+								<option value="verified">Đã xác nhận (Verified)</option>
+								<option value="resolved">Đã giải quyết (Resolved)</option>
+								<option value="rejected">Đã từ chối (Rejected)</option>
+							</select>
+
+							{/* Type Filter */}
+							<select
+								value={feedbackTypeFilter}
+								onChange={(e) => setFeedbackTypeFilter(e.target.value as any)}
+								className="select select-sm select-bordered rounded-xl text-xs">
+								<option value="all">Tất cả phân loại</option>
+								<option value="issue">Báo lỗi (Issue)</option>
+								<option value="feature">Góp ý tính năng (Feature)</option>
+							</select>
+						</div>
+
+						{/* Feedbacks List */}
+						{(() => {
+							const filteredFeedbacks = feedbacks.filter((f) => {
+								if (feedbackStatusFilter !== "all" && f.status !== feedbackStatusFilter) return false;
+								if (feedbackTypeFilter !== "all" && f.type !== feedbackTypeFilter) return false;
+								if (feedbackSearch.trim()) {
+									const term = feedbackSearch.toLowerCase();
+									const matchContent = f.content.toLowerCase().includes(term);
+									const matchName = f.userDisplayName?.toLowerCase().includes(term);
+									const matchEmail = f.userEmail?.toLowerCase().includes(term);
+									const matchUsername = f.userName?.toLowerCase().includes(term);
+									if (!matchContent && !matchName && !matchEmail && !matchUsername) return false;
+								}
+								return true;
+							});
+
+							if (filteredFeedbacks.length === 0) {
+								return (
+									<div className="p-8 text-center text-xs text-base-content/50 bg-base-100 rounded-3xl border border-base-300">
+										Không có phản hồi nào phù hợp.
+									</div>
+								);
+							}
+
+							return (
+								<div className="bg-base-100 rounded-3xl border border-base-300 overflow-x-auto shadow-xs">
+									<table className="table table-sm w-full">
+										<thead>
+											<tr className="text-xs text-base-content/60 border-b border-base-300/80">
+												<th className="font-semibold py-3">Thời gian</th>
+												<th className="font-semibold py-3">Học viên</th>
+												<th className="font-semibold py-3">Loại</th>
+												<th className="font-semibold py-3">Nội dung</th>
+												<th className="font-semibold py-3">Trạng thái</th>
+												<th className="font-semibold py-3 text-right">Xử lý</th>
+											</tr>
+										</thead>
+										<tbody className="divide-y divide-base-300/60">
+											{filteredFeedbacks.map((item) => (
+												<tr key={item.id} className="hover:bg-base-200/30 transition-colors">
+													{/* Date */}
+													<td className="text-xs text-base-content/70 whitespace-nowrap align-top py-3">
+														{new Date(item.createdAt).toLocaleString("vi-VN", {
+															dateStyle: "short",
+															timeStyle: "short",
+														})}
+													</td>
+
+													{/* User Info */}
+													<td className="align-top py-3 min-w-[140px]">
+														<div className="font-semibold text-xs text-base-content">
+															{item.userDisplayName || "Học viên"}
+														</div>
+														{item.userName && (
+															<div className="text-[11px] font-mono text-primary">
+																@{item.userName}
+															</div>
+														)}
+														{item.userEmail && (
+															<div className="text-[11px] text-base-content/50">
+																{item.userEmail}
+															</div>
+														)}
+													</td>
+
+													{/* Type Badge */}
+													<td className="align-top py-3 whitespace-nowrap">
+														{item.type === "issue" ? (
+															<span className="badge badge-error badge-sm gap-1 text-white font-medium">
+																<Bug className="w-3 h-3" />
+																Lỗi
+															</span>
+														) : (
+															<span className="badge badge-primary badge-sm gap-1 text-white font-medium">
+																<Sparkles className="w-3 h-3" />
+																Tính năng
+															</span>
+														)}
+													</td>
+
+													{/* Content */}
+													<td className="align-top py-3 max-w-md text-xs leading-relaxed text-base-content whitespace-pre-wrap break-words">
+														{item.content}
+													</td>
+
+													{/* Status Badge */}
+													<td className="align-top py-3 whitespace-nowrap">
+														{item.status === "pending" && (
+															<span className="badge badge-warning badge-sm">Chờ duyệt</span>
+														)}
+														{item.status === "verified" && (
+															<span className="badge badge-info badge-sm text-white">Đã xác nhận</span>
+														)}
+														{item.status === "resolved" && (
+															<span className="badge badge-success badge-sm text-white">Đã giải quyết</span>
+														)}
+														{item.status === "rejected" && (
+															<span className="badge badge-ghost badge-sm text-base-content/50">Đã từ chối</span>
+														)}
+													</td>
+
+													{/* Action Buttons */}
+													<td className="align-top py-3 text-right whitespace-nowrap">
+														<div className="inline-flex items-center gap-1">
+															{item.status !== "verified" && (
+																<button
+																	type="button"
+																	disabled={feedbackActionLoading === item.id}
+																	onClick={() => handleUpdateFeedbackStatus(item.id, "verified")}
+																	className="btn btn-xs btn-outline btn-info rounded-lg"
+																	title="Đánh dấu đã xác nhận lỗi / tiếp nhận ý kiến">
+																	Xác nhận
+																</button>
+															)}
+															{item.status !== "resolved" && (
+																<button
+																	type="button"
+																	disabled={feedbackActionLoading === item.id}
+																	onClick={() => handleUpdateFeedbackStatus(item.id, "resolved")}
+																	className="btn btn-xs btn-outline btn-success rounded-lg"
+																	title="Đánh dấu đã sửa xong lỗi hoặc hoàn thành tính năng">
+																	Đã xử lý
+																</button>
+															)}
+															{item.status !== "rejected" && (
+																<button
+																	type="button"
+																	disabled={feedbackActionLoading === item.id}
+																	onClick={() => handleUpdateFeedbackStatus(item.id, "rejected")}
+																	className="btn btn-xs btn-ghost text-base-content/50 hover:text-error rounded-lg"
+																	title="Từ chối hoặc đóng phản hồi này">
+																	Từ chối
+																</button>
+															)}
+														</div>
+													</td>
+												</tr>
+											))}
+										</tbody>
+									</table>
+								</div>
+							);
+						})()}
 					</div>
 				)}
 			</div>

@@ -2,6 +2,7 @@
 
 import { useEffect } from 'react';
 import { checkLoginSession } from '@/app/actions/session';
+import { setNavigationPending } from './NavigationOverlay';
 
 export function SessionGuard() {
   useEffect(() => {
@@ -12,7 +13,10 @@ export function SessionGuard() {
       pending = true;
       try {
         const status = await checkLoginSession();
-        if (!stopped && status === 'replaced') window.location.replace('/login?error=session_replaced');
+        if (!stopped && status === 'replaced') {
+          setNavigationPending(true);
+          window.location.replace('/login?error=session_replaced');
+        }
       } catch {
         // Network failure is not evidence that another device signed in.
       } finally {

@@ -18,17 +18,19 @@ import {
 	ExternalLink,
 	Flame,
 	Home,
-	LogOut,
 	RefreshCw,
 	RotateCcw,
 	Sparkles,
+	User,
 	X,
 } from "lucide-react";
+import Link from "next/link";
 import { motion, AnimatePresence, useReducedMotion } from "motion/react";
 import { getQuizData, saveQuizAttempt } from "../app/actions/quiz";
-import { signOut } from "../app/actions/auth";
+import { LogoutButton } from './LogoutButton';
 import { InstallApp } from './InstallApp';
 import { FloatingLearningMenu } from './FloatingLearningMenu';
+import { createLeaderboardCache } from '@/lib/leaderboard-cache';
 import { PerfectScoreCelebration } from './PerfectScoreCelebration';
 import { StudyView } from './StudyView';
 import { PullToRefresh } from './PullToRefresh';
@@ -75,25 +77,41 @@ export function QuizEngine({
 	availableSets: initialAvailableSets = [],
 }: QuizEngineProps) {
 	const [availableSets, setAvailableSets] = useState(initialAvailableSets);
+	const leaderboardCache = useRef(createLeaderboardCache());
 	// Navigation State
 	const [view, setView] = useState<"setup" | "quiz" | "result" | "study">("setup");
 	const [activeMode, setActiveMode] = useState<"exam" | "study">("exam");
 	const [studyProgress, setStudyProgress] = useState<Record<string, { reviewed: number; total: number }> | null>(null);
 	const [studyProgressError, setStudyProgressError] = useState('');
 	const [studyProgressLoading, setStudyProgressLoading] = useState(false);
-	const refreshStudyProgress = async () => {
+	const studyProgressFetchedAt = useRef(0);
+	const studyProgressRequest = useRef<Promise<boolean> | null>(null);
+	const studySetsLoading = activeMode === 'study' && availableSets.length > 0
+		&& studyProgress === null && (studyProgressLoading || !studyProgressError);
+	const refreshStudyProgress = (force = false): Promise<boolean> => {
+		if (studyProgressRequest.current) return studyProgressRequest.current;
+		if (!force && studyProgressFetchedAt.current > 0 && Date.now() - studyProgressFetchedAt.current < 60_000) {
+			return Promise.resolve(true);
+		}
 		setStudyProgressLoading(true);
 		setStudyProgressError('');
+		const request = (async () => {
 		try {
 			const result = await getStudyProgress();
-			setStudyProgress(result.progress || null);
-			setStudyProgressError(result.error || '');
+			if (result.error || !result.progress) throw new Error(result.error);
+			setStudyProgress(result.progress);
+			studyProgressFetchedAt.current = Date.now();
+			return true;
 		} catch {
-			setStudyProgress(null);
 			setStudyProgressError('Không thể tải tiến độ ôn tập. Vui lòng thử lại.');
+			return false;
 		} finally {
 			setStudyProgressLoading(false);
+			studyProgressRequest.current = null;
 		}
+		})();
+		studyProgressRequest.current = request;
+		return request;
 	};
 	useEffect(() => {
 		if (view !== 'setup' || activeMode !== 'study' || !availableSets.length) return;
@@ -293,7 +311,10 @@ export function QuizEngine({
 		setSaveState('saving');
 		try {
 			const result = await saveQuizAttempt(pendingSubmission.current);
-			if (result.success) setSaveState('saved');
+			if (result.success) {
+				setSaveState('saved');
+				leaderboardCache.current.fetchedAt = 0;
+			}
 			else { setSaveState('error'); setSaveError(result.error || 'Không thể lưu bài nộp. Vui lòng thử lại.'); }
 		} catch {
 			setSaveState('error');
@@ -338,6 +359,8 @@ export function QuizEngine({
 	if (view === "setup") {
 		return (
 			<PullToRefresh disabled={starting || saveState === 'saving' || studyProgressLoading} onRefresh={async () => {
+				if (activeMode === 'study') setStudyProgressLoading(true);
+				try {
 				const data = await getQuizData(selectedSetId);
 				// A set may have been deactivated since selection. Reload available sets.
 				const fresh = data.error && data.sets.length > 0 ? await getQuizData() : data;
@@ -349,13 +372,16 @@ export function QuizEngine({
 				setLessons(fresh.lessons);
 				setStartError('');
 				if (activeMode === 'study' && fresh.sets.length) {
-					const result = await getStudyProgress();
-					setStudyProgress(result.progress || null);
-					setStudyProgressError(result.error || '');
-					if (result.error) throw new Error(result.error);
+					if (!await refreshStudyProgress(true)) throw new Error('Không thể tải tiến độ ôn tập.');
+				}
+				} catch (error) {
+					if (activeMode === 'study') setStudyProgressError('Không thể tải dữ liệu ôn tập. Vui lòng thử lại.');
+					throw error;
+				} finally {
+					setStudyProgressLoading(false);
 				}
 			}}>
-			<div className="flex flex-1 flex-col justify-between gap-4">
+			<div className="home-setup flex flex-1 flex-col justify-between gap-5">
 				{/* Sticky Header & Mode Switcher */}
 				<div className="sticky top-0 z-30 bg-base-100/95 backdrop-blur-md pt-1 pb-3 space-y-3 -mx-4 px-4 sm:-mx-6 sm:px-6 border-b border-base-300/80 shadow-xs">
 					{/* Header */}
@@ -364,57 +390,63 @@ export function QuizEngine({
 							<div className="w-10 h-10 rounded-2xl bg-primary/10 flex items-center justify-center text-primary shadow-sm">
 								<BookOpen className="w-5 h-5" />
 							</div>
-							<div>
+							<div className="min-w-0">
 								<h1 className="font-display font-bold text-lg sm:text-xl leading-tight">
 									QnA Learning
 								</h1>
-								<p className="text-[11px] text-base-content/60">
+								<p className="break-words text-xs leading-relaxed text-base-content/75">
 									{user?.displayName
 										? `Học viên: ${user.displayName}`
 										: "Study with QNA Learning"}
 								</p>
 							</div>
 						</div>
-						<div className="ml-auto flex shrink-0 items-center gap-3">
+						<div className="ml-auto flex shrink-0 items-center gap-1.5">
 							<InstallApp />
+							<Link
+								href="/profile"
+								title="Hồ sơ & Đổi mật khẩu"
+								className="btn btn-ghost btn-circle btn-xs text-base-content/70 hover:text-primary">
+								<User className="w-5 h-5" />
+							</Link>
 							<ThemeToggle />
-							<button
-								onClick={() => signOut()}
-								title="Đăng xuất"
-								className="btn btn-ghost btn-circle btn-sm text-base-content/60 hover:text-error">
-								<LogOut className="w-4 h-4" />
-							</button>
+							<LogoutButton size="xs" />
 						</div>
 					</header>
 
 					{/* Mode Switcher Tabs */}
-					<div className="grid grid-cols-2 p-1 bg-base-200/90 rounded-2xl border border-base-300 gap-1 shadow-xs">
+					<div role="group" aria-label="Chế độ học" data-mode={activeMode}
+						className="home-mode-switch relative isolate grid grid-cols-2 gap-1 rounded-2xl border border-base-300 bg-base-200/90 p-1">
 						<button
 							type="button"
+							aria-pressed={activeMode === 'exam'}
+							disabled={starting}
 							onClick={() => {
 								setActiveMode("exam");
 								setStartError("");
 							}}
-							className={`btn btn-sm rounded-xl font-display text-base border-0 transition-all ${
+							className={`home-mode-button btn rounded-xl font-display text-sm border-0 ${
 								activeMode === "exam"
-									? "btn-primary text-primary-content shadow-sm"
-									: "btn-ghost text-base-content/70 hover:bg-base-300/50"
+									? "text-primary-content"
+									: "text-base-content/75"
 							}`}>
-							<ThiingsTarget className="w-4 h-4 mr-1.5" />
+							<ThiingsTarget className="w-5 h-5 mr-1.5" />
 							Thi thử
 						</button>
 						<button
 							type="button"
+							aria-pressed={activeMode === 'study'}
+							disabled={starting}
 							onClick={() => {
 								setActiveMode("study");
 								setStartError("");
 							}}
-							className={`btn btn-sm rounded-xl font-display text-base border-0 transition-all ${
+							className={`home-mode-button btn rounded-xl font-display text-sm border-0 ${
 								activeMode === "study"
-									? "btn-primary text-primary-content shadow-sm"
-									: "btn-ghost text-base-content/70 hover:bg-base-300/50"
+									? "text-primary-content"
+									: "text-base-content/75"
 							}`}>
-							<BookOpen className="w-4 h-4 mr-1.5" />
+							<BookOpen className="w-5 h-5 mr-1.5" />
 							Ôn tập
 						</button>
 					</div>
@@ -436,17 +468,30 @@ export function QuizEngine({
 						<div
 							role="region"
 							aria-label="Danh sách bộ đề ôn tập"
+							aria-busy={studySetsLoading}
 							tabIndex={0}
-							className="max-h-[min(40dvh,320px)] overflow-y-auto overscroll-contain space-y-3 rounded-xl p-1 focus-visible:outline focus-visible:outline-2 focus-visible:outline-primary">
-							{availableSets.map((set) => (
+							className="max-h-[min(40dvh,320px)] overflow-y-auto overscroll-contain [scrollbar-width:none] [&::-webkit-scrollbar]:hidden space-y-3 rounded-xl p-1 focus-visible:outline focus-visible:outline-2 focus-visible:outline-primary">
+							{studySetsLoading ? <>
+								<span role="status" className="sr-only">Đang tải bộ đề và tiến độ ôn tập…</span>
+								{availableSets.map(set => <div key={set.id} aria-hidden="true"
+									className="flex items-center gap-3 rounded-xl border border-base-300 p-3.5 motion-safe:animate-pulse">
+									<div className="h-5 w-5 shrink-0 rounded bg-base-300" />
+									<div className="min-w-0 flex-1 space-y-2">
+										<div className="h-5 w-4/5 rounded bg-base-300" />
+										<div className="h-4 w-1/2 rounded bg-base-300" />
+										<div className="h-1.5 w-full rounded bg-base-300" />
+									</div>
+									<div className="h-4 w-10 shrink-0 rounded bg-base-300" />
+								</div>)}
+							</> : activeMode === 'study' && studyProgressError && !studyProgress ? null : availableSets.map((set) => (
 									<label key={set.id}
-										className={`flex cursor-pointer items-center gap-3 rounded-xl border p-3.5 ${set.id === selectedSetId ? "border-primary bg-base-100" : "border-base-300"}`}>
+										className={`home-set-option flex cursor-pointer items-center gap-3 rounded-xl border p-3.5 ${set.id === selectedSetId ? "border-primary bg-primary/5" : "border-base-300 bg-base-100"}`}>
 										<input type="checkbox" checked={set.id === selectedSetId} disabled={starting}
 											onChange={() => { setSelectedSetId(set.id === selectedSetId ? undefined : set.id); setStartError(""); }}
 											className="checkbox checkbox-primary checkbox-sm shrink-0" />
-										<span className="min-w-0 flex-1 text-xs font-semibold leading-snug">
+										<span className="min-w-0 flex-1 break-words text-sm font-semibold leading-relaxed">
 											<span>{set.title}</span>
-											{activeMode === 'study' && studyProgress?.[set.id] && !studyProgressLoading && (() => {
+											{activeMode === 'study' && studyProgress?.[set.id] && (() => {
 												const { reviewed, total } = studyProgress[set.id];
 												return <span className="mt-2 block space-y-1">
 													<span className="flex flex-wrap items-center justify-between gap-1 text-[11px] text-base-content/70">
@@ -464,13 +509,13 @@ export function QuizEngine({
 							))}
 							{availableSets.length === 0 && <p className="text-sm">Bộ câu hỏi mẫu — {poolCount} câu</p>}
 						</div>
-						{activeMode === 'study' && studyProgressLoading && <p role="status" className="mt-2 text-xs text-base-content/70">Đang tải tiến độ…</p>}
-						{activeMode === 'study' && studyProgressError && <div role="alert" className="mt-2 text-xs text-error">
-							{studyProgressError} <button type="button" onClick={() => void refreshStudyProgress()} className="btn btn-xs btn-ghost">Thử lại</button>
+						{activeMode === 'study' && !studySetsLoading && studyProgressError && <div role="alert" className="mt-2 text-xs text-error">
+							{studyProgressError} <button type="button" onClick={() => void refreshStudyProgress(true)} className="btn btn-xs btn-ghost">Thử lại</button>
 						</div>}
 					</section>
 
 					{/* Question Count Selector (Exam Mode) or Study Info Box (Study Mode) */}
+					<div className="home-mode-options">
 					{activeMode === "exam" ? (
 						<section className="bg-base-200/50 backdrop-blur-sm p-4 sm:p-5 rounded-3xl border border-base-300 shadow-sm">
 							<h2 className="font-display font-bold text-sm mb-3 tracking-tight">
@@ -582,11 +627,12 @@ export function QuizEngine({
 							</div>
 						</section>
 					)}
+					</div>
 				</main>
 
 				{/* Start Button */}
 				<div className="space-y-[1.5rem]">
-				<FloatingLearningMenu />
+				<FloatingLearningMenu leaderboardCache={leaderboardCache.current} />
 				<footer>
 					{startError && <p role="alert" className="mb-3 text-sm text-error">{startError}</p>}
 					{activeMode === "exam" ? (
@@ -635,6 +681,7 @@ export function QuizEngine({
 				lessons={initialLessons}
 				setTitle={setTitle}
 				onBack={() => setView("setup")}
+				onProgressSaved={() => { studyProgressFetchedAt.current = 0; }}
 			/>
 		);
 	}
@@ -918,7 +965,7 @@ export function QuizEngine({
 										type="button"
 										onClick={() => setShowGridModal(false)}
 										className="btn btn-circle btn-xs btn-ghost">
-										<X className="w-4 h-4" />
+										<X className="w-5 h-5" />
 									</button>
 								</div>
 
@@ -1097,7 +1144,7 @@ export function QuizEngine({
 					type="button"
 					onClick={() => setView("setup")}
 					className="btn btn-outline btn-sm font-display text-xs">
-					<Home className="w-4 h-4 mr-1.5" />
+					<Home className="w-5 h-5 mr-1.5" />
 					Về màn hình chọn bài
 				</button>
 			</div>
@@ -1107,7 +1154,7 @@ export function QuizEngine({
 					disabled={stats.badCount === 0 || saveState === 'saving' || starting}
 					onClick={handleRetryWrong}
 					className="btn btn-warning min-w-0 h-auto min-h-12 gap-1 px-2 py-3 rounded-2xl font-display font-bold text-xs sm:text-sm shadow-sm">
-					<RotateCcw className="w-4 h-4 shrink-0" />
+					<RotateCcw className="w-5 h-5 shrink-0" />
 					Làm lại {stats.badCount} câu sai
 				</button>
 
@@ -1116,7 +1163,7 @@ export function QuizEngine({
 					onClick={() => startQuiz()}
 					disabled={saveState === 'saving' || starting}
 					className="btn btn-primary min-w-0 h-auto min-h-12 gap-1 px-2 py-3 rounded-2xl font-display font-bold text-xs sm:text-sm text-primary-content shadow-sm">
-					<RefreshCw className="w-4 h-4 shrink-0" />
+					<RefreshCw className="w-5 h-5 shrink-0" />
 					Làm lại toàn bộ
 				</button>
 			</div>

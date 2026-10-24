@@ -6,7 +6,7 @@ import {
   DEFAULT_SEED_DATA,
 } from '@qna/database';
 import { convertDocxBufferToQuizData, parseTextToQuizData } from '@qna/database/src/doc-converter';
-import type { Question, QuizRawData, UserProfile } from '@qna/types';
+import type { FeedbackItem, FeedbackStatus, Question, QuizRawData, UserProfile } from '@qna/types';
 import { revalidatePath } from 'next/cache';
 import fs from 'fs';
 import path from 'path';
@@ -948,6 +948,83 @@ export async function convertUploadedDocAction(formData: FormData): Promise<{
       totalQuestions: res.totalQuestions,
       warnings: res.warnings,
     };
+  } catch (err: any) {
+    return { success: false, error: err.message };
+  }
+}
+
+// -------------------------------------------------------------
+// FEEDBACK ACTIONS
+// -------------------------------------------------------------
+export async function listFeedbacks(): Promise<{ feedbacks: FeedbackItem[]; error?: string }> {
+  try {
+    const supabase = getAdmin();
+    const { data: feedbacksData, error: feedbacksError } = await supabase
+      .from('feedbacks')
+      .select('id, user_id, type, content, status, created_at, updated_at')
+      .order('created_at', { ascending: false });
+
+    if (feedbacksError) {
+      return { feedbacks: [], error: feedbacksError.message };
+    }
+
+    if (!feedbacksData || feedbacksData.length === 0) {
+      return { feedbacks: [] };
+    }
+
+    const userIds = Array.from(new Set(feedbacksData.map((f: any) => f.user_id)));
+    const { data: profiles } = await supabase
+      .from('profiles')
+      .select('id, email, display_name, username')
+      .in('id', userIds);
+
+    const profileMap = new Map((profiles || []).map((p: any) => [p.id, p]));
+
+    const feedbacks: FeedbackItem[] = feedbacksData.map((f: any) => {
+      const p = profileMap.get(f.user_id);
+      return {
+        id: f.id,
+        userId: f.user_id,
+        type: f.type,
+        content: f.content,
+        status: f.status,
+        createdAt: f.created_at,
+        updatedAt: f.updated_at,
+        userEmail: p?.email,
+        userDisplayName: p?.display_name,
+        userName: p?.username,
+      };
+    });
+
+    return { feedbacks };
+  } catch (err: any) {
+    return { feedbacks: [], error: err.message };
+  }
+}
+
+export async function updateFeedbackStatus(
+  feedbackId: string,
+  status: FeedbackStatus
+): Promise<{ success: boolean; error?: string }> {
+  if (
+    !feedbackId ||
+    !/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(feedbackId) ||
+    !['pending', 'verified', 'resolved', 'rejected'].includes(status)
+  ) {
+    return { success: false, error: 'Dữ liệu không hợp lệ.' };
+  }
+
+  try {
+    const supabase = getAdmin();
+    const { error } = await supabase
+      .from('feedbacks')
+      .update({ status, updated_at: new Date().toISOString() })
+      .eq('id', feedbackId);
+
+    if (error) return { success: false, error: error.message };
+
+    revalidatePath('/');
+    return { success: true };
   } catch (err: any) {
     return { success: false, error: err.message };
   }

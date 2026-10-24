@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from 'next';
 import './globals.css';
 import { PwaRegistration } from '@/components/PwaRegistration';
+import { NavigationOverlay } from '@/components/NavigationOverlay';
 
 export const runtime = 'nodejs';
 
@@ -59,6 +60,7 @@ export default function RootLayout({
       </head>
       <body className="min-h-screen bg-base-100 text-base-content antialiased select-none sm:select-auto">
         {children}
+        <NavigationOverlay />
         <PwaRegistration />
       </body>
     </html>

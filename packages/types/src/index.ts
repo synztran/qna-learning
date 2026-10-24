@@ -100,6 +100,22 @@ export interface QuizAttemptRecord {
   createdAt?: string;
 }
 
+export type FeedbackType = 'feature' | 'issue';
+export type FeedbackStatus = 'pending' | 'verified' | 'resolved' | 'rejected';
+
+export interface FeedbackItem {
+  id: string;
+  userId: string;
+  type: FeedbackType;
+  content: string;
+  status: FeedbackStatus;
+  createdAt: string;
+  updatedAt: string;
+  userEmail?: string;
+  userDisplayName?: string;
+  userName?: string;
+}
+
 declare global {
   namespace React {
     interface HTMLAttributes<T> {

@@ -19,9 +19,6 @@ export async function getQuizData(setId?: string): Promise<{
   try {
     const supabase = await createClient();
 
-    const { data: active, error: sessionError } = await supabase.rpc('is_active_user');
-    if (sessionError || active !== true) return { lessons: [], questions: [], sets: [], error: 'Phiên đăng nhập không hợp lệ. Vui lòng đăng nhập lại.' };
-
     // Query active sets, lessons, and questions
     const { data: sets, error: setsError } = await supabase
       .from('quiz_sets')

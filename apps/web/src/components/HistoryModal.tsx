@@ -55,19 +55,19 @@ export function HistoryModal() {
   };
 
   return <>
-    <button type="button" aria-label="Lịch sử làm bài" title="Lịch sử làm bài" className="btn btn-ghost btn-circle btn-sm"
+    <button type="button" aria-label="Lịch sử làm bài" title="Lịch sử làm bài" className="btn btn-ghost btn-circle btn-xs"
       onClick={() => { dialog.current?.showModal(); void load(1); }}>
-      <History aria-hidden="true" className="h-4 w-4" />
+      <History aria-hidden="true" className="h-5 w-5" />
     </button>
     <dialog ref={dialog} aria-labelledby="history-title" className="modal" onClose={() => { request.current++; }}>
       <div ref={content} className="modal-box w-[calc(100%-2rem)] max-w-md max-h-[80dvh] space-y-4">
         <header className="flex items-center justify-between gap-3">
           <h2 ref={heading} tabIndex={-1} id="history-title" className="font-display text-lg font-bold">{detailId ? 'Xem lại bài nộp' : 'Lịch sử làm bài'}</h2>
           <button type="button" autoFocus aria-label="Đóng lịch sử" onClick={() => dialog.current?.close()} className="btn btn-ghost btn-circle btn-sm">
-            <X aria-hidden="true" className="h-4 w-4" />
+            <X aria-hidden="true" className="h-5 w-5" />
           </button>
         </header>
-        {detailId && <button type="button" onClick={() => void load(page)} className="btn btn-ghost btn-sm gap-2"><ArrowLeft aria-hidden="true" className="h-4 w-4" />Về danh sách</button>}
+        {detailId && <button type="button" onClick={() => void load(page)} className="btn btn-ghost btn-sm gap-2"><ArrowLeft aria-hidden="true" className="h-5 w-5" />Về danh sách</button>}
         {loading ? <p role="status" className="text-sm">Đang tải lịch sử…</p> : error ?
           <div className="space-y-3"><p role="alert" className="text-sm text-error">{error}</p><button type="button" onClick={() => void load(page, detailId)} className="btn btn-outline btn-sm">Thử lại</button></div> : detail ? <>
             <AttemptInfo attempt={detail} />

@@ -75,6 +75,114 @@ body {
 }
 
 /* Question Option States */
+.home-mode-switch::before {
+  content: '';
+  position: absolute;
+  z-index: -1;
+  inset: 0.25rem auto 0.25rem 0.25rem;
+  width: calc(50% - 0.375rem);
+  border-radius: 0.75rem;
+  background: var(--fallback-p, oklch(var(--p)/1));
+  transition: transform 220ms cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.home-mode-switch[data-mode='study']::before {
+  transform: translateX(calc(100% + 0.25rem));
+}
+
+.home-mode-button.btn,
+.home-mode-button.btn:hover,
+.home-mode-button.btn:active {
+  min-height: 2.75rem;
+  height: auto;
+  background: transparent;
+  box-shadow: none;
+  transform: none;
+}
+
+.home-setup > main > section,
+.home-mode-options > section {
+  border-radius: 1rem;
+  background: var(--fallback-b1, oklch(var(--b1)/1));
+  box-shadow: none;
+  backdrop-filter: none;
+}
+
+.home-mode-options {
+  /* min-height: 10rem; */
+  max-height: max-content;
+}
+
+.home-mode-options > section {
+  /* min-height: 10rem; */
+  max-height: max-content;
+}
+
+.home-setup > main > section > h2,
+.home-setup > main > section h2 {
+  line-height: 1.5;
+}
+
+.home-set-option {
+  transition: background-color 160ms ease-out, border-color 160ms ease-out;
+}
+
+.home-set-option:focus-within {
+  outline: 2px solid var(--fallback-p, oklch(var(--p)/1));
+  outline-offset: 2px;
+}
+
+.home-setup button:focus-visible,
+.home-learning-menu button:focus-visible {
+  outline: 2px solid var(--fallback-p, oklch(var(--p)/1));
+  outline-offset: 3px;
+}
+
+.home-setup header .btn-circle {
+  width: 2rem;
+  min-height: 2rem;
+  height: 2rem;
+}
+
+.home-learning-menu-actions {
+  visibility: hidden;
+  opacity: 0;
+  transform: translateX(0.75rem) scale(0.97);
+  transform-origin: right center;
+  pointer-events: none;
+  transition: opacity 160ms ease-out, transform 200ms cubic-bezier(0.16, 1, 0.3, 1), visibility 200ms;
+}
+
+.home-learning-menu-actions.is-open {
+  visibility: visible;
+  opacity: 1;
+  transform: none;
+  pointer-events: auto;
+}
+
+.home-learning-menu-actions .btn-circle {
+  width: 2rem;
+  min-height: 2rem;
+  height: 2rem;
+}
+
+.home-menu-trigger {
+  transition: background-color 150ms ease-out, transform 150ms ease-out;
+}
+
+.home-menu-trigger:active {
+  transform: scale(0.96);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .home-mode-switch::before,
+  .home-set-option,
+  .home-learning-menu-actions,
+  .home-menu-trigger {
+    transition: none;
+  }
+}
+
 .quiz-opt-btn {
   transition: all 0.15s cubic-bezier(0.4, 0, 0.2, 1);
   user-select: none;
