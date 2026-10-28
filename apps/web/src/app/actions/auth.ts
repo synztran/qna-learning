@@ -149,6 +149,9 @@ export async function getCurrentUser() {
       email: 'demo@studywithmsnhung.edu',
       displayName: 'Học viên Demo',
       isBanned: false,
+      donorLevel: 0,
+      donorTier: null,
+      donorSince: null,
     };
   }
 
@@ -177,5 +180,8 @@ export async function getCurrentUser() {
     userName: profile?.username || user.email?.split('@')[0],
     isBanned: profile?.is_banned || false,
     role: profile?.role || 'student',
+    donorLevel: profile?.donor_level ?? 0,
+    donorTier: profile?.donor_tier || null,
+    donorSince: profile?.donor_since || null,
   };
 }

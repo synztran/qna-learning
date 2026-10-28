@@ -81,6 +81,8 @@ export async function listUsers(): Promise<{ users: UserProfile[]; error?: strin
           display_name: displayName,
           role,
           is_banned: false,
+          donor_level: 0,
+          donor_tier: null,
         });
       }
 
@@ -91,6 +93,9 @@ export async function listUsers(): Promise<{ users: UserProfile[]; error?: strin
         displayName,
         isBanned,
         role,
+        donorLevel: p?.donor_level ?? 0,
+        donorTier: p?.donor_tier || null,
+        donorSince: p?.donor_since || null,
         createdAt: u.created_at,
         updatedAt: p?.updated_at || u.updated_at || u.created_at,
       };
@@ -121,6 +126,11 @@ export async function createStudentUser(formData: FormData) {
     const password = formData.get('password') as string;
     const displayName = (formData.get('displayName') as string)?.trim();
     const role = (formData.get('role') as string) || 'student';
+    const rawDonorTier = (formData.get('donorTier') as string)?.trim();
+    const donorTier = (rawDonorTier === 'hieu_hoc' || rawDonorTier === 'uyen_bac' || rawDonorTier === 'tinh_hoa')
+      ? rawDonorTier
+      : null;
+    const donorLevel = donorTier === 'tinh_hoa' ? 3 : donorTier === 'uyen_bac' ? 2 : donorTier === 'hieu_hoc' ? 1 : 0;
 
     if (!email || !password) {
       return { success: false, error: 'Email và mật khẩu không được để trống.' };
@@ -158,6 +168,9 @@ export async function createStudentUser(formData: FormData) {
         display_name: displayName || email.split('@')[0],
         is_banned: false,
         role,
+        donor_level: donorLevel,
+        donor_tier: donorTier,
+        donor_since: donorLevel > 0 ? new Date().toISOString() : null,
       });
       if (profileError) {
         await supabase.auth.admin.deleteUser(data.user.id);
@@ -177,6 +190,12 @@ export async function updateStudentInformation(formData: FormData) {
   const rawUsername = formData.get('userName');
   const rawEmail = formData.get('email');
   const rawName = formData.get('displayName');
+  const rawDonorTier = (formData.get('donorTier') as string)?.trim();
+  const donorTier = (rawDonorTier === 'hieu_hoc' || rawDonorTier === 'uyen_bac' || rawDonorTier === 'tinh_hoa')
+    ? rawDonorTier
+    : null;
+  const donorLevel = donorTier === 'tinh_hoa' ? 3 : donorTier === 'uyen_bac' ? 2 : donorTier === 'hieu_hoc' ? 1 : 0;
+
   if (typeof id !== 'string' || !/^[0-9a-f-]{36}$/i.test(id) ||
       typeof rawUsername !== 'string' || typeof rawEmail !== 'string' || typeof rawName !== 'string') {
     return { success: false, error: 'Thông tin không hợp lệ.' };
@@ -191,13 +210,20 @@ export async function updateStudentInformation(formData: FormData) {
   try {
     const admin = getAdmin();
     const { data: previous, error: readError } = await admin.from('profiles')
-      .select('username,email,display_name').eq('id', id).single();
+      .select('username,email,display_name,donor_tier,donor_level,donor_since').eq('id', id).single();
     const { data: authData, error: authReadError } = await admin.auth.admin.getUserById(id);
     if (readError || authReadError || !previous || !authData.user) {
       return { success: false, error: 'Không thể tải tài khoản. Làm mới danh sách và thử lại.' };
     }
+    const donorSince = donorLevel > 0 ? (previous.donor_since || new Date().toISOString()) : null;
     const { error: profileError } = await admin.from('profiles').update({
-      username, email, display_name: displayName, updated_at: new Date().toISOString(),
+      username,
+      email,
+      display_name: displayName,
+      donor_tier: donorTier,
+      donor_level: donorLevel,
+      donor_since: donorSince,
+      updated_at: new Date().toISOString(),
     }).eq('id', id).select('id').single();
     if (profileError) return { success: false, error: profileError.code === '23505'
       ? 'Tên đăng nhập đã được sử dụng.' : 'Không thể cập nhật hồ sơ.' };
@@ -207,13 +233,13 @@ export async function updateStudentInformation(formData: FormData) {
     });
     if (authError) {
       const { error: rollbackError } = await admin.from('profiles').update(previous)
-        .eq('id', id).eq('username', username).eq('email', email).eq('display_name', displayName).select('id').single();
+        .eq('id', id).select('id').single();
       return { success: false, error: rollbackError
         ? 'Cập nhật Auth thất bại và không thể hoàn tác hồ sơ. Làm mới và kiểm tra email trong Supabase Auth trước khi thử lại.'
         : 'Không thể cập nhật tài khoản Auth. Email có thể đã được sử dụng. Hồ sơ đã được hoàn tác.' };
     }
     revalidatePath('/');
-    return { success: true, updated: { id, email, userName: username, displayName } };
+    return { success: true, updated: { id, email, userName: username, displayName, donorLevel, donorTier, donorSince } };
   } catch {
     return { success: false, error: 'Không thể hoàn tất cập nhật. Làm mới và kiểm tra tài khoản trước khi thử lại.' };
   }

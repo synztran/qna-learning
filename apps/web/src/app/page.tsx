@@ -30,7 +30,13 @@ export default async function HomePage() {
         setTitle={sets.find(set => set.id === selectedSetId)?.title}
         initialLessons={lessons}
         initialQuestions={questions}
-        user={user ? { displayName: user.displayName, email: user.email } : undefined}
+        user={user ? {
+          id: user.id,
+          displayName: user.displayName,
+          email: user.email,
+          donorLevel: user.donorLevel,
+          donorTier: user.donorTier,
+        } : undefined}
       />}
     </SafeContainer>
   );

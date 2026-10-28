@@ -9,6 +9,12 @@ export async function getStudyProgress(): Promise<{
     const supabase = await createClient();
     const { data: active, error: sessionError } = await supabase.rpc('is_active_user');
     if (sessionError || active !== true) throw new Error('Invalid session');
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) throw new Error('Invalid session');
+    const { data: profile } = await supabase.from('profiles').select('donor_level').eq('id', user.id).single();
+    if (!profile || (profile.donor_level ?? 0) <= 0) {
+      return { error: 'Tính năng Ôn tập chỉ khả dụng cho học viên có cấp bậc tri ân.' };
+    }
     const { data, error } = await supabase.rpc('study_progress_summary');
     if (error) throw error;
     return { progress: Object.fromEntries((data || []).map((row: { set_id: string; reviewed: number; total: number }) =>
@@ -25,6 +31,14 @@ export async function recordStudyProgress(questionIds: string[]): Promise<{ succ
   }
   try {
     const supabase = await createClient();
+    const { data: active, error: sessionError } = await supabase.rpc('is_active_user');
+    if (sessionError || active !== true) throw new Error('Invalid session');
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) throw new Error('Invalid session');
+    const { data: profile } = await supabase.from('profiles').select('donor_level').eq('id', user.id).single();
+    if (!profile || (profile.donor_level ?? 0) <= 0) {
+      return { success: false, error: 'Tính năng Ôn tập chỉ khả dụng cho học viên có cấp bậc tri ân.' };
+    }
     const { error } = await supabase.rpc('record_study_progress', { p_question_ids: [...new Set(questionIds)] });
     if (error) throw error;
     return { success: true };

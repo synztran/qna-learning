@@ -7,7 +7,7 @@ import { updateStudentInformation } from '../app/actions/admin';
 export function EditUserDialog({ user, onClose, onSaved }: {
   user: UserProfile;
   onClose: () => void;
-  onSaved: (user: Pick<UserProfile, 'id' | 'email' | 'userName' | 'displayName'>) => void;
+  onSaved: (user: Pick<UserProfile, 'id' | 'email' | 'userName' | 'displayName' | 'donorLevel' | 'donorTier' | 'donorSince'>) => void;
 }) {
   const dialog = useRef<HTMLDialogElement>(null);
   const pending = useRef(false);
@@ -49,6 +49,14 @@ export function EditUserDialog({ user, onClose, onSaved }: {
         </label>
         <label className="form-control gap-1 text-sm">Email *
           <input name="email" type="email" required maxLength={254} defaultValue={user.email} className="input input-bordered input-sm" />
+        </label>
+        <label className="form-control gap-1 text-sm">Cấp bậc tri ân
+          <select name="donorTier" defaultValue={user.donorTier || ''} className="select select-bordered select-sm">
+            <option value="">Không có (Học viên thường)</option>
+            <option value="hieu_hoc">🌱 Hiếu Học (Cấp 1)</option>
+            <option value="uyen_bac">🎓 Uyên Bác (Cấp 2)</option>
+            <option value="tinh_hoa">👑 Tinh Hoa (Cấp 3)</option>
+          </select>
         </label>
         <p className="text-xs text-base-content/70">Vai trò: {user.role} (không thay đổi). Đổi email không thực hiện quy trình xác minh email mới.</p>
       </fieldset>

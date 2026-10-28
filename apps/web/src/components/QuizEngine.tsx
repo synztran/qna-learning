@@ -4,6 +4,7 @@ import React, { useState, useEffect, useMemo, useRef } from "react";
 import type { Lesson, Question, OptionKey, QuizSessionItem } from "@qna/types";
 import {
 	ThemeToggle,
+	DonorBadge,
 	ThiingsTrophy,
 	ThiingsBook,
 	ThiingsTarget,
@@ -18,6 +19,7 @@ import {
 	ExternalLink,
 	Flame,
 	Home,
+	Lock,
 	RefreshCw,
 	RotateCcw,
 	Sparkles,
@@ -32,6 +34,7 @@ import { InstallApp } from './InstallApp';
 import { FloatingLearningMenu } from './FloatingLearningMenu';
 import { createLeaderboardCache } from '@/lib/leaderboard-cache';
 import { PerfectScoreCelebration } from './PerfectScoreCelebration';
+import { DonorWelcomeModal } from './DonorWelcomeModal';
 import { StudyView } from './StudyView';
 import { PullToRefresh } from './PullToRefresh';
 import { getStudyProgress } from '../app/actions/study';
@@ -63,8 +66,11 @@ interface QuizEngineProps {
 	initialLessons: Lesson[];
 	initialQuestions: Question[];
 	user?: {
+		id?: string;
 		displayName?: string;
 		email?: string;
+		donorLevel?: number;
+		donorTier?: string | null;
 	};
 }
 
@@ -78,6 +84,8 @@ export function QuizEngine({
 }: QuizEngineProps) {
 	const [availableSets, setAvailableSets] = useState(initialAvailableSets);
 	const leaderboardCache = useRef(createLeaderboardCache());
+	const canStudy = Boolean(user?.donorLevel && user.donorLevel > 0);
+	const [showLockStudyModal, setShowLockStudyModal] = useState(false);
 	// Navigation State
 	const [view, setView] = useState<"setup" | "quiz" | "result" | "study">("setup");
 	const [activeMode, setActiveMode] = useState<"exam" | "study">("exam");
@@ -114,7 +122,7 @@ export function QuizEngine({
 		return request;
 	};
 	useEffect(() => {
-		if (view !== 'setup' || activeMode !== 'study' || !availableSets.length) return;
+		if (view !== 'setup' || activeMode !== 'study' || !availableSets.length || !canStudy) return;
 		void refreshStudyProgress();
 		const refresh = () => { if (!document.hidden) void refreshStudyProgress(); };
 		window.addEventListener('focus', refresh);
@@ -227,6 +235,10 @@ export function QuizEngine({
 
 	// Start Study Mode
 	const startStudy = async () => {
+		if (!canStudy) {
+			setShowLockStudyModal(true);
+			return;
+		}
 		if (startingRef.current || savingRef.current) return;
 		startingRef.current = true;
 		setStarting(true);
@@ -358,6 +370,8 @@ export function QuizEngine({
      ============================================================== */
 	if (view === "setup") {
 		return (
+			<>
+			<DonorWelcomeModal user={user} />
 			<PullToRefresh disabled={starting || saveState === 'saving' || studyProgressLoading} onRefresh={async () => {
 				if (activeMode === 'study') setStudyProgressLoading(true);
 				try {
@@ -394,11 +408,14 @@ export function QuizEngine({
 								<h1 className="font-display font-bold text-lg sm:text-xl leading-tight">
 									QnA Learning
 								</h1>
-								<p className="break-words text-xs leading-relaxed text-base-content/75">
-									{user?.displayName
-										? `Học viên: ${user.displayName}`
-										: "Study with QNA Learning"}
-								</p>
+								<div className="flex items-center gap-1.5 flex-wrap">
+									<p className="break-words text-xs leading-relaxed text-base-content/75">
+										{user?.displayName
+											? `Học viên: ${user.displayName}`
+											: "Study with QNA Learning"}
+									</p>
+									<DonorBadge level={user?.donorLevel} tier={user?.donorTier} compact />
+								</div>
 							</div>
 						</div>
 						<div className="ml-auto flex shrink-0 items-center gap-1.5">
@@ -438,6 +455,10 @@ export function QuizEngine({
 							aria-pressed={activeMode === 'study'}
 							disabled={starting}
 							onClick={() => {
+								if (!canStudy) {
+									setShowLockStudyModal(true);
+									return;
+								}
 								setActiveMode("study");
 								setStartError("");
 							}}
@@ -448,6 +469,11 @@ export function QuizEngine({
 							}`}>
 							<BookOpen className="w-5 h-5 mr-1.5" />
 							Ôn tập
+							{!canStudy && (
+								<span className="badge badge-warning badge-xs px-1.5 py-0.5 text-[9px] gap-0.5 ml-1 font-semibold">
+									<Lock className="w-2.5 h-2.5" /> Khóa
+								</span>
+							)}
 						</button>
 					</div>
 				</div>
@@ -668,6 +694,51 @@ export function QuizEngine({
 				</div>
 			</div>
 			</PullToRefresh>
+			{showLockStudyModal && (
+				<div
+					role="dialog"
+					aria-modal="true"
+					aria-labelledby="lock-study-title"
+					className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
+					<div className="relative w-full max-w-sm rounded-3xl border border-warning/30 bg-base-100 p-6 shadow-2xl space-y-4 text-center">
+						<button
+							type="button"
+							onClick={() => setShowLockStudyModal(false)}
+							aria-label="Đóng"
+							className="btn btn-circle btn-ghost btn-xs absolute right-3 top-3 text-base-content/60 hover:text-base-content">
+							<X className="w-4 h-4" />
+						</button>
+						<div className="flex justify-center pt-2">
+							<div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-warning/20 text-warning ring-4 ring-warning/10">
+								<Lock className="h-7 w-7" />
+							</div>
+						</div>
+						<div className="space-y-1">
+							<h3 id="lock-study-title" className="font-display text-lg font-bold">
+								Đặc quyền Ôn tập
+							</h3>
+							<p className="text-xs text-base-content/70">
+								Dành riêng cho học viên có cấp bậc tri ân
+							</p>
+						</div>
+						<div className="rounded-2xl border border-base-300 bg-base-200/50 p-3.5 text-xs text-base-content/85 leading-relaxed space-y-1.5 text-left">
+							<p>
+								Chế độ <b>Ôn tập</b> (tra cứu toàn bộ đáp án, lời giải chi tiết theo bài học, không áp lực tính giờ) là quyền lợi dành riêng cho học viên từ cấp <b>🌱 Hiếu Học</b> trở lên.
+							</p>
+							<p className="text-[11px] text-base-content/60">
+								Vui lòng liên hệ quản trị viên hoặc ủng hộ nền tảng để mở khóa đặc quyền này!
+							</p>
+						</div>
+						<button
+							type="button"
+							onClick={() => setShowLockStudyModal(false)}
+							className="btn btn-primary w-full rounded-2xl font-display font-bold text-sm text-primary-content shadow-md shadow-primary/20">
+							Đã hiểu
+						</button>
+					</div>
+				</div>
+			)}
+			</>
 		);
 	}
 

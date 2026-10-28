@@ -45,6 +45,8 @@ export interface LeaderboardRow {
   correct: number;
   total: number;
   accuracy: number;
+  donor_level?: number;
+  donor_tier?: string;
 }
 
 export async function getLeaderboard() {

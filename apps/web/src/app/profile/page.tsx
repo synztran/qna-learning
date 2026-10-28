@@ -18,6 +18,9 @@ export default async function ProfilePage() {
     email: 'demo@studywithmsnhung.edu',
     displayName: 'Học viên Demo',
     userName: 'demo',
+    donorLevel: 0,
+    donorTier: null,
+    donorSince: null,
   };
 
   return (

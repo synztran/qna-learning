@@ -2,6 +2,7 @@
 
 import { useRef, useState } from 'react';
 import { Trophy, X } from 'lucide-react';
+import { DonorBadge } from '@qna/ui';
 import { HistoryModal } from './HistoryModal';
 import { FeedbackModal } from './FeedbackModal';
 import { loadLeaderboard } from '@/app/actions/leaderboard';
@@ -73,7 +74,13 @@ export function LearningActions({ cache }: { cache: LeaderboardCache }) {
           rows.length === 0 ? <p className="text-sm">Chưa có kết quả đủ điều kiện xếp hạng.</p> :
           <ol className="divide-y divide-base-300">{rows.map(row => <li key={row.rank} className="flex items-center gap-3 py-3">
             <span className="w-7 shrink-0 text-sm font-bold tabular-nums text-primary">#{row.rank}</span>
-            <div className="min-w-0 flex-1"><p className="break-words text-sm font-semibold">{row.display_name}</p><p className="text-xs tabular-nums text-base-content/70">{row.correct}/{row.total} câu đúng</p></div>
+            <div className="min-w-0 flex-1">
+              <div className="flex items-center gap-1.5 flex-wrap">
+                <p className="break-words text-sm font-semibold">{row.display_name}</p>
+                <DonorBadge level={row.donor_level} tier={row.donor_tier} compact />
+              </div>
+              <p className="text-xs tabular-nums text-base-content/70">{row.correct}/{row.total} câu đúng</p>
+            </div>
             <span className="shrink-0 text-sm font-semibold tabular-nums">{Number(row.accuracy).toFixed(1)}%</span>
           </li>)}</ol>)}
       </div>

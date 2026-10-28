@@ -8,6 +8,7 @@
     "lint": "echo 0"
   },
   "dependencies": {
+    "@qna/types": "workspace:*",
     "clsx": "^2.1.1",
     "lucide-react": "^0.479.0",
     "motion": "^12.4.7",

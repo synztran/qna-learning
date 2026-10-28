@@ -16,6 +16,9 @@ export interface Database {
           display_name: string | null;
           is_banned: boolean;
           role: 'admin' | 'student';
+          donor_level: number;
+          donor_tier: string | null;
+          donor_since: string | null;
           created_at: string;
           updated_at: string;
         };
@@ -25,6 +28,9 @@ export interface Database {
           display_name?: string | null;
           is_banned?: boolean;
           role?: 'admin' | 'student';
+          donor_level?: number;
+          donor_tier?: string | null;
+          donor_since?: string | null;
           created_at?: string;
           updated_at?: string;
         };
@@ -34,6 +40,9 @@ export interface Database {
           display_name?: string | null;
           is_banned?: boolean;
           role?: 'admin' | 'student';
+          donor_level?: number;
+          donor_tier?: string | null;
+          donor_since?: string | null;
           created_at?: string;
           updated_at?: string;
         };
@@ -45,6 +54,7 @@ export interface Database {
           title: string;
           description: string | null;
           is_active: boolean;
+          min_donor_level: number;
           storage_file_path: string | null;
           created_at: string;
         };
@@ -54,6 +64,7 @@ export interface Database {
           title: string;
           description?: string | null;
           is_active?: boolean;
+          min_donor_level?: number;
           storage_file_path?: string | null;
           created_at?: string;
         };
@@ -63,6 +74,7 @@ export interface Database {
           title?: string;
           description?: string | null;
           is_active?: boolean;
+          min_donor_level?: number;
           storage_file_path?: string | null;
           created_at?: string;
         };

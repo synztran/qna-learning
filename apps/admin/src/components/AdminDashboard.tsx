@@ -24,7 +24,7 @@ import {
 	listFeedbacks,
 	updateFeedbackStatus,
 } from "../app/actions/admin";
-import { ThemeToggle } from "@qna/ui";
+import { ThemeToggle, DonorBadge } from "@qna/ui";
 import { EditUserDialog } from './EditUserDialog';
 import {
 	Users,
@@ -113,12 +113,14 @@ export function AdminDashboard({
 
 	// User Filter & Search
 	const [userSearch, setUserSearch] = useState("");
+	const [userTierFilter, setUserTierFilter] = useState<string>("all");
 	const [showAddUserModal, setShowAddUserModal] = useState(false);
 	const [newEmail, setNewEmail] = useState("");
 	const [editingUser, setEditingUser] = useState<UserProfile | null>(null);
 	const [newUserName, setNewUserName] = useState("");
 	const [newPassword, setNewPassword] = useState("");
 	const [newDisplayName, setNewDisplayName] = useState("");
+	const [newDonorTier, setNewDonorTier] = useState("");
 	const [userActionMsg, setUserActionMsg] = useState<{
 		type: "ok" | "err";
 		text: string;
@@ -196,11 +198,16 @@ export function AdminDashboard({
 	// Filtered Users
 	const filteredUsers = users.filter((u) => {
 		const q = userSearch.toLowerCase();
-		return (
+		const matchSearch =
 			u.email.toLowerCase().includes(q) ||
 			(u.userName || '').toLowerCase().includes(q) ||
-			(u.displayName || "").toLowerCase().includes(q)
-		);
+			(u.displayName || "").toLowerCase().includes(q);
+		const matchTier =
+			userTierFilter === 'all' ||
+			(userTierFilter === 'none' && (!u.donorLevel || u.donorLevel === 0)) ||
+			(userTierFilter === 'donor' && Boolean(u.donorLevel && u.donorLevel > 0)) ||
+			u.donorTier === userTierFilter;
+		return matchSearch && matchTier;
 	});
 
 	// Filtered Questions
@@ -233,10 +240,12 @@ export function AdminDashboard({
 		fd.append("userName", newUserName);
 		fd.append("password", newPassword);
 		fd.append("displayName", newDisplayName);
+		fd.append("donorTier", newDonorTier);
 		fd.append("role", "student");
 
 		const res = await createStudentUser(fd);
 		if (res.success && res.user) {
+			const tierLevel = newDonorTier === 'tinh_hoa' ? 3 : newDonorTier === 'uyen_bac' ? 2 : newDonorTier === 'hieu_hoc' ? 1 : 0;
 			setUsers((prev) => [
 				{
 					id: res.user.id,
@@ -245,6 +254,8 @@ export function AdminDashboard({
 					displayName: newDisplayName || newEmail.split("@")[0],
 					isBanned: false,
 					role: "student",
+					donorLevel: tierLevel,
+					donorTier: newDonorTier || null,
 					createdAt: new Date().toISOString(),
 					updatedAt: new Date().toISOString(),
 				},
@@ -255,6 +266,7 @@ export function AdminDashboard({
 			setNewUserName("");
 			setNewPassword("");
 			setNewDisplayName("");
+			setNewDonorTier("");
 			setUserActionMsg({
 				type: "ok",
 				text: `Tạo tài khoản ${newEmail} thành công!`,
@@ -1011,22 +1023,35 @@ export function AdminDashboard({
 				{tab === "users" && (
 					<div className="space-y-4">
 						<div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
-							<div className="relative w-full sm:w-72">
-								<Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-base-content/50" />
-								<input
-									type="text"
-									placeholder="Tìm email hoặc tên học viên..."
-									value={userSearch}
-									onChange={(e) =>
-										setUserSearch(e.target.value)
-									}
-									className="input input-sm input-bordered w-full pl-9 rounded-xl text-xs"
-								/>
+							<div className="flex flex-1 flex-col sm:flex-row items-stretch sm:items-center gap-2 w-full sm:w-auto">
+								<div className="relative w-full sm:w-72">
+									<Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-base-content/50" />
+									<input
+										type="text"
+										placeholder="Tìm email hoặc tên học viên..."
+										value={userSearch}
+										onChange={(e) =>
+											setUserSearch(e.target.value)
+										}
+										className="input input-sm input-bordered w-full pl-9 rounded-xl text-xs"
+									/>
+								</div>
+								<select
+									value={userTierFilter}
+									onChange={(e) => setUserTierFilter(e.target.value)}
+									className="select select-sm select-bordered rounded-xl text-xs w-full sm:w-auto">
+									<option value="all">Tất cả cấp bậc</option>
+									<option value="donor">Tất cả Donor (Cấp 1–3)</option>
+									<option value="none">Học viên thường</option>
+									<option value="hieu_hoc">🌱 Hiếu Học</option>
+									<option value="uyen_bac">🎓 Uyên Bác</option>
+									<option value="tinh_hoa">👑 Tinh Hoa</option>
+								</select>
 							</div>
 
 							<button
 								onClick={() => setShowAddUserModal(true)}
-								className="btn btn-primary btn-sm rounded-xl font-display font-bold text-white shadow-sm">
+								className="btn btn-primary btn-sm rounded-xl font-display font-bold text-white shadow-sm shrink-0">
 								<Plus className="w-4 h-4 mr-1" />
 								Thêm tài khoản học viên
 							</button>
@@ -1060,8 +1085,11 @@ export function AdminDashboard({
 												key={u.id}
 												className="hover:bg-base-100/50 border-b border-base-300/50 text-xs">
 												<td>
-													<div className="font-bold text-base-content">
-														{u.displayName || "—"}
+													<div className="flex items-center gap-1.5 flex-wrap">
+														<span className="font-bold text-base-content">
+															{u.displayName || "—"}
+														</span>
+														<DonorBadge level={u.donorLevel} tier={u.donorTier} compact />
 													</div>
 													<div className="text-[11px] text-base-content/60">
 														{u.email}
@@ -1781,6 +1809,23 @@ export function AdminDashboard({
 									}
 									className="input input-sm input-bordered rounded-xl text-xs"
 								/>
+							</div>
+
+							<div className="form-control">
+								<label className="label py-1">
+									<span className="label-text text-xs font-semibold">
+										Cấp bậc tri ân
+									</span>
+								</label>
+								<select
+									value={newDonorTier}
+									onChange={(e) => setNewDonorTier(e.target.value)}
+									className="select select-sm select-bordered rounded-xl text-xs">
+									<option value="">Không có (Học viên thường)</option>
+									<option value="hieu_hoc">🌱 Hiếu Học (Cấp 1)</option>
+									<option value="uyen_bac">🎓 Uyên Bác (Cấp 2)</option>
+									<option value="tinh_hoa">👑 Tinh Hoa (Cấp 3)</option>
+								</select>
 							</div>
 
 							<div className="pt-3 flex gap-2">
