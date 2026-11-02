@@ -1,6 +1,8 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useMemo, useCallback } from "react";
+import { EditorQuestionCard } from './EditorQuestionCard';
+import { QuestionSetHeader } from './QuestionSetHeader';
 import type { Question, UserProfile, OptionKey, Lesson, QuizRawData, FeedbackItem, FeedbackStatus, FeedbackType } from "@qna/types";
 import {
 	createStudentUser,
@@ -17,7 +19,6 @@ import {
 	listUsers,
 	listQuestions,
 	listQuestionSets,
-	renameQuizSet,
 	type AdminQuizSet,
 	convertUploadedDocAction,
 	type FolderQuestionSource,
@@ -84,10 +85,6 @@ export function AdminDashboard({
 	const [sets, setSets] = useState(initialSets);
 	const [questionsLoading, setQuestionsLoading] = useState(false);
 	const [qSetFilter, setQSetFilter] = useState('all');
-	const [renamingSetId, setRenamingSetId] = useState<string | null>(null);
-	const [setTitleDraft, setSetTitleDraft] = useState('');
-	const [renameLoading, setRenameLoading] = useState(false);
-	const [renameError, setRenameError] = useState('');
 
 	// Folder Sources State
 	const [folderPath, setFolderPath] = useState(initialFolderPath);
@@ -129,6 +126,8 @@ export function AdminDashboard({
 	// Password Modal
 	const [pwdModalUser, setPwdModalUser] = useState<UserProfile | null>(null);
 	const [resetPwdValue, setResetPwdValue] = useState("");
+	const [banConfirmUser, setBanConfirmUser] = useState<UserProfile | null>(null);
+	const [banLoading, setBanLoading] = useState(false);
 
 	// Feedback State
 	const [feedbacks, setFeedbacks] = useState<FeedbackItem[]>(initialFeedbacks);
@@ -182,6 +181,10 @@ export function AdminDashboard({
 
 	// Upload state
 	const [uploadLoading, setUploadLoading] = useState(false);
+	const [uploadTitle, setUploadTitle] = useState("");
+	const [uploadSlug, setUploadSlug] = useState("");
+	const [uploadReading, setUploadReading] = useState(false);
+	const [uploadPreview, setUploadPreview] = useState<QuizRawData | null>(null);
 	const [uploadMsg, setUploadMsg] = useState<{
 		type: "ok" | "err";
 		text: string;
@@ -211,10 +214,10 @@ export function AdminDashboard({
 	});
 
 	// Filtered Questions
-	const activeQuestions = questions.filter(q => q.setId
+	const activeQuestions = useMemo(() => questions.filter(q => q.setId
 		? sets.some(set => set.id === q.setId)
-		: !hasEnv);
-	const filteredQuestions = activeQuestions.filter((q) => {
+		: !hasEnv), [questions, sets, hasEnv]);
+	const filteredQuestions = useMemo(() => activeQuestions.filter((q) => {
 		const matchLesson =
 			qLessonFilter === "all" || q.lesson === qLessonFilter;
 		const matchSearch =
@@ -224,7 +227,7 @@ export function AdminDashboard({
 				opt.toLowerCase().includes(qSearch.toLowerCase()),
 			);
 		return matchLesson && matchSearch && (qSetFilter === 'all' || q.setId === qSetFilter);
-	});
+	}), [activeQuestions, qLessonFilter, qSearch, qSetFilter]);
 
 	// Unique Lessons
 	const lessonList = Array.from(new Set(activeQuestions.filter(q => qSetFilter === 'all' || q.setId === qSetFilter).map((q) => q.lesson))).sort(
@@ -322,8 +325,62 @@ export function AdminDashboard({
 	};
 
 	// Handler: Upload File
+	const handleUploadReset = () => {
+		setUploadTitle("");
+		setUploadSlug("");
+		setUploadPreview(null);
+		setUploadMsg(null);
+		setUploadReading(false);
+	};
+
+	const handleUploadFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+		const input = e.currentTarget;
+		const file = input.files?.[0];
+		setUploadTitle("");
+		setUploadSlug("");
+		setUploadMsg(null);
+		setUploadPreview(null);
+		input.setCustomValidity("");
+		setUploadReading(Boolean(file));
+		if (!file) return;
+
+		try {
+			const data: unknown = JSON.parse(await file.text());
+			if (input.files?.[0] !== file) return;
+			if (!data || typeof data !== "object" || Array.isArray(data)) {
+				throw new Error("Invalid JSON object");
+			}
+			const metadata = data as Record<string, unknown>;
+			const lessons = metadata.lessons;
+			const isRecord = (value: unknown): value is Record<string, unknown> =>
+				Boolean(value) && typeof value === "object" && !Array.isArray(value);
+			if (!Array.isArray(lessons) || !Array.isArray(metadata.qs) || !metadata.qs.length ||
+				!lessons.every(lesson => isRecord(lesson) && Number.isInteger(lesson.n) && typeof lesson.title === "string") ||
+				!metadata.qs.every(question => isRecord(question) && Number.isInteger(question.n) &&
+					Number.isInteger(question.lesson) && lessons.some(lesson => lesson.n === question.lesson) &&
+					typeof question.q === "string" && question.q.trim() && isRecord(question.opts) &&
+					Object.keys(question.opts).length > 0 && Object.values(question.opts).every(option => typeof option === "string") &&
+					typeof question.ans === "string" && ["A", "B", "C", "D"].includes(question.ans) &&
+					Object.hasOwn(question.opts, question.ans) &&
+					(question.exp === undefined || typeof question.exp === "string"))) {
+				throw new Error("Invalid question structure");
+			}
+			setUploadPreview(data as QuizRawData);
+			setUploadTitle(typeof metadata.title === "string" ? metadata.title.trim() : "");
+			setUploadSlug(typeof metadata.slug === "string" ? metadata.slug.trim() : "");
+		} catch {
+			if (input.files?.[0] !== file) return;
+			const message = "File JSON không hợp lệ. Kiểm tra lessons, qs, các lựa chọn và đáp án của câu hỏi.";
+			input.setCustomValidity(message);
+			setUploadMsg({ type: "err", text: message });
+		} finally {
+			if (input.files?.[0] === file) setUploadReading(false);
+		}
+	};
+
 	const handleUploadSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
 		e.preventDefault();
+		if (uploadReading || !uploadPreview) return;
 		setUploadLoading(true);
 		setUploadMsg(null);
 		const fd = new FormData(e.currentTarget);
@@ -387,7 +444,11 @@ export function AdminDashboard({
 	};
 
 	// Handler: Delete Question
-	const handleDeleteQuestion = async (id?: string) => {
+	const handleEditQuestion = useCallback((question: Question) => {
+		setEditingQuestion(question);
+		setIsEditingNew(false);
+	}, []);
+	const handleDeleteQuestion = useCallback(async (id?: string) => {
 		if (!id || !confirm("Bạn chắc chắn muốn xóa câu hỏi này?")) return;
 		const res = await deleteQuestion(id);
 		if (res.success) {
@@ -395,7 +456,7 @@ export function AdminDashboard({
 		} else {
 			alert("Lỗi xóa câu hỏi: " + res.error);
 		}
-	};
+	}, []);
 
 	// Handler: Scan Folder
 	const handleScanFolder = async () => {
@@ -460,27 +521,6 @@ export function AdminDashboard({
 		} finally {
 			setFolderLoading(false);
 			setSetStatusSaving(false);
-		}
-	};
-
-	const handleRenameSet = async (event: React.FormEvent) => {
-		event.preventDefault();
-		if (!renamingSetId || renameLoading) return;
-		setRenameLoading(true);
-		setRenameError('');
-		try {
-			const result = await renameQuizSet(renamingSetId, setTitleDraft);
-			if (!result.success || !result.title) {
-				setRenameError(result.error || 'Không thể đổi tên bộ đề.');
-				return;
-			}
-			setSets(previous => previous.map(set => set.id === renamingSetId ? { ...set, title: result.title! } : set));
-			setRenamingSetId(null);
-			setUserActionMsg({ type: 'ok', text: `Đã đổi tên bộ đề thành "${result.title}".` });
-		} catch {
-			setRenameError('Không thể đổi tên bộ đề. Kiểm tra kết nối và thử lại.');
-		} finally {
-			setRenameLoading(false);
 		}
 	};
 
@@ -1126,23 +1166,24 @@ export function AdminDashboard({
 														"vi-VN",
 													)}
 												</td>
-												<td className="text-right space-x-2">
-													<button type="button" onClick={() => setEditingUser(u)} className="btn btn-xs btn-ghost border border-base-300 rounded-xl">
-														<Edit aria-hidden="true" className="h-3.5 w-3.5" />Sửa thông tin
+												<td className="align-middle">
+													<div className="flex items-center justify-end gap-2">
+													<button type="button" onClick={() => setEditingUser(u)} title="Sửa thông tin" aria-label="Sửa thông tin" className="btn btn-xs btn-square btn-ghost border border-base-300 rounded-xl">
+														<Edit aria-hidden="true" className="h-3.5 w-3.5" />
 													</button>
 													<button
 														type="button"
 														onClick={() =>
-															handleToggleBan(u)
+														setBanConfirmUser(u)
 														}
-														className={`btn btn-xs rounded-xl font-display font-bold ${
+														title={u.isBanned ? "Mở khóa" : "Tạm khóa"}
+														aria-label={u.isBanned ? "Mở khóa" : "Tạm khóa"}
+														className={`btn btn-xs btn-square rounded-xl font-display font-bold ${
 															u.isBanned
 																? "btn-success text-white"
 																: "btn-outline btn-error"
 														}`}>
-														{u.isBanned
-															? "Mở khóa"
-															: "Tạm khóa"}
+														{u.isBanned ? <CheckCircle aria-hidden="true" className="w-3.5 h-3.5" /> : <Lock aria-hidden="true" className="w-3.5 h-3.5" />}
 													</button>
 
 													{/* Reset Password button */}
@@ -1154,11 +1195,12 @@ export function AdminDashboard({
 																"",
 															);
 														}}
-														className="btn btn-xs btn-ghost border border-base-300 rounded-xl"
+														className="btn btn-xs btn-square btn-ghost border border-base-300 rounded-xl"
+														aria-label="Đổi mật khẩu"
 														title="Đổi mật khẩu">
-														<Key className="w-3.5 h-3.5 mr-1" />
-														Đổi MK
+														<Key aria-hidden="true" className="w-3.5 h-3.5" />
 													</button>
+													</div>
 												</td>
 											</tr>
 										))
@@ -1173,8 +1215,9 @@ export function AdminDashboard({
             TAB 2: UPLOAD & STORAGE SYNC
             ============================================================== */}
 				{tab === "upload" && (
-					<div className="max-w-2xl space-y-6">
-						<div className="card bg-base-200/50 border border-base-300 p-6 rounded-3xl shadow-sm space-y-4">
+					<div className="space-y-6">
+						<div className="grid grid-cols-1 lg:grid-cols-2 gap-6 items-start">
+						<div className="card min-w-0 bg-base-200/50 border border-base-300 p-6 rounded-3xl shadow-sm space-y-4">
 							<div>
 								<h3 className="font-display font-bold text-base">
 									Tải lên file câu hỏi vào Storage
@@ -1199,6 +1242,7 @@ export function AdminDashboard({
 
 							<form
 								onSubmit={handleUploadSubmit}
+								onReset={handleUploadReset}
 								className="space-y-4">
 								<div className="grid grid-cols-2 gap-3">
 									<div className="form-control">
@@ -1210,7 +1254,8 @@ export function AdminDashboard({
 										<input
 											type="text"
 											name="title"
-											defaultValue="QNA Learning"
+											value={uploadTitle}
+											onChange={event => setUploadTitle(event.target.value)}
 											required
 											className="input input-sm input-bordered bg-base-100 rounded-xl text-xs"
 										/>
@@ -1224,7 +1269,8 @@ export function AdminDashboard({
 										<input
 											type="text"
 											name="slug"
-											defaultValue="sc5-mon-md1"
+											value={uploadSlug}
+											onChange={event => setUploadSlug(event.target.value)}
 											required
 											className="input input-sm input-bordered bg-base-100 rounded-xl text-xs"
 										/>
@@ -1240,6 +1286,8 @@ export function AdminDashboard({
 									<input
 										type="file"
 										name="file"
+										onChange={handleUploadFileChange}
+										disabled={uploadLoading}
 										accept=".json"
 										required
 										className="file-input file-input-bordered file-input-sm bg-base-100 rounded-xl text-xs w-full"
@@ -1248,16 +1296,20 @@ export function AdminDashboard({
 										<span className="label-text-alt text-[11px] text-base-content/50">
 											Cấu trúc JSON chuẩn:{" "}
 											<code>
-												&#123; lessons: [...], qs: [...]
+												&#123; title: "...", slug: "...", lessons: [...], qs: [...]
 												&#125;
 											</code>
 										</span>
 									</label>
+									<p className="text-[11px] text-base-content/50">
+										Tên bộ đề và slug tự động lấy từ file JSON. Bạn có thể chỉnh sửa hoặc nhập thủ công nếu file thiếu thông tin.
+									</p>
 								</div>
 
+								<button type="reset" disabled={uploadLoading} className="btn btn-outline btn-sm rounded-xl w-full">Xóa tất cả (Clear)</button>
 								<button
 									type="submit"
-									disabled={uploadLoading}
+									disabled={uploadLoading || uploadReading || !uploadPreview}
 									className="btn btn-primary btn-sm rounded-xl font-display font-bold text-white shadow-sm w-full">
 									{uploadLoading ? (
 										<span className="loading loading-spinner loading-xs" />
@@ -1269,6 +1321,32 @@ export function AdminDashboard({
 									)}
 								</button>
 							</form>
+						</div>
+						<section aria-label="Xem trước bộ câu hỏi" className="card min-w-0 border border-base-300 bg-base-100 p-6 rounded-3xl shadow-sm space-y-3">
+							<h4 className="font-semibold">Xem trước bộ câu hỏi</h4>
+							{uploadPreview ? (
+								<>
+									<p className="text-sm break-words">{uploadTitle || "Chưa nhập tên bộ đề"}</p>
+									<p className="text-xs text-base-content/60 break-all">Slug: {uploadSlug || "Chưa nhập"}</p>
+									<p className="text-xs">{uploadPreview.lessons.length} bài học · {uploadPreview.qs.length} câu hỏi</p>
+									<div className="max-h-96 overflow-y-auto space-y-2">
+										{uploadPreview.qs.map((question, index) => (
+											<details key={index} className="rounded-xl border border-base-300 p-3 text-sm">
+												<summary className="cursor-pointer whitespace-pre-wrap break-words">Câu {question.n}: {question.q}</summary>
+												<p className="mt-2 text-xs text-base-content/60">{uploadPreview.lessons.find(lesson => lesson.n === question.lesson)?.title}</p>
+												<ul className="mt-2 space-y-1">
+													{Object.entries(question.opts).map(([key, text]) => (
+														<li key={key} className="whitespace-pre-wrap break-words">{key}. {text}{key === question.ans ? " ✓ (Đáp án đúng)" : ""}</li>
+													))}
+												</ul>
+											</details>
+										))}
+									</div>
+								</>
+							) : (
+								<p className="text-sm text-base-content/60">Chọn file JSON hợp lệ ở bên trái để xem trước bộ câu hỏi trước khi tải lên.</p>
+							)}
+						</section>
 						</div>
 
 						{/* Quick 1-click default seed */}
@@ -1378,122 +1456,27 @@ export function AdminDashboard({
 								</div>
 							) : (
 								Array.from(new Set([
-									...sets.filter(set => qSetFilter === 'all' || set.id === qSetFilter).map(set => set.id),
+									...sets.filter(set => qSetFilter === 'all' || set.id === qSetFilter)
+										.sort((a, b) => Number(Boolean(b.isActive)) - Number(Boolean(a.isActive)))
+										.map(set => set.id),
 									...filteredQuestions.map(q => q.setId || 'preview'),
 								])).map(groupId => (
-									<details key={groupId} open className="rounded-2xl border border-base-300 p-4">
-										<summary className="cursor-pointer font-display font-bold text-sm">
-											{sets.find(set => set.id === groupId)?.title || (groupId === 'preview' ? 'Bộ đề xem trước' : `Bộ đề ${groupId}`)}
-											{' · '}{filteredQuestions.filter(q => (q.setId || 'preview') === groupId).length}/{questions.filter(q => (q.setId || 'preview') === groupId).length} câu
-										</summary>
+									<section key={groupId} className="rounded-2xl border border-base-300 p-4 space-y-3">
+										<QuestionSetHeader id={groupId}
+											title={sets.find(set => set.id === groupId)?.title || 'Bộ đề xem trước'}
+											count={`${filteredQuestions.filter(q => (q.setId || 'preview') === groupId).length}/${questions.filter(q => (q.setId || 'preview') === groupId).length}`}
+											active={Boolean(sets.find(set => set.id === groupId)?.isActive)} disabled={setStatusSaving || folderLoading || questionsLoading}
+											onRenamed={title => setSets(previous => previous.map(set => set.id === groupId ? { ...set, title } : set))}
+											onActive={active => handleSetActive(groupId, sets.find(set => set.id === groupId)?.title || '', active)} />
+										<details open>
+										<summary className="cursor-pointer text-xs font-semibold">Danh sách câu hỏi</summary>
 										<div className="mt-4 space-y-3">
-											<div className="flex flex-wrap items-center gap-3">
-											{groupId !== 'preview' && (renamingSetId === groupId ? (
-												<form onSubmit={handleRenameSet} className="space-y-2">
-													<label htmlFor={`set-title-${groupId}`} className="block text-xs font-semibold">Tên bộ đề</label>
-													<div className="flex flex-wrap items-center gap-2">
-														<input id={`set-title-${groupId}`} autoFocus required maxLength={200}
-															value={setTitleDraft} onChange={event => setSetTitleDraft(event.target.value)}
-															disabled={renameLoading} aria-invalid={Boolean(renameError)} aria-describedby={renameError ? `set-title-error-${groupId}` : undefined}
-															className="input input-sm input-bordered min-w-0 flex-1" />
-														<button type="submit" disabled={renameLoading || !setTitleDraft.trim()} className="btn btn-primary btn-sm">{renameLoading ? 'Đang lưu…' : 'Lưu'}</button>
-														<button type="button" disabled={renameLoading} onClick={() => setRenamingSetId(null)} className="btn btn-ghost btn-sm">Hủy</button>
-													</div>
-													{renameError && <p id={`set-title-error-${groupId}`} role="alert" className="text-xs text-error">{renameError}</p>}
-												</form>
-											) : (
-												<button type="button" disabled={renameLoading} onClick={() => {
-													setRenamingSetId(groupId);
-													setSetTitleDraft(sets.find(set => set.id === groupId)?.title || '');
-													setRenameError('');
-												}} className="btn btn-ghost btn-sm gap-2"><Edit aria-hidden="true" className="h-3.5 w-3.5" />Đổi tên</button>
-											))}
-											{groupId !== 'preview' && <label className="inline-flex cursor-pointer items-center gap-2 text-xs font-semibold">
-												<input type="checkbox" role="switch" className="toggle toggle-success toggle-sm"
-													checked={Boolean(sets.find(set => set.id === groupId)?.isActive)}
-													disabled={setStatusSaving || folderLoading || questionsLoading}
-													aria-label={`Kích hoạt bộ đề ${sets.find(set => set.id === groupId)?.title || groupId}`}
-													onChange={event => handleSetActive(groupId, sets.find(set => set.id === groupId)?.title || '', event.target.checked)} />
-												{sets.find(set => set.id === groupId)?.isActive ? 'Active' : 'Inactive'}
-											</label>}
-											</div>
 								{filteredQuestions.filter(q => (q.setId || 'preview') === groupId).map((q, idx) => (
-									<div
-										key={q.id || idx}
-										className="p-4 bg-base-200/40 rounded-2xl border border-base-300 text-xs space-y-2 hover:border-primary/40 transition-colors">
-										<div className="flex justify-between items-start gap-2">
-											<div className="flex items-center gap-2">
-												<span className="font-display font-bold text-primary">
-													Bài {q.lesson} · Câu {q.n}
-												</span>
-												<span className="badge badge-success badge-xs text-white font-bold py-2">
-													Đáp án đúng: {q.ans}
-												</span>
-											</div>
-											<div className="flex items-center gap-1">
-												<button
-													type="button"
-													onClick={() => {
-														setEditingQuestion(q);
-														setIsEditingNew(false);
-													}}
-													className="btn btn-ghost btn-circle btn-xs text-primary"
-													title="Sửa câu hỏi">
-													<Edit className="w-3.5 h-3.5" />
-												</button>
-												<button
-													type="button"
-													onClick={() =>
-														handleDeleteQuestion(
-															q.id,
-														)
-													}
-													className="btn btn-ghost btn-circle btn-xs text-error"
-													title="Xóa câu hỏi">
-													<Trash2 className="w-3.5 h-3.5" />
-												</button>
-											</div>
-										</div>
-
-										<p className="font-semibold text-base-content text-sm select-text">
-											{q.q}
-										</p>
-
-										<div className="grid grid-cols-1 sm:grid-cols-2 gap-1.5 text-[11px] pt-1">
-											{(
-												[
-													"A",
-													"B",
-													"C",
-													"D",
-												] as OptionKey[]
-											).map((key) => (
-												<div
-													key={key}
-													className={`p-1.5 px-2.5 rounded-lg border flex items-center gap-2 ${
-														key === q.ans
-															? "bg-success/80 border-success/40 text-success-content font-bold"
-															: "bg-base-100 border-base-300/60"
-													}`}>
-													<span className="font-display font-bold w-4">
-														{key}.
-													</span>
-													<span className="truncate">
-														{q.opts[key]}
-													</span>
-												</div>
-											))}
-										</div>
-
-										{q.exp && (
-											<div className="text-[11px] text-base-content/70 italic border-t border-base-300/60 pt-1.5">
-												<b>Giải thích:</b> {q.exp}
-											</div>
-										)}
-									</div>
+									<EditorQuestionCard key={q.id || idx} question={q} onEdit={handleEditQuestion} onDelete={handleDeleteQuestion} />
 								))}
 										</div>
-									</details>
+										</details>
+									</section>
 								))
 							)}
 						</div>
@@ -1904,6 +1887,25 @@ export function AdminDashboard({
 							</div>
 						</form>
 					</div>
+				</div>
+			)}
+
+			{banConfirmUser && (
+				<div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-xs" role="presentation">
+					<section role="alertdialog" aria-modal="true" aria-labelledby="ban-confirm-title" aria-describedby="ban-confirm-description" className="w-full max-w-sm bg-base-100 rounded-3xl p-6 border border-base-300 shadow-2xl space-y-4">
+						<h3 id="ban-confirm-title" className="font-display font-bold text-base">{banConfirmUser.isBanned ? "Mở khóa học viên?" : "Tạm khóa học viên?"}</h3>
+						<p id="ban-confirm-description" className="text-sm text-base-content/70">{banConfirmUser.isBanned ? "Học viên sẽ có thể sử dụng lại tài khoản:" : "Học viên sẽ không thể sử dụng tài khoản:"} <b>{banConfirmUser.displayName || banConfirmUser.userName || banConfirmUser.email}</b></p>
+						<div className="flex gap-2">
+							<button type="button" disabled={banLoading} onClick={() => setBanConfirmUser(null)} className="btn btn-ghost btn-sm flex-1 rounded-xl">Hủy</button>
+							<button type="button" disabled={banLoading} onClick={async () => {
+								setBanLoading(true);
+								try { await handleToggleBan(banConfirmUser); setBanConfirmUser(null); }
+								finally { setBanLoading(false); }
+							}} className={`btn btn-sm flex-1 rounded-xl ${banConfirmUser.isBanned ? "btn-success" : "btn-error"}`}>
+								{banLoading ? <span className="loading loading-spinner loading-xs" /> : banConfirmUser.isBanned ? "Mở khóa" : "Tạm khóa"}
+							</button>
+						</div>
+					</section>
 				</div>
 			)}
 
