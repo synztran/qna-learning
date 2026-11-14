@@ -1,10 +1,10 @@
 "use client";
 
 import { useState } from "react";
-import { Edit } from "lucide-react";
+import { Edit, Trash2 } from "lucide-react";
 import { renameQuizSet } from "../app/actions/admin";
 
-export function QuestionSetHeader({ id, title, count, active, disabled, onRenamed, onActive }: {
+export function QuestionSetHeader({ id, title, count, active, disabled, onRenamed, onActive, onDelete }: {
 	id: string;
 	title: string;
 	count: string;
@@ -12,6 +12,7 @@ export function QuestionSetHeader({ id, title, count, active, disabled, onRename
 	disabled: boolean;
 	onRenamed: (title: string) => void;
 	onActive: (active: boolean) => Promise<void>;
+	onDelete: () => void;
 }) {
 	const [editing, setEditing] = useState(false);
 	const [draft, setDraft] = useState(title);
@@ -52,6 +53,9 @@ export function QuestionSetHeader({ id, title, count, active, disabled, onRename
 						try { await onActive(event.target.checked); } finally { setSaving(false); }
 					}} />{active ? "Active" : "Inactive"}
 			</label>
+			<button type="button" onClick={onDelete} disabled={disabled || saving} className="btn btn-ghost btn-sm gap-2 text-error" title="Xóa bộ đề" aria-label={`Xóa bộ đề ${title}`}>
+				<Trash2 aria-hidden="true" className="h-3.5 w-3.5" />Xóa bộ đề
+			</button>
 		</>}
 	</div>;
 }

@@ -21,6 +21,7 @@ export default async function ProfilePage() {
     donorLevel: 0,
     donorTier: null,
     donorSince: null,
+    dailyGoal: 20,
   };
 
   return (

@@ -152,6 +152,7 @@ export async function getCurrentUser() {
       donorLevel: 0,
       donorTier: null,
       donorSince: null,
+      dailyGoal: 20,
     };
   }
 
@@ -183,5 +184,6 @@ export async function getCurrentUser() {
     donorLevel: profile?.donor_level ?? 0,
     donorTier: profile?.donor_tier || null,
     donorSince: profile?.donor_since || null,
+    dailyGoal: profile?.daily_goal ?? 20,
   };
 }

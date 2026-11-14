@@ -1,7 +1,8 @@
-import { listUsers, listQuestions, listQuestionSets, listQuestionSourcesFromFolder, listFeedbacks } from './actions/admin';
+import { listUsers, listQuestions, listQuestionSets, listQuestionSourcesFromFolder, listFeedbacks, listFeatureAccess } from './actions/admin';
 import { AdminDashboard } from '@/components/AdminDashboard';
 import { parseQuizJson, DEFAULT_SEED_DATA } from '@qna/database';
-import type { FeedbackItem, Question, UserProfile } from '@qna/types';
+import { DEFAULT_FEATURE_ACCESS, LEARNING_FEATURE_CONFIGS, LEARNING_FEATURE_KEYS } from '@qna/types';
+import type { FeatureAccessConfig, FeedbackItem, Question, UserProfile } from '@qna/types';
 
 export const dynamic = 'force-dynamic';
 
@@ -12,12 +13,19 @@ export default async function AdminHomePage() {
   let questions: Question[] = [];
   let feedbacks: FeedbackItem[] = [];
 
-  const [folderSourcesRes, usersRes, questionsRes, setsRes, feedbacksRes] = await Promise.all([
+  const fallbackFeatureAccess: FeatureAccessConfig[] = LEARNING_FEATURE_KEYS.map((key) => ({
+    ...LEARNING_FEATURE_CONFIGS[key],
+    minDonorLevel: DEFAULT_FEATURE_ACCESS[key],
+    updatedAt: null,
+  }));
+
+  const [folderSourcesRes, usersRes, questionsRes, setsRes, feedbacksRes, featureAccessRes] = await Promise.all([
     listQuestionSourcesFromFolder(),
     hasEnv ? listUsers() : Promise.resolve({ users: [] }),
     hasEnv ? listQuestions() : Promise.resolve({ questions: [] }),
     hasEnv ? listQuestionSets() : Promise.resolve({ sets: [] }),
     hasEnv ? listFeedbacks() : Promise.resolve({ feedbacks: [] }),
+    hasEnv ? listFeatureAccess() : Promise.resolve({ features: fallbackFeatureAccess }),
   ]);
 
   if (hasEnv) {
@@ -59,6 +67,7 @@ export default async function AdminHomePage() {
       initialFolderSources={folderSourcesRes.sources || []}
       initialFolderPath={folderSourcesRes.folderPath || ''}
       initialFeedbacks={feedbacks}
+      initialFeatureAccess={featureAccessRes.features}
       hasEnv={hasEnv}
     />
   );

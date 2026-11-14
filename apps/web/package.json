@@ -17,11 +17,13 @@
     "@supabase/ssr": "^0.5.2",
     "@supabase/supabase-js": "^2.49.1",
     "clsx": "^2.1.1",
+    "driver.js": "^1.14.0",
     "lucide-react": "^0.479.0",
     "motion": "^12.4.7",
     "next": "^15.2.1",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
+    "recharts": "^3.10.1",
     "tailwind-merge": "^3.0.2"
   },
   "devDependencies": {

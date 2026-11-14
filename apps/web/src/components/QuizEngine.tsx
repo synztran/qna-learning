@@ -1,7 +1,15 @@
 "use client";
 
 import React, { useState, useEffect, useMemo, useRef } from "react";
-import type { Lesson, Question, OptionKey, QuizSessionItem } from "@qna/types";
+import {
+	DEFAULT_FEATURE_ACCESS,
+	LEARNING_FEATURE_CONFIGS,
+	getDonorTierByLevel,
+	hasFeatureAccess,
+	type FeatureAccessMap,
+	type LearningFeatureKey,
+} from "@qna/types";
+import type { Lesson, Question, OptionKey, QuizSessionItem, LearningSummary } from "@qna/types";
 import {
 	ThemeToggle,
 	DonorBadge,
@@ -12,6 +20,8 @@ import {
 } from "@qna/ui";
 import {
 	BookOpen,
+	Brain,
+	CalendarClock,
 	Check,
 	ChevronDown,
 	ChevronUp,
@@ -19,6 +29,7 @@ import {
 	ExternalLink,
 	Flame,
 	Home,
+	ListChecks,
 	Lock,
 	RefreshCw,
 	RotateCcw,
@@ -30,14 +41,17 @@ import Link from "next/link";
 import { motion, AnimatePresence, useReducedMotion } from "motion/react";
 import { getQuizData, saveQuizAttempt } from "../app/actions/quiz";
 import { LogoutButton } from './LogoutButton';
-import { InstallApp } from './InstallApp';
 import { FloatingLearningMenu } from './FloatingLearningMenu';
 import { createLeaderboardCache } from '@/lib/leaderboard-cache';
 import { PerfectScoreCelebration } from './PerfectScoreCelebration';
 import { DonorWelcomeModal } from './DonorWelcomeModal';
+import { StreakBadge } from './StreakBadge';
+import { HomeGuide } from './HomeGuide';
 import { StudyView } from './StudyView';
+import { FlashcardView } from './FlashcardView';
 import { PullToRefresh } from './PullToRefresh';
 import { getStudyProgress } from '../app/actions/study';
+import { getDueQuestions, getFlashcardQuestions, getLearningSummary, getWrongQuestions } from '../app/actions/learning';
 import type { QuizSubmission } from '@/lib/submissions';
 
 const OPTION_KEYS: OptionKey[] = ["A", "B", "C", "D"];
@@ -59,12 +73,20 @@ function formatDuration(ms: number): string {
 	return `${minutes} phút ${seconds} giây`;
 }
 
+function formatClock(ms: number): string {
+	const totalSeconds = Math.ceil(ms / 1000);
+	const minutes = Math.floor(totalSeconds / 60);
+	const seconds = totalSeconds % 60;
+	return `${minutes}:${String(seconds).padStart(2, "0")}`;
+}
+
 interface QuizEngineProps {
 	availableSets?: { id: string; title: string; questionCount: number }[];
 	setId?: string;
 	setTitle?: string;
 	initialLessons: Lesson[];
 	initialQuestions: Question[];
+	featureAccess?: FeatureAccessMap;
 	user?: {
 		id?: string;
 		displayName?: string;
@@ -81,13 +103,21 @@ export function QuizEngine({
 	setId: initialSetId,
 	setTitle: initialSetTitle,
 	availableSets: initialAvailableSets = [],
+	featureAccess,
 }: QuizEngineProps) {
 	const [availableSets, setAvailableSets] = useState(initialAvailableSets);
 	const leaderboardCache = useRef(createLeaderboardCache());
-	const canStudy = Boolean(user?.donorLevel && user.donorLevel > 0);
-	const [showLockStudyModal, setShowLockStudyModal] = useState(false);
+	const access = featureAccess || DEFAULT_FEATURE_ACCESS;
+	const canStudy = hasFeatureAccess(access, 'srs_review', user?.donorLevel);
+	const canWrong = hasFeatureAccess(access, 'wrong_review', user?.donorLevel);
+	const canFlashcards = hasFeatureAccess(access, 'flashcards', user?.donorLevel);
+	const canExam = hasFeatureAccess(access, 'exam', user?.donorLevel);
+	const canStreak = hasFeatureAccess(access, 'streak', user?.donorLevel);
+	const [lockedFeature, setLockedFeature] = useState<LearningFeatureKey | null>(null);
+	const lockedConfig = lockedFeature ? LEARNING_FEATURE_CONFIGS[lockedFeature] : null;
+	const lockedTier = lockedFeature ? getDonorTierByLevel(access[lockedFeature]) : null;
 	// Navigation State
-	const [view, setView] = useState<"setup" | "quiz" | "result" | "study">("setup");
+	const [view, setView] = useState<"setup" | "quiz" | "result" | "study" | "flashcards">("setup");
 	const [activeMode, setActiveMode] = useState<"exam" | "study">("exam");
 	const [studyProgress, setStudyProgress] = useState<Record<string, { reviewed: number; total: number }> | null>(null);
 	const [studyProgressError, setStudyProgressError] = useState('');
@@ -144,9 +174,36 @@ export function QuizEngine({
 	const reduceMotion = useReducedMotion();
 	const selectedLessonNums = initialLessons.map(lesson => lesson.n);
 	const setTitle = availableSets.find(set => set.id === setId)?.title || initialSetTitle;
+	const footerSetTitle = availableSets.find(set => set.id === selectedSetId)?.title || setTitle;
 	const poolCount = availableSets.length
 		? availableSets.find(set => set.id === selectedSetId)?.questionCount || 0
 		: pool.length;
+
+	// Learning summary: streak, daily goal, questions due today.
+	const [learningSummary, setLearningSummary] = useState<LearningSummary | null>(null);
+	const refreshLearningSummary = async () => {
+		if (!user?.id || user.id === 'demo-user') return;
+		const result = await getLearningSummary(selectedSetId);
+		if (result.summary) setLearningSummary(result.summary);
+	};
+	useEffect(() => {
+		if (view !== 'setup') return;
+		void refreshLearningSummary();
+	}, [view, selectedSetId]);
+
+	// Extra practice: wrong-answer review, due review, flashcards.
+	const [reviewLoading, setReviewLoading] = useState<"wrong" | "due" | null>(null);
+	const [reviewError, setReviewError] = useState("");
+	const [flashcardQuestions, setFlashcardQuestions] = useState<Question[] | null>(null);
+	const [flashcardLoading, setFlashcardLoading] = useState(false);
+
+	// Exam timer (0 = no limit).
+	const [examMinutes, setExamMinutes] = useState<0 | 15 | 30 | 45 | 60>(0);
+	const [remainingMs, setRemainingMs] = useState<number | null>(null);
+	const deadlineRef = useRef<number | null>(null);
+	const sessionModeRef = useRef<"practice" | "exam">("practice");
+	const timeLimitRef = useRef<number | null>(null);
+	const [sessionKind, setSessionKind] = useState<"quiz" | "wrong" | "srs">("quiz");
 
 	const [countMode, setCountMode] = useState<"20" | "25" | "all" | "custom">(
 		"20",
@@ -179,7 +236,11 @@ export function QuizEngine({
 	}, [poolCount, countMode, customCount]);
 
 	// Start Quiz
-	const startQuiz = async (customQuestions?: Question[], retryMode = false) => {
+	const startQuiz = async (customQuestions?: Question[], retryMode = false, kind: "quiz" | "wrong" | "srs" = "quiz", limitMinutes = examMinutes) => {
+		if (kind === "quiz" && !retryMode && !customQuestions && !canExam) {
+			setLockedFeature('exam');
+			return;
+		}
 		if (startingRef.current || savingRef.current) return;
 		startingRef.current = true;
 		setStarting(true);
@@ -222,6 +283,12 @@ export function QuizEngine({
 		setStartTime(Date.now());
 		setEndTime(null);
 		setIsRetryWrong(retryMode);
+		setSessionKind(kind);
+		const limitMs = kind === "quiz" && limitMinutes > 0 ? limitMinutes * 60_000 : null;
+		sessionModeRef.current = limitMs ? "exam" : "practice";
+		timeLimitRef.current = limitMs;
+		deadlineRef.current = limitMs ? Date.now() + limitMs : null;
+		setRemainingMs(limitMs);
 		setView("quiz");
 		setShowGridModal(false);
 		window.scrollTo({ top: 0, behavior: "instant" });
@@ -236,7 +303,7 @@ export function QuizEngine({
 	// Start Study Mode
 	const startStudy = async () => {
 		if (!canStudy) {
-			setShowLockStudyModal(true);
+			setLockedFeature('srs_review');
 			return;
 		}
 		if (startingRef.current || savingRef.current) return;
@@ -271,6 +338,94 @@ export function QuizEngine({
 		} finally {
 			startingRef.current = false;
 			setStarting(false);
+		}
+	};
+
+	// Start wrong-answer / due review and flashcards
+	const loadSelectedPool = async (): Promise<Question[] | null> => {
+		if (!selectedSetId) {
+			setStartError("Vui lòng chọn một bộ đề trước.");
+			return null;
+		}
+		const data = await getQuizData(selectedSetId);
+		if (data.error || data.selectedSetId !== selectedSetId || !data.questions.length) {
+			setStartError(data.error || "Bộ đề không có câu hỏi. Vui lòng chọn bộ đề khác.");
+			return null;
+		}
+		setPool(data.questions);
+		setLessons(data.lessons);
+		setSetId(selectedSetId);
+		return data.questions;
+	};
+
+	const startReview = async (kind: "wrong" | "due") => {
+		if (startingRef.current || reviewLoading) return;
+		setReviewError("");
+		setStartError("");
+		if (kind === "due" && !canStudy) {
+			setLockedFeature('srs_review');
+			return;
+		}
+		if (kind === "wrong" && !canWrong) {
+			setLockedFeature('wrong_review');
+			return;
+		}
+		if (!selectedSetId) {
+			setReviewError("Vui lòng chọn một bộ đề trước.");
+			return;
+		}
+		setReviewLoading(kind);
+		try {
+			if (!await loadSelectedPool()) return;
+			const result = kind === "wrong"
+				? await getWrongQuestions(selectedSetId)
+				: await getDueQuestions(selectedSetId);
+			if (result.error) {
+				setReviewError(result.error);
+				return;
+			}
+			if (!result.questions.length) {
+				setReviewError(kind === "wrong"
+					? "Chưa có câu sai nào cần ôn. Hãy làm một lượt thi trước."
+					: "Hôm nay không có câu nào đến hạn ôn.");
+				return;
+			}
+			await startQuiz(result.questions, true, kind === "wrong" ? "wrong" : "srs");
+		} catch {
+			setReviewError("Không thể tải danh sách ôn tập. Kiểm tra kết nối và thử lại.");
+		} finally {
+			setReviewLoading(null);
+		}
+	};
+
+	const openFlashcards = async () => {
+		if (!canFlashcards) {
+			setLockedFeature('flashcards');
+			return;
+		}
+		if (startingRef.current || flashcardLoading) return;
+		if (!selectedSetId) {
+			setReviewError("Vui lòng chọn một bộ đề trước.");
+			return;
+		}
+		setReviewError("");
+		setFlashcardLoading(true);
+		try {
+			const source = await loadSelectedPool();
+			if (!source) return;
+			const due = await getFlashcardQuestions(selectedSetId, 100);
+			if (due.error) {
+				setReviewError(due.error);
+				return;
+			}
+			const cards = due.questions.length ? due.questions : source.slice(0, 50);
+			setFlashcardQuestions(cards);
+			setView("flashcards");
+			window.scrollTo({ top: 0, behavior: "instant" });
+		} catch {
+			setReviewError("Không thể tải thẻ ôn tập. Kiểm tra kết nối và thử lại.");
+		} finally {
+			setFlashcardLoading(false);
 		}
 	};
 
@@ -310,11 +465,14 @@ export function QuizEngine({
 	const stats = useMemo(() => {
 		const total = items.length;
 		const doneCount = items.filter((it) => it.done).length;
-		const okCount = items.filter((it) => it.first === it.q.ans).length;
-		const badCount = total - okCount;
+		const answeredItems = items.filter((it) => it.first !== null);
+		const scoredTotal = answeredItems.length;
+		const okCount = answeredItems.filter((it) => it.first === it.q.ans).length;
+		const badCount = scoredTotal - okCount;
+		// Unanswered questions are left out of the score, matching the server submission.
 		const score =
-			total > 0 ? Math.round((okCount / total) * 1000) / 100 : 0;
-		return { total, doneCount, okCount, badCount, score };
+			scoredTotal > 0 ? Math.round((okCount / scoredTotal) * 1000) / 100 : 0;
+		return { total, doneCount, scoredTotal, okCount, badCount, score };
 	}, [items]);
 
 	const persistSubmission = async () => {
@@ -336,30 +494,63 @@ export function QuizEngine({
 		}
 	};
 
-	// Finish quiz
-	const handleFinishQuiz = async () => {
-		if (stats.doneCount < stats.total || savingRef.current) return;
+	// Finish quiz (manual requires every question answered; the timer may submit partial answers).
+	const handleFinishQuiz = async (auto = false) => {
+		if (savingRef.current) return;
+		const answered = items.filter(item => item.first !== null);
+		if (!auto && answered.length < items.length) return;
 		const finishMs = Date.now();
+		deadlineRef.current = null;
+		setRemainingMs(null);
 		setEndTime(finishMs);
 		setView("result");
 		window.scrollTo({ top: 0, behavior: reduceMotion ? "auto" : "smooth" });
 
-		if (!setId || items.some(item => !item.q.id || !item.first)) {
+		if (answered.length === 0) {
+			setSaveState('error');
+			setSaveError('Hết giờ nhưng chưa có câu trả lời nào để lưu.');
+			return;
+		}
+		if (!setId || answered.some(item => !item.q.id || !item.first)) {
 			setSaveState('error');
 			setSaveError('Chế độ xem thử không lưu lịch sử.');
 			return;
 		}
 		pendingSubmission.current = {
-			submissionId: submissionId.current, setId, durationMs: finishMs - startTime, isRetry: isRetryWrong,
-			answers: items.map(item => ({ questionId: item.q.id!, first: item.first! })),
+			submissionId: submissionId.current, setId,
+			// Auto-submit can fire late when the tab sleeps; cap the recorded exam duration at its limit.
+			durationMs: sessionModeRef.current === "exam" && timeLimitRef.current
+				? Math.min(finishMs - startTime, timeLimitRef.current)
+				: finishMs - startTime,
+			isRetry: isRetryWrong || sessionKind !== "quiz",
+			answers: answered.map(item => ({ questionId: item.q.id!, first: item.first! })),
+			mode: sessionModeRef.current,
+			timeLimitMs: timeLimitRef.current,
 		};
 		await persistSubmission();
 	};
 
+	const finishRef = useRef<(auto: boolean) => void>(() => {});
+	finishRef.current = (auto) => { void handleFinishQuiz(auto); };
+	useEffect(() => {
+		if (view !== "quiz" || !deadlineRef.current) return;
+		const tick = () => {
+			const left = Math.max(0, (deadlineRef.current ?? 0) - Date.now());
+			setRemainingMs(left);
+			if (left <= 0) {
+				deadlineRef.current = null;
+				finishRef.current(true);
+			}
+		};
+		tick();
+		const interval = window.setInterval(tick, 1000);
+		return () => window.clearInterval(interval);
+	}, [view]);
+
 	// Retry Wrong Only
 	const handleRetryWrong = () => {
 		const wrongQs = items
-			.filter((it) => it.first !== it.q.ans)
+			.filter((it) => it.first !== null && it.first !== it.q.ans)
 			.map((it) => it.q);
 		if (wrongQs.length === 0) return;
 		startQuiz(wrongQs, true);
@@ -372,7 +563,16 @@ export function QuizEngine({
 		return (
 			<>
 			<DonorWelcomeModal user={user} />
-			<PullToRefresh disabled={starting || saveState === 'saving' || studyProgressLoading} onRefresh={async () => {
+			<div
+				safe_top=""
+				safe_bot=""
+				className="fixed inset-0 z-20 flex flex-col overflow-hidden bg-base-100">
+			<div className="mx-auto flex min-h-0 w-full max-w-md flex-1 flex-col md:max-w-xl lg:max-w-2xl">
+			<PullToRefresh
+				scrollable
+				className="px-4 pb-4 sm:px-6"
+				disabled={starting || saveState === 'saving' || studyProgressLoading}
+				onRefresh={async () => {
 				if (activeMode === 'study') setStudyProgressLoading(true);
 				try {
 				const data = await getQuizData(selectedSetId);
@@ -395,15 +595,16 @@ export function QuizEngine({
 					setStudyProgressLoading(false);
 				}
 			}}>
-			<div className="home-setup flex flex-1 flex-col justify-between gap-5">
+			<div className="home-setup flex flex-col gap-4">
+				<HomeGuide userId={user?.id} />
 				{/* Sticky Header & Mode Switcher */}
 				<div className="sticky top-0 z-30 bg-base-100/95 backdrop-blur-md pt-1 pb-3 space-y-3 -mx-4 px-4 sm:-mx-6 sm:px-6 border-b border-base-300/80 shadow-xs">
 					{/* Header */}
 					<header className="flex flex-wrap justify-between items-center gap-3">
 						<div className="flex min-w-0 items-center gap-3">
-							<div className="w-10 h-10 rounded-2xl bg-primary/10 flex items-center justify-center text-primary shadow-sm">
+							{/* <div className="w-10 h-10 rounded-2xl bg-primary/10 flex items-center justify-center text-primary shadow-sm">
 								<BookOpen className="w-5 h-5" />
-							</div>
+							</div> */}
 							<div className="min-w-0">
 								<h1 className="font-display font-bold text-lg sm:text-xl leading-tight">
 									QnA Learning
@@ -415,11 +616,17 @@ export function QuizEngine({
 											: "Study with QNA Learning"}
 									</p>
 									<DonorBadge level={user?.donorLevel} tier={user?.donorTier} compact />
+									{learningSummary && canStreak && (
+										<StreakBadge
+											streak={learningSummary.streak}
+											todayAnswered={learningSummary.todayAnswered}
+											dailyGoal={learningSummary.dailyGoal}
+										/>
+									)}
 								</div>
 							</div>
 						</div>
 						<div className="ml-auto flex shrink-0 items-center gap-1.5">
-							<InstallApp />
 							<Link
 								href="/profile"
 								title="Hồ sơ & Đổi mật khẩu"
@@ -432,13 +639,17 @@ export function QuizEngine({
 					</header>
 
 					{/* Mode Switcher Tabs */}
-					<div role="group" aria-label="Chế độ học" data-mode={activeMode}
+					<div role="group" aria-label="Chế độ học" data-home-guide="mode" data-mode={activeMode}
 						className="home-mode-switch relative isolate grid grid-cols-2 gap-1 rounded-2xl border border-base-300 bg-base-200/90 p-1">
 						<button
 							type="button"
 							aria-pressed={activeMode === 'exam'}
 							disabled={starting}
 							onClick={() => {
+								if (!canExam) {
+									setLockedFeature('exam');
+									return;
+								}
 								setActiveMode("exam");
 								setStartError("");
 							}}
@@ -447,8 +658,13 @@ export function QuizEngine({
 									? "text-primary-content"
 									: "text-base-content/75"
 							}`}>
-							<ThiingsTarget className="w-5 h-5 mr-1.5" />
+							<ThiingsTarget className="w-5 h-5 mr-1" />
 							Thi thử
+							{!canExam && (
+								<span className="badge badge-warning badge-xs px-1.5 py-0.5 text-[9px] gap-0.5 ml-1 font-semibold">
+									<Lock className="w-2.5 h-2.5" /> Khóa
+								</span>
+							)}
 						</button>
 						<button
 							type="button"
@@ -456,7 +672,7 @@ export function QuizEngine({
 							disabled={starting}
 							onClick={() => {
 								if (!canStudy) {
-									setShowLockStudyModal(true);
+									setLockedFeature('srs_review');
 									return;
 								}
 								setActiveMode("study");
@@ -467,10 +683,10 @@ export function QuizEngine({
 									? "text-primary-content"
 									: "text-base-content/75"
 							}`}>
-							<BookOpen className="w-5 h-5 mr-1.5" />
+							<BookOpen className="w-5 h-5 mr-1" />
 							Ôn tập
 							{!canStudy && (
-								<span className="badge badge-warning badge-xs px-1.5 py-0.5 text-[9px] gap-0.5 ml-1 font-semibold">
+								<span className="badge badge-warning badge-sm px-1.5 py-1 text-[10px] gap-0.5 text-white font-bold">
 									<Lock className="w-2.5 h-2.5" /> Khóa
 								</span>
 							)}
@@ -481,7 +697,7 @@ export function QuizEngine({
 				{/* Content */}
 				<main className="space-y-4">
 					{/* Lessons Selector */}
-					<section className="bg-base-200/50 backdrop-blur-sm p-4 sm:p-5 rounded-3xl border border-base-300 shadow-sm">
+					<section data-home-guide="sets" className="bg-base-200/50 backdrop-blur-sm p-4 sm:p-5 rounded-3xl border border-base-300 shadow-sm">
 						<div className="flex justify-between items-center mb-3">
 							<div className="flex items-center gap-2">
 								<span className="w-2 h-2 rounded-full bg-primary" />
@@ -496,7 +712,7 @@ export function QuizEngine({
 							aria-label="Danh sách bộ đề ôn tập"
 							aria-busy={studySetsLoading}
 							tabIndex={0}
-							className="max-h-[min(40dvh,320px)] overflow-y-auto overscroll-contain [scrollbar-width:none] [&::-webkit-scrollbar]:hidden space-y-3 rounded-xl p-1 focus-visible:outline focus-visible:outline-2 focus-visible:outline-primary">
+							className="overscroll-contain [scrollbar-width:none] [&::-webkit-scrollbar]:hidden space-y-3 rounded-xl focus-visible:outline focus-visible:outline-2 focus-visible:outline-primary">
 							{studySetsLoading ? <>
 								<span role="status" className="sr-only">Đang tải bộ đề và tiến độ ôn tập…</span>
 								{availableSets.map(set => <div key={set.id} aria-hidden="true"
@@ -511,12 +727,12 @@ export function QuizEngine({
 								</div>)}
 							</> : activeMode === 'study' && studyProgressError && !studyProgress ? null : availableSets.map((set) => (
 									<label key={set.id}
-										className={`home-set-option flex cursor-pointer items-center gap-3 rounded-xl border p-3.5 ${set.id === selectedSetId ? "border-primary bg-primary/5" : "border-base-300 bg-base-100"}`}>
+										className={`home-set-option relative flex cursor-pointer items-center gap-3 rounded-xl border p-3.5 ${set.id === selectedSetId ? "border-primary bg-primary/5" : "border-base-300 bg-base-100"}`}>
 										<input type="checkbox" checked={set.id === selectedSetId} disabled={starting}
 											onChange={() => { setSelectedSetId(set.id === selectedSetId ? undefined : set.id); setStartError(""); }}
 											className="checkbox checkbox-primary checkbox-sm shrink-0" />
-										<span className="min-w-0 flex-1 break-words text-sm font-semibold leading-relaxed">
-											<span>{set.title}</span>
+										<span className="min-w-0 flex-1 break-words text-xs font-semibold leading-relaxed">
+											<span className="line-clamp-3">{set.title}</span>
 											{activeMode === 'study' && studyProgress?.[set.id] && (() => {
 												const { reviewed, total } = studyProgress[set.id];
 												return <span className="mt-2 block space-y-1">
@@ -528,9 +744,11 @@ export function QuizEngine({
 												</span>;
 											})()}
 										</span>
-										<span className="badge badge-sm badge-ghost shrink-0 text-[10px]">
-											{set.questionCount} câu
-										</span>
+                    <div className="absolute -top-3.5 right-2">
+                      <span className="badge badge-sm badge-neutral px-2 py-1 rounded-md">
+                        {set.questionCount} câu
+                      </span>
+                    </div>
 									</label>
 							))}
 							{availableSets.length === 0 && <p className="text-sm">Bộ câu hỏi mẫu — {poolCount} câu</p>}
@@ -617,6 +835,33 @@ export function QuizEngine({
 								</div>
 							)}
 
+							<div className="mt-3 pt-3 border-t border-base-300/70">
+								<div className="mb-2 flex items-center gap-1.5 text-xs font-semibold">
+									<Clock aria-hidden="true" className="h-3.5 w-3.5 text-primary" />
+									Giới hạn thời gian
+								</div>
+								<div className="grid grid-cols-5 gap-1.5" role="group" aria-label="Giới hạn thời gian làm bài">
+									{([0, 15, 30, 45, 60] as const).map(minutes => (
+										<button
+											key={minutes}
+											type="button"
+											disabled={starting}
+											aria-pressed={examMinutes === minutes}
+											onClick={() => setExamMinutes(minutes)}
+											className={`btn btn-xs rounded-xl font-display text-[11px] border ${
+												examMinutes === minutes
+													? "btn-primary text-primary-content border-primary"
+													: "btn-ghost bg-base-100 border-base-300"
+											}`}>
+											{minutes === 0 ? "Không" : `${minutes} phút`}
+										</button>
+									))}
+								</div>
+								{examMinutes > 0 && (
+									<p className="mt-1.5 text-[11px] text-base-content/60">Hết giờ tự động nộp bài; câu chưa làm không được tính điểm.</p>
+								)}
+							</div>
+
 							<div className="mt-3 pt-3 border-t border-base-300/80 flex flex-wrap gap-2 justify-between items-center text-xs text-base-content/70">
 								<span>
 									Ngân hàng đã chọn:{" "}
@@ -654,56 +899,121 @@ export function QuizEngine({
 						</section>
 					)}
 					</div>
+
+					{/* Extra practice: wrong answers, due review, flashcards, daily goal */}
+					<section data-home-guide="practice" className="bg-base-200/50 backdrop-blur-sm p-4 sm:p-5 rounded-3xl border border-base-300 shadow-sm space-y-3" aria-labelledby="practice-heading">
+						<div className="flex flex-wrap items-center justify-between gap-2">
+							<div className="flex items-center gap-2">
+								<span className="w-2 h-2 rounded-full bg-primary" />
+								<h2 id="practice-heading" className="font-display font-bold text-sm tracking-tight">Luyện tập thêm</h2>
+							</div>
+							{learningSummary && (
+								<span className="text-[11px] text-base-content/70">
+									Mục tiêu hôm nay: <b className="text-base-content">{learningSummary.todayAnswered}/{learningSummary.dailyGoal}</b> câu
+									{learningSummary.streak > 0 && <span className="ml-1 inline-flex items-center gap-0.5 font-semibold text-warning"><Flame aria-hidden="true" className="h-3 w-3" />{learningSummary.streak} ngày</span>}
+								</span>
+							)}
+						</div>
+						{learningSummary && (
+							<progress className="progress progress-warning block h-1.5 w-full" value={Math.min(learningSummary.todayAnswered, learningSummary.dailyGoal)} max={Math.max(1, learningSummary.dailyGoal)}
+								aria-label={`Mục tiêu hôm nay ${learningSummary.todayAnswered} trên ${learningSummary.dailyGoal} câu`} />
+						)}
+						<div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
+							<button type="button" disabled={Boolean(reviewLoading) || starting || !selectedSetId}
+								onClick={() => void startReview("wrong")}
+								className="btn btn-outline btn-sm h-auto min-h-12 justify-start gap-2 rounded-2xl px-3 py-2.5 text-left">
+								<ListChecks aria-hidden="true" className="h-4 w-4 shrink-0 text-error" />
+								<span className="min-w-0">
+									<span className="flex items-center gap-1 font-display font-bold text-xs">
+										{reviewLoading === "wrong" ? "Đang tải…" : "Ôn câu sai"}
+										{!canWrong && <Lock aria-hidden="true" className="h-3 w-3" />}
+									</span>
+									<span className="block text-[10px] font-normal text-base-content/60">Câu làm sai chưa sửa</span>
+								</span>
+							</button>
+							<button type="button" disabled={Boolean(reviewLoading) || starting || !selectedSetId}
+								onClick={() => void startReview("due")}
+								className="btn btn-outline btn-sm h-auto min-h-12 justify-start gap-2 rounded-2xl px-3 py-2.5 text-left">
+								<CalendarClock aria-hidden="true" className="h-4 w-4 shrink-0 text-primary" />
+								<span className="min-w-0">
+									<span className="flex items-center gap-1 font-display font-bold text-xs">
+										{reviewLoading === "due" ? "Đang tải…" : "Câu đến hạn"}
+										{learningSummary && learningSummary.due > 0 && <span className="badge badge-primary badge-xs text-white">{learningSummary.due}</span>}
+										{!canStudy && <Lock aria-hidden="true" className="h-3 w-3" />}
+									</span>
+									<span className="block text-[10px] font-normal text-base-content/60">Theo lịch Leitner</span>
+								</span>
+							</button>
+							<button type="button" disabled={flashcardLoading || starting || !selectedSetId}
+								onClick={() => void openFlashcards()}
+								className="btn btn-outline btn-sm h-auto min-h-12 justify-start gap-2 rounded-2xl px-3 py-2.5 text-left">
+								<Brain aria-hidden="true" className="h-4 w-4 shrink-0 text-success" />
+								<span className="min-w-0">
+									<span className="flex items-center gap-1 font-display font-bold text-xs">
+										{flashcardLoading ? "Đang tải…" : "Flashcard"}
+										{!canFlashcards && <Lock aria-hidden="true" className="h-3 w-3" />}
+									</span>
+									<span className="block text-[10px] font-normal text-base-content/60">Lật thẻ & tự chấm</span>
+								</span>
+							</button>
+						</div>
+						{reviewError && <p role="alert" className="text-xs text-error">{reviewError}</p>}
+					</section>
 				</main>
 
-				{/* Start Button */}
-				<div className="space-y-[1.5rem]">
-				<FloatingLearningMenu leaderboardCache={leaderboardCache.current} />
-				<footer>
-					{startError && <p role="alert" className="mb-3 text-sm text-error">{startError}</p>}
-					{activeMode === "exam" ? (
-						<>
-							<p className="text-center text-[11px] text-base-content/60 mb-2">
-								Câu hỏi và 4 phương án được trộn ngẫu nhiên mỗi lượt thi
-							</p>
-							<button
-								type="button"
-								disabled={targetCount === 0 || starting}
-								aria-busy={starting}
-								onClick={() => startQuiz()}
-								className="btn btn-primary w-full py-3.5 rounded-2xl font-display font-bold text-base text-primary-content leading-[1]">
-								{starting ? "Đang tải bộ đề…" : `Bắt đầu làm bài (${targetCount} câu)`}
-							</button>
-						</>
-					) : (
-						<>
-							<p className="text-center text-[11px] text-base-content/60 mb-2">
-								xem toàn bộ câu hỏi theo bài, không tính giờ, không tính điểm
-							</p>
-							<button
-								type="button"
-								disabled={poolCount === 0 || starting}
-								aria-busy={starting}
-								onClick={() => startStudy()}
-								className="btn btn-primary w-full py-3.5 rounded-2xl font-display font-bold text-base text-primary-content leading-[1]">
-								{starting ? "Đang tải bộ đề…" : `Bắt đầu ôn tập (${poolCount} câu)`}
-							</button>
-						</>
-					)}
-				</footer>
-				</div>
 			</div>
 			</PullToRefresh>
-			{showLockStudyModal && (
+			<div className="shrink-0 px-4 pb-2 sm:px-6">
+				<div className="relative flex w-full flex-col items-end">
+					<div className="absolute bottom-full right-0 z-10 mb-2">
+						<FloatingLearningMenu leaderboardCache={leaderboardCache.current} />
+					</div>
+					<footer className="w-full rounded-3xl border border-base-300 bg-base-100/95 p-3 backdrop-blur-md">
+						<div className="mb-2 flex min-w-0 items-center justify-between gap-3 px-1 text-[11px]">
+							<p className="truncate font-medium text-base-content/70">
+								{/* {activeMode === "exam" ? "Thi thử" : "Ôn tập"} */}
+								{/* <span aria-hidden="true"> · </span> */}
+								{footerSetTitle || "Chưa chọn bộ đề"}
+							</p>
+							<span className="shrink-0 font-semibold tabular-nums text-base-content/80">
+								{activeMode === "exam"
+									? `${targetCount} câu${examMinutes > 0 ? ` · ${examMinutes} phút` : ""}`
+									: `${poolCount} câu`}
+							</span>
+						</div>
+						{startError && <p role="alert" className="mb-2 px-1 text-xs text-error">{startError}</p>}
+						<button
+							data-home-guide="start"
+							type="button"
+							disabled={activeMode === "exam" ? targetCount === 0 || starting : poolCount === 0 || starting}
+							aria-busy={starting}
+							onClick={() => activeMode === "exam"
+								? (canExam ? startQuiz() : setLockedFeature('exam'))
+								: startStudy()}
+							className="btn btn-primary w-full min-h-12 rounded-2xl py-3.5 font-display text-base font-bold leading-[1] text-primary-content">
+							{starting
+								? "Đang tải bộ đề…"
+								: activeMode === "exam"
+									? !canExam
+										? "Tính năng Thi thử đang khóa"
+										: `Bắt đầu làm bài (${targetCount} câu${examMinutes > 0 ? ` · ${examMinutes} phút` : ""})`
+									: `Bắt đầu ôn tập (${poolCount} câu)`}
+						</button>
+					</footer>
+				</div>
+			</div>
+			</div>
+			</div>
+			{lockedFeature && lockedConfig && (
 				<div
 					role="dialog"
 					aria-modal="true"
-					aria-labelledby="lock-study-title"
+					aria-labelledby="lock-feature-title"
 					className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
 					<div className="relative w-full max-w-sm rounded-3xl border border-warning/30 bg-base-100 p-6 shadow-2xl space-y-4 text-center">
 						<button
 							type="button"
-							onClick={() => setShowLockStudyModal(false)}
+							onClick={() => setLockedFeature(null)}
 							aria-label="Đóng"
 							className="btn btn-circle btn-ghost btn-xs absolute right-3 top-3 text-base-content/60 hover:text-base-content">
 							<X className="w-4 h-4" />
@@ -714,8 +1024,8 @@ export function QuizEngine({
 							</div>
 						</div>
 						<div className="space-y-1">
-							<h3 id="lock-study-title" className="font-display text-lg font-bold">
-								Đặc quyền Ôn tập
+							<h3 id="lock-feature-title" className="font-display text-lg font-bold">
+								Đặc quyền {lockedConfig.label}
 							</h3>
 							<p className="text-xs text-base-content/70">
 								Dành riêng cho học viên có cấp bậc tri ân
@@ -723,15 +1033,16 @@ export function QuizEngine({
 						</div>
 						<div className="rounded-2xl border border-base-300 bg-base-200/50 p-3.5 text-xs text-base-content/85 leading-relaxed space-y-1.5 text-left">
 							<p>
-								Chế độ <b>Ôn tập</b> (tra cứu toàn bộ đáp án, lời giải chi tiết theo bài học, không áp lực tính giờ) là quyền lợi dành riêng cho học viên từ cấp <b>🌱 Hiếu Học</b> trở lên.
+								<b>{lockedConfig.label}</b> yêu cầu cấp <b>{lockedTier ? `${lockedTier.icon} ${lockedTier.label}` : 'học viên'}</b> trở lên.
 							</p>
+							<p className="text-[11px] text-base-content/60">{lockedConfig.description}</p>
 							<p className="text-[11px] text-base-content/60">
 								Vui lòng liên hệ quản trị viên hoặc ủng hộ nền tảng để mở khóa đặc quyền này!
 							</p>
 						</div>
 						<button
 							type="button"
-							onClick={() => setShowLockStudyModal(false)}
+							onClick={() => setLockedFeature(null)}
 							className="btn btn-primary w-full rounded-2xl font-display font-bold text-sm text-primary-content shadow-md shadow-primary/20">
 							Đã hiểu
 						</button>
@@ -739,6 +1050,22 @@ export function QuizEngine({
 				</div>
 			)}
 			</>
+		);
+	}
+
+	/* ==============================================================
+     2. FLASHCARD VIEW
+     ============================================================== */
+	if (view === "flashcards") {
+		return (
+			<FlashcardView
+				questions={flashcardQuestions || pool}
+				setTitle={setTitle}
+				onBack={() => {
+					setView("setup");
+					void refreshLearningSummary();
+				}}
+			/>
 		);
 	}
 
@@ -773,6 +1100,8 @@ export function QuizEngine({
 								type="button"
 								onClick={() => {
 									if (quitConfirm) {
+										deadlineRef.current = null;
+										setRemainingMs(null);
 										setView("setup");
 										setQuitConfirm(false);
 									} else {
@@ -792,14 +1121,21 @@ export function QuizEngine({
 									? "Chắc chắn thoát?"
 									: "← Chọn lại"}
 							</button>
-							{isRetryWrong && (
+							{sessionKind !== "quiz" && (
 								<span className="badge badge-warning badge-xs text-[10px] font-semibold">
-									Làm lại câu sai
+									{sessionKind === "wrong" ? "Làm lại câu sai" : "Ôn theo lịch"}
 								</span>
 							)}
 						</div>
 
 						<div className="flex items-center gap-2">
+							{sessionModeRef.current === "exam" && remainingMs !== null && (
+								<span className={`badge badge-sm gap-1 tabular-nums font-bold ${remainingMs <= 60_000 ? "badge-error text-white" : "badge-neutral text-neutral-content"}`}
+									role="timer" aria-label={`Thời gian còn lại ${formatClock(remainingMs)}`}>
+									<Clock aria-hidden="true" className="h-3.5 w-3.5" />
+									{formatClock(remainingMs)}
+								</span>
+							)}
 							<div className="flex items-center gap-1.5 text-xs font-bold font-display">
 								<span className="text-success font-semibold flex items-center gap-0.5">
 									<Check className="w-3.5 h-3.5" />{" "}
@@ -1008,7 +1344,7 @@ export function QuizEngine({
 						<button
 							type="button"
 							disabled={stats.doneCount < stats.total}
-							onClick={handleFinishQuiz}
+							onClick={() => void handleFinishQuiz()}
 							className="btn btn-primary btn-sm px-5 rounded-xl font-display font-bold text-primary-content shadow-md shadow-primary/25 disabled:opacity-50">
 							{stats.doneCount < stats.total
 								? `Còn ${stats.total - stats.doneCount} câu chưa làm`
@@ -1125,6 +1461,11 @@ export function QuizEngine({
 						{pendingSubmission.current && <button type="button" onClick={persistSubmission} className="btn btn-outline btn-sm">Thử lưu lại</button>}
 						<p className="text-xs text-base-content/70">Giữ trang này để thử lưu lại trước khi bắt đầu lượt mới.</p>
 					</div>}
+					{items.some(item => item.first === null) && (
+						<p className="text-xs text-warning">
+							{items.filter(item => item.first === null).length} câu chưa trả lời (hết giờ hoặc bỏ trống) không được tính điểm.
+						</p>
+					)}
 				</div>
 				<p className="text-xs text-base-content/60 mt-0.5">
 					{setTitle || "Ngân hàng câu hỏi trắc nghiệm"}
@@ -1139,7 +1480,10 @@ export function QuizEngine({
 						</span> */}
 					</div>
 					<span className="text-xs font-semibold text-base-content/80 mt-1">
-						{stats.okCount}/{stats.total} câu đúng ngay lần đầu
+						{stats.okCount}/{stats.scoredTotal} câu đúng ngay lần đầu
+						{stats.total > stats.scoredTotal && (
+							<span className="text-base-content/60"> · {stats.total - stats.scoredTotal} câu bỏ trống</span>
+						)}
 					</span>
 				</div>
 
@@ -1179,12 +1523,15 @@ export function QuizEngine({
 								const lessonItems = items.filter(
 									(it) => it.q.lesson === l.n,
 								);
-								if (lessonItems.length === 0) return null;
-								const rightCount = lessonItems.filter(
+								const scoredItems = lessonItems.filter(
+									(it) => it.first !== null,
+								);
+								if (scoredItems.length === 0) return null;
+								const rightCount = scoredItems.filter(
 									(it) => it.first === it.q.ans,
 								).length;
 								const pct = Math.round(
-									(rightCount / lessonItems.length) * 100,
+									(rightCount / scoredItems.length) * 100,
 								);
 
 								return (
@@ -1193,7 +1540,7 @@ export function QuizEngine({
 											<span>Bài {l.n}</span>
 											<span className="text-base-content/70">
 												{rightCount}/
-												{lessonItems.length} ({pct}%)
+												{scoredItems.length} ({pct}%)
 											</span>
 										</div>
 										<div className="w-full bg-base-300 h-1.5 rounded-full overflow-hidden">
@@ -1283,7 +1630,7 @@ export function QuizEngine({
 					{items
 						.filter((it) => {
 							const ok = it.first === it.q.ans;
-							if (resultFilter === "bad") return !ok;
+							if (resultFilter === "bad") return it.first !== null && !ok;
 							if (resultFilter === "ok") return ok;
 							return true;
 						})
@@ -1307,9 +1654,11 @@ export function QuizEngine({
 											className={`badge badge-xs text-[10px] font-bold py-2 ${
 												ok
 													? "badge-success text-white"
-													: "badge-error text-white"
+													: first === null
+														? "badge-ghost text-base-content/70"
+														: "badge-error text-white"
 											}`}>
-											{ok ? "Đúng ngay" : "Sai lần đầu"}
+											{ok ? "Đúng ngay" : first === null ? "Chưa trả lời" : "Sai lần đầu"}
 										</span>
 									</div>
 
@@ -1323,11 +1672,8 @@ export function QuizEngine({
 												Bạn chọn lần đầu:
 											</span>
 											<span
-												className={`font-semibold ${ok ? "text-success" : "text-error"}`}>
-												{first}.{" "}
-												{first
-													? q.opts[first]
-													: "Chưa chọn"}
+												className={`font-semibold ${ok ? "text-success" : first === null ? "text-base-content/60" : "text-error"}`}>
+												{first ? `${first}. ${q.opts[first]}` : "Chưa chọn"}
 											</span>
 										</div>
 										<div className="flex items-center gap-2">

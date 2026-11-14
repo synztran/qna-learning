@@ -1,10 +1,12 @@
 'use client';
 
 import { useRef, useState } from 'react';
-import { Trophy, X } from 'lucide-react';
+import Link from 'next/link';
+import { BarChart3, Trophy, X } from 'lucide-react';
 import { DonorBadge } from '@qna/ui';
 import { HistoryModal } from './HistoryModal';
 import { FeedbackModal } from './FeedbackModal';
+import { InstallApp } from './InstallApp';
 import { loadLeaderboard } from '@/app/actions/leaderboard';
 import type { LeaderboardRow } from '@/lib/learning-records';
 import { LEADERBOARD_CACHE_TTL, type LeaderboardCache } from '@/lib/leaderboard-cache';
@@ -59,6 +61,10 @@ export function LearningActions({ cache }: { cache: LeaderboardCache }) {
       onClick={() => { dialog.current?.showModal(); void load(); }}>
       <Trophy aria-hidden="true" className="h-5 w-5" />
     </button>
+    <Link href="/stats" aria-label="Thống kê học tập" title="Thống kê học tập" className="btn btn-ghost btn-circle btn-sm">
+      <BarChart3 aria-hidden="true" className="h-5 w-5" />
+    </Link>
+    <InstallApp />
     <dialog ref={dialog} aria-labelledby="leaderboard-title" className="modal">
       <div className="modal-box w-[calc(100%-2rem)] max-w-md max-h-[80dvh] space-y-4">
         <header className="flex items-center justify-between gap-3">

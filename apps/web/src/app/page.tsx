@@ -1,4 +1,5 @@
 import { getCurrentUser } from './actions/auth';
+import { getFeatureAccess } from './actions/learning';
 import { getQuizData } from './actions/quiz';
 import { QuizEngine } from '@/components/QuizEngine';
 import { SessionGuard } from '@/components/SessionGuard';
@@ -14,7 +15,10 @@ export default async function HomePage() {
     redirect('/login');
   }
 
-  const { lessons, questions, sets, selectedSetId, error } = await getQuizData();
+  const [{ lessons, questions, sets, selectedSetId, error }, featureAccess] = await Promise.all([
+    getQuizData(),
+    getFeatureAccess(),
+  ]);
 
   return (
     <SafeContainer>
@@ -30,6 +34,7 @@ export default async function HomePage() {
         setTitle={sets.find(set => set.id === selectedSetId)?.title}
         initialLessons={lessons}
         initialQuestions={questions}
+        featureAccess={featureAccess}
         user={user ? {
           id: user.id,
           displayName: user.displayName,

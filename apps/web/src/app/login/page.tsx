@@ -83,7 +83,7 @@ function LoginForm() {
             <input
               type="text"
               required
-              placeholder="student hoặc student@gmail.com"
+              placeholder="nhập tài khoản hoặc mail"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               className="grow text-sm"
@@ -140,7 +140,7 @@ export default function LoginPage() {
     <div
       safe_top=""
       safe_bot=""
-      className="min-h-[100dvh] flex flex-col justify-between items-center p-4 sm:p-6 bg-base-100"
+      className="min-h-[100dvh] flex flex-col justify-between items-center px-4 sm:p-6 bg-base-100"
     >
       {/* Top Header */}
       <div className="w-full max-w-md flex flex-wrap gap-3 justify-between items-center pt-2">
@@ -150,7 +150,7 @@ export default function LoginPage() {
           </div>
           <div>
             <h1 className="font-display font-bold text-lg leading-tight tracking-tight">QnA Learning</h1>
-            <p className="text-[11px] text-base-content/60 font-medium">Study with QNA Learning</p>
+            <p className="text-[11px] text-base-content/60 font-medium">Học cùng với QnA Learning</p>
           </div>
         </div>
         <div className="ml-auto flex shrink-0 items-center gap-2">

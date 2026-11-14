@@ -1,6 +1,7 @@
 'use server';
 
 import { createClient } from '@/lib/supabase/server';
+import { getFeatureAccessError } from '@/lib/feature-access';
 
 export async function getStudyProgress(): Promise<{
   progress?: Record<string, { reviewed: number; total: number }>; error?: string;
@@ -11,10 +12,8 @@ export async function getStudyProgress(): Promise<{
     if (sessionError || active !== true) throw new Error('Invalid session');
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) throw new Error('Invalid session');
-    const { data: profile } = await supabase.from('profiles').select('donor_level').eq('id', user.id).single();
-    if (!profile || (profile.donor_level ?? 0) <= 0) {
-      return { error: 'Tính năng Ôn tập chỉ khả dụng cho học viên có cấp bậc tri ân.' };
-    }
+    const accessError = await getFeatureAccessError(supabase, user.id, 'srs_review');
+    if (accessError) return { error: accessError };
     const { data, error } = await supabase.rpc('study_progress_summary');
     if (error) throw error;
     return { progress: Object.fromEntries((data || []).map((row: { set_id: string; reviewed: number; total: number }) =>
@@ -35,10 +34,8 @@ export async function recordStudyProgress(questionIds: string[]): Promise<{ succ
     if (sessionError || active !== true) throw new Error('Invalid session');
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) throw new Error('Invalid session');
-    const { data: profile } = await supabase.from('profiles').select('donor_level').eq('id', user.id).single();
-    if (!profile || (profile.donor_level ?? 0) <= 0) {
-      return { success: false, error: 'Tính năng Ôn tập chỉ khả dụng cho học viên có cấp bậc tri ân.' };
-    }
+    const accessError = await getFeatureAccessError(supabase, user.id, 'srs_review');
+    if (accessError) return { success: false, error: accessError };
     const { error } = await supabase.rpc('record_study_progress', { p_question_ids: [...new Set(questionIds)] });
     if (error) throw error;
     return { success: true };

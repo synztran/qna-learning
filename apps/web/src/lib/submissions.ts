@@ -6,6 +6,8 @@ export interface QuizSubmission {
   durationMs: number;
   isRetry: boolean;
   answers: { questionId: string; first: OptionKey }[];
+  mode?: 'practice' | 'exam';
+  timeLimitMs?: number | null;
 }
 
 export interface AnswerSnapshot {
@@ -34,10 +36,15 @@ export const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{1
 export const HISTORY_PAGE_SIZE = 20;
 
 export function validSubmission(value: QuizSubmission): boolean {
+  const mode = value?.mode ?? 'practice';
+  const limit = value?.timeLimitMs ?? null;
   return Boolean(value && UUID.test(value.submissionId) && UUID.test(value.setId) &&
     Number.isInteger(value.durationMs) && value.durationMs >= 0 && value.durationMs <= 86400000 &&
     typeof value.isRetry === 'boolean' && Array.isArray(value.answers) &&
     value.answers.length > 0 && value.answers.length <= 1000 &&
+    ['practice', 'exam'].includes(mode) &&
+    ((mode === 'exam' && Number.isInteger(limit) && (limit as number) >= 60000 && (limit as number) <= 86400000) ||
+      (mode === 'practice' && limit === null)) &&
     value.answers.every(a => a && UUID.test(a.questionId) && ['A', 'B', 'C', 'D'].includes(a.first)) &&
     new Set(value.answers.map(a => a.questionId.toLowerCase())).size === value.answers.length);
 }

@@ -2,6 +2,7 @@
 
 import React, { useState, useMemo, useRef } from "react";
 import { recordStudyProgress } from '../app/actions/study';
+import { recordLearningAnswer } from '../app/actions/learning';
 import type { Lesson, Question, OptionKey } from "@qna/types";
 import {
 	ArrowLeft,
@@ -36,6 +37,7 @@ export function StudyView({
 	const [searchQuery, setSearchQuery] = useState("");
 	const pendingProgress = useRef(new Set<string>());
 	const savingProgress = useRef(false);
+	const reviewTracked = useRef(new Set<string>());
 	const [progressSaving, setProgressSaving] = useState(false);
 	const [progressError, setProgressError] = useState('');
 	const persistProgress = async () => {
@@ -64,6 +66,15 @@ export function StudyView({
 			if (typeof key === 'string' && questions.some(question => question.id === key)) pendingProgress.current.add(key);
 		}
 		void persistProgress();
+	};
+	// SRS is updated once per question per session, without counting the reveal as answered,
+	// so peeking cannot inflate streaks or repeatedly push the card forward.
+	const trackReview = (key: string | number) => {
+		if (typeof key !== 'string' || reviewTracked.current.has(key)) return;
+		if (!questions.some(question => question.id === key)) return;
+		reviewTracked.current.add(key);
+		// Grade 1 keeps the current box: seeing the answer is not proof of recall.
+		void recordLearningAnswer(key, 1, false);
 	};
 	const goBack = () => {
 		if (savingProgress.current) return;
@@ -124,7 +135,10 @@ export function StudyView({
 	const isRevealed = (key: string | number) => revealedIds.has(key);
 
 	const toggleReveal = (key: string | number) => {
-		if (!revealedIds.has(key)) trackProgress([key]);
+		if (!revealedIds.has(key)) {
+			trackProgress([key]);
+			trackReview(key);
+		}
 		setRevealedIds((prev) => {
 			const next = new Set(prev);
 			if (next.has(key)) {
@@ -141,6 +155,7 @@ export function StudyView({
 		chosen: OptionKey,
 	) => {
 		trackProgress([key]);
+		trackReview(key);
 		setUserGuesses((prev) => ({ ...prev, [key]: chosen }));
 		// Automatically reveal when user taps an option
 		setRevealedIds((prev) => {

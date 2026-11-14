@@ -83,6 +83,89 @@ export function getDonorTierBySlug(slug?: string | null): DonorTierConfig | null
   return DONOR_TIER_CONFIGS[slug as DonorTier] || null;
 }
 
+export type LearningFeatureKey =
+  | 'wrong_review'
+  | 'srs_review'
+  | 'flashcards'
+  | 'exam'
+  | 'streak'
+  | 'stats';
+
+export interface LearningFeatureConfig {
+  key: LearningFeatureKey;
+  label: string;
+  description: string;
+  defaultMinDonorLevel: number;
+}
+
+export const LEARNING_FEATURE_CONFIGS: Record<LearningFeatureKey, LearningFeatureConfig> = {
+  wrong_review: {
+    key: 'wrong_review',
+    label: 'Ôn câu sai',
+    description: 'Luyện lại các câu đã làm sai trong bài thi.',
+    defaultMinDonorLevel: 0,
+  },
+  srs_review: {
+    key: 'srs_review',
+    label: 'Ôn theo lịch',
+    description: 'Chế độ Ôn tập và danh sách câu đến hạn theo lịch Leitner.',
+    defaultMinDonorLevel: 1,
+  },
+  flashcards: {
+    key: 'flashcards',
+    label: 'Flashcard',
+    description: 'Lật thẻ và tự chấm mức độ ghi nhớ.',
+    defaultMinDonorLevel: 1,
+  },
+  exam: {
+    key: 'exam',
+    label: 'Thi thử',
+    description: 'Làm bài thi có giới hạn thời gian và tính điểm.',
+    defaultMinDonorLevel: 0,
+  },
+  streak: {
+    key: 'streak',
+    label: 'Chuỗi ngày & mục tiêu',
+    description: 'Hiển thị chuỗi ngày học và mục tiêu số câu mỗi ngày.',
+    defaultMinDonorLevel: 0,
+  },
+  stats: {
+    key: 'stats',
+    label: 'Thống kê học tập',
+    description: 'Biểu đồ tiến độ, độ chính xác và thống kê theo bài.',
+    defaultMinDonorLevel: 1,
+  },
+};
+
+export const LEARNING_FEATURE_KEYS = Object.keys(LEARNING_FEATURE_CONFIGS) as LearningFeatureKey[];
+
+export type FeatureAccessMap = Record<LearningFeatureKey, number>;
+
+export const DEFAULT_FEATURE_ACCESS: FeatureAccessMap = LEARNING_FEATURE_KEYS.reduce(
+  (access, key) => ({ ...access, [key]: LEARNING_FEATURE_CONFIGS[key].defaultMinDonorLevel }),
+  {} as FeatureAccessMap,
+);
+
+export interface FeatureAccessConfig extends LearningFeatureConfig {
+  minDonorLevel: number;
+  updatedAt?: string | null;
+}
+
+export function getFeatureMinDonorLevel(
+  access: Partial<FeatureAccessMap> | null | undefined,
+  key: LearningFeatureKey,
+): number {
+  return access?.[key] ?? DEFAULT_FEATURE_ACCESS[key];
+}
+
+export function hasFeatureAccess(
+  access: Partial<FeatureAccessMap> | null | undefined,
+  key: LearningFeatureKey,
+  donorLevel: number | null | undefined,
+): boolean {
+  return (donorLevel ?? 0) >= getFeatureMinDonorLevel(access, key);
+}
+
 export interface QuizSet {
   id: string;
   slug: string;
@@ -160,6 +243,51 @@ export interface QuizAttemptRecord {
 
 export type FeedbackType = 'feature' | 'issue';
 export type FeedbackStatus = 'pending' | 'verified' | 'resolved' | 'rejected';
+
+/** Flashcard self-grade mapped to Leitner boxes: again, hard, good, easy. */
+export type FlashcardGrade = 0 | 1 | 2 | 3;
+
+export interface LearningSummary {
+  due: number;
+  todayAnswered: number;
+  todayCorrect: number;
+  dailyGoal: number;
+  streak: number;
+  goalMet: boolean;
+  streakLocked?: boolean;
+}
+
+export interface LessonLearningStat {
+  lessonNum: number;
+  total: number;
+  answered: number;
+  correct: number;
+  mastered: number;
+}
+
+export interface DailyLearningPoint {
+  day: string;
+  answered: number;
+  correct: number;
+  seconds: number;
+}
+
+export interface LearningTotals {
+  totalQuestions: number;
+  answered: number;
+  correct: number;
+  mastered: number;
+  learning: number;
+}
+
+export interface LearningStats {
+  summary: LearningSummary;
+  totals: LearningTotals;
+  lessons: LessonLearningStat[];
+  trend: DailyLearningPoint[];
+}
+
+export type ExamMode = 'practice' | 'exam';
 
 export interface FeedbackItem {
   id: string;

@@ -12,10 +12,14 @@ export function PullToRefresh({
 	children,
 	disabled,
 	onRefresh,
+	scrollable = false,
+	className = "",
 }: {
 	children: ReactNode;
 	disabled: boolean;
 	onRefresh: () => Promise<void>;
+	scrollable?: boolean;
+	className?: string;
 }) {
 	const root = useRef<HTMLDivElement>(null);
 	const refresh = useRef(onRefresh);
@@ -43,12 +47,13 @@ export function PullToRefresh({
 			pulled = 0;
 			setDistance(0);
 		};
+		const atTop = () => scrollable ? surface.scrollTop <= 0 : window.scrollY <= 0;
 		const touchStart = (event: TouchEvent) => {
 			reset();
 			if (
 				busy.current ||
 				event.touches.length !== 1 ||
-				window.scrollY > 0 ||
+				!atTop() ||
 				document.querySelector('dialog[open], [aria-modal="true"]') ||
 				blocksPullRefresh(event.target, surface)
 			)
@@ -60,7 +65,7 @@ export function PullToRefresh({
 		};
 		const touchMove = (event: TouchEvent) => {
 			if (!start) return;
-			if (event.touches.length !== 1 || window.scrollY > 0) {
+			if (event.touches.length !== 1 || !atTop()) {
 				reset();
 				return;
 			}
@@ -117,13 +122,13 @@ export function PullToRefresh({
 			surface.removeEventListener("touchend", touchEnd);
 			surface.removeEventListener("touchcancel", reset);
 		};
-	}, [disabled]);
+	}, [disabled, scrollable]);
 
 	return (
 		<div
 			ref={root}
 			aria-busy={refreshing}
-			className="flex flex-1 flex-col"
+			className={`flex min-h-0 flex-1 flex-col ${scrollable ? "overflow-y-auto overflow-x-hidden overscroll-contain" : ""} ${className}`}
 			onClickCapture={(event) => {
 				if (busy.current) {
 					event.preventDefault();

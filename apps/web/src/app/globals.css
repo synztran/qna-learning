@@ -55,23 +55,26 @@ body {
   overflow-x: hidden;
 }
 
-/* iOS Safe Areas & Rabbit Ear (Notch/Dynamic Island) / Control Center Spacing */
-[safe_top], .safe_top {
-  padding-top: max(calc(env(safe-area-inset-top, 0px) + 8px), 24px) !important;
-}
+/* Safe areas only apply when the app draws edge-to-edge (installed PWA).
+   Browser tabs already sit inside device/browser chrome, so padding there is wasted space. */
+@media (display-mode: standalone) {
+  [safe_top], .safe_top {
+    padding-top: env(safe-area-inset-top, 0px) !important;
+  }
 
-[safe_bot], .safe_bot {
-  padding-bottom: max(calc(env(safe-area-inset-bottom, 0px) + 24px), 36px) !important;
-}
+  [safe_bot], .safe_bot {
+    padding-bottom: env(safe-area-inset-bottom, 0px) !important;
+  }
 
-/* Extra clearance for fixed/sticky headers under iOS notch/dynamic island */
-.sticky[safe_top], [safe_top].sticky {
-  padding-top: max(calc(env(safe-area-inset-top, 0px) + 10px), 20px) !important;
-}
+  /* Sticky headers clear the notch/dynamic island */
+  .sticky[safe_top], [safe_top].sticky {
+    padding-top: env(safe-area-inset-top, 0px) !important;
+  }
 
-/* Extra clearance for fixed bottom controls above iOS home indicator & browser control bar */
-.fixed[safe_bot], [safe_bot].fixed {
-  padding-bottom: max(calc(env(safe-area-inset-bottom, 0px) + 26px), 40px) !important;
+  /* Fixed bottom controls clear the home indicator */
+  .fixed[safe_bot], [safe_bot].fixed {
+    padding-bottom: env(safe-area-inset-bottom, 0px) !important;
+  }
 }
 
 /* Question Option States */

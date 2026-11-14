@@ -6,7 +6,18 @@ import {
   DEFAULT_SEED_DATA,
 } from '@qna/database';
 import { convertDocxBufferToQuizData, parseTextToQuizData } from '@qna/database/src/doc-converter';
-import type { FeedbackItem, FeedbackStatus, Question, QuizRawData, UserProfile } from '@qna/types';
+import {
+  DEFAULT_FEATURE_ACCESS,
+  LEARNING_FEATURE_CONFIGS,
+  LEARNING_FEATURE_KEYS,
+  type FeatureAccessConfig,
+  type FeedbackItem,
+  type FeedbackStatus,
+  type LearningFeatureKey,
+  type Question,
+  type QuizRawData,
+  type UserProfile,
+} from '@qna/types';
 import { revalidatePath } from 'next/cache';
 import fs from 'fs';
 import path from 'path';
@@ -496,6 +507,39 @@ export async function renameQuizSet(setId: string, title: string): Promise<{ suc
     return { success: true, title: data.title };
   } catch {
     return { success: false, error: 'Không thể đổi tên bộ đề. Vui lòng thử lại.' };
+  }
+}
+
+export async function deleteQuizSet(setId: string): Promise<{ success: boolean; title?: string; error?: string }> {
+  if (typeof setId !== 'string' || !/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(setId)) {
+    return { success: false, error: 'Bộ đề không hợp lệ.' };
+  }
+  try {
+    const supabase = getAdmin();
+    const { data: existing, error: readError } = await supabase
+      .from('quiz_sets')
+      .select('id, title, storage_file_path')
+      .eq('id', setId)
+      .maybeSingle();
+    if (readError) return { success: false, error: 'Không thể tải bộ đề. Vui lòng thử lại.' };
+    if (!existing) return { success: false, error: 'Bộ đề không tồn tại hoặc đã bị xóa.' };
+
+    // Lessons and questions cascade; attempts keep history with set_id set to null.
+    const { error } = await supabase.from('quiz_sets').delete().eq('id', setId);
+    if (error) return { success: false, error: 'Không thể xóa bộ đề. Vui lòng thử lại.' };
+
+    if (existing.storage_file_path) {
+      try {
+        await supabase.storage.from('quiz-files').remove([existing.storage_file_path]);
+      } catch {
+        // The set is gone; an orphaned storage object must not fail the delete.
+      }
+    }
+
+    revalidatePath('/');
+    return { success: true, title: existing.title };
+  } catch {
+    return { success: false, error: 'Không thể xóa bộ đề. Vui lòng thử lại.' };
   }
 }
 
@@ -1046,6 +1090,83 @@ export async function updateFeedbackStatus(
       .from('feedbacks')
       .update({ status, updated_at: new Date().toISOString() })
       .eq('id', feedbackId);
+
+    if (error) return { success: false, error: error.message };
+
+    revalidatePath('/');
+    return { success: true };
+  } catch (err: any) {
+    return { success: false, error: err.message };
+  }
+}
+
+// -------------------------------------------------------------
+// FEATURE ACCESS ACTIONS
+// -------------------------------------------------------------
+function defaultFeatureAccessConfigs(): FeatureAccessConfig[] {
+  return LEARNING_FEATURE_KEYS.map((key) => ({
+    ...LEARNING_FEATURE_CONFIGS[key],
+    minDonorLevel: DEFAULT_FEATURE_ACCESS[key],
+    updatedAt: null,
+  }));
+}
+
+export async function listFeatureAccess(): Promise<{
+  features: FeatureAccessConfig[];
+  error?: string;
+}> {
+  const defaults = defaultFeatureAccessConfigs();
+  if (!process.env.SUPABASE_SERVICE_ROLE_KEY) return { features: defaults };
+
+  try {
+    const supabase = getAdmin();
+    const { data, error } = await supabase
+      .from('feature_access_config')
+      .select('feature_key, min_donor_level, updated_at');
+
+    if (error) return { features: defaults, error: error.message };
+
+    const saved = new Map((data || []).map((row: any) => [row.feature_key, row]));
+    return {
+      features: defaults.map((feature) => {
+        const row = saved.get(feature.key);
+        return row
+          ? {
+              ...feature,
+              minDonorLevel: Number(row.min_donor_level ?? feature.minDonorLevel),
+              updatedAt: row.updated_at || null,
+            }
+          : feature;
+      }),
+    };
+  } catch (err: any) {
+    return { features: defaults, error: err.message };
+  }
+}
+
+export async function updateFeatureAccess(
+  featureKey: LearningFeatureKey,
+  minDonorLevel: number,
+): Promise<{ success: boolean; error?: string }> {
+  if (!LEARNING_FEATURE_KEYS.includes(featureKey)) {
+    return { success: false, error: 'Tính năng không hợp lệ.' };
+  }
+  if (!Number.isInteger(minDonorLevel) || minDonorLevel < 0 || minDonorLevel > 3) {
+    return { success: false, error: 'Cấp bậc phải từ 0 đến 3.' };
+  }
+
+  try {
+    const supabase = getAdmin();
+    const { error } = await supabase
+      .from('feature_access_config')
+      .upsert(
+        {
+          feature_key: featureKey,
+          min_donor_level: minDonorLevel,
+          updated_at: new Date().toISOString(),
+        },
+        { onConflict: 'feature_key' },
+      );
 
     if (error) return { success: false, error: error.message };
 

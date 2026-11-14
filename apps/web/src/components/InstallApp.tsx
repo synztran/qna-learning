@@ -105,16 +105,16 @@ export function InstallApp() {
 							className="font-display text-lg font-bold">
 							{android
 								? "Cài ứng dụng trên Android"
-								: "Cài ứng dụng trên iPhone / iPad"}
+								: "Cài ứng dụng trên iOS"}
 						</h2>
-						<button
+						{/* <button
 							type="button"
 							autoFocus
 							onClick={() => dialog.current?.close()}
 							aria-label="Đóng hướng dẫn cài đặt"
 							className="btn btn-ghost btn-circle btn-sm shrink-0">
 							<X aria-hidden="true" className="h-5 w-5" />
-						</button>
+						</button> */}
 					</div>
 					{android ? (
 						<div className="space-y-3">
@@ -175,29 +175,28 @@ export function InstallApp() {
 							<ol className="list-decimal pl-5 space-y-2">
 								<li>
 									Trong Safari, mở menu và chọn{" "}
-									<span className="inline-flex items-center gap-1 font-semibold">
+									<span className="inline-flex items-baseline gap-1 font-semibold text-primary">
 										<Share
 											aria-hidden="true"
-											className="h-5 w-5"
+											className="h-4 w-4"
 										/>
 										Chia sẻ
 									</span>
-									.
 								</li>
 								<li>
 									Cuộn xuống, chọn{" "}
-									<span className="inline-flex items-center gap-1 font-semibold">
+									<span className="inline-flex items-center gap-1 font-semibold text-primary">
 										<SquarePlus
 											aria-hidden="true"
-											className="h-5 w-5"
+											className="h-4 w-4"
 										/>
 										Thêm vào Màn hình chính
 									</span>
 									.
 								</li>
 								<li>
-									Nếu có, bật <b>Mở dưới dạng ứng dụng web</b>
-									, sau đó nhấn <b>Thêm</b>.
+									Nếu có, bật <b className="text-primary">Mở dưới dạng ứng dụng web</b>
+									, sau đó nhấn <b className="text-primary">Thêm</b>.
 								</li>
 							</ol>
 							<p className="text-xs text-base-content/70">

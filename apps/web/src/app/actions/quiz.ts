@@ -1,6 +1,7 @@
 'use server';
 
 import { createClient } from '@/lib/supabase/server';
+import { getFeatureAccessError } from '@/lib/feature-access';
 import { DEFAULT_SEED_DATA, parseQuizJson } from '@qna/database';
 import type { Lesson, Question } from '@qna/types';
 import { validSubmission, type QuizSubmission } from '@/lib/submissions';
@@ -103,12 +104,19 @@ export async function saveQuizAttempt(record: QuizSubmission) {
 
     if (!user) return { success: false, error: 'Unauthorized' };
 
+    if (record.mode === 'exam') {
+      const accessError = await getFeatureAccessError(supabase, user.id, 'exam');
+      if (accessError) return { success: false, error: accessError };
+    }
+
     const { error } = await supabase.rpc('submit_quiz_attempt', {
       p_submission_id: record.submissionId,
       p_set_id: record.setId,
       p_answers: record.answers,
       p_duration_ms: record.durationMs,
       p_is_retry: record.isRetry,
+      p_mode: record.mode ?? 'practice',
+      p_time_limit_ms: record.mode === 'exam' ? record.timeLimitMs ?? null : null,
     });
 
     if (error) {

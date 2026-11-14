@@ -3,7 +3,7 @@
 import React, { useState, useMemo, useCallback } from "react";
 import { EditorQuestionCard } from './EditorQuestionCard';
 import { QuestionSetHeader } from './QuestionSetHeader';
-import type { Question, UserProfile, OptionKey, Lesson, QuizRawData, FeedbackItem, FeedbackStatus, FeedbackType } from "@qna/types";
+import { getDonorTierByLevel, type Question, type UserProfile, type OptionKey, type Lesson, type QuizRawData, type FeedbackItem, type FeedbackStatus, type FeedbackType, type FeatureAccessConfig, type LearningFeatureKey } from "@qna/types";
 import {
 	createStudentUser,
 	toggleSoftBan,
@@ -12,6 +12,7 @@ import {
 	seedDefaultSc5Data,
 	saveQuestion,
 	deleteQuestion,
+	deleteQuizSet,
 	listQuestionSourcesFromFolder,
 	buildSetFromFolderSource,
 	setActiveQuizSet,
@@ -24,6 +25,8 @@ import {
 	type FolderQuestionSource,
 	listFeedbacks,
 	updateFeedbackStatus,
+	listFeatureAccess,
+	updateFeatureAccess,
 } from "../app/actions/admin";
 import { ThemeToggle, DonorBadge } from "@qna/ui";
 import { EditUserDialog } from './EditUserDialog';
@@ -37,6 +40,7 @@ import {
 	Key,
 	Shield,
 	ShieldAlert,
+	ShieldCheck,
 	Upload,
 	CheckCircle,
 	XCircle,
@@ -65,6 +69,7 @@ interface AdminDashboardProps {
 	initialFolderSources: FolderQuestionSource[];
 	initialFolderPath: string;
 	initialFeedbacks: FeedbackItem[];
+	initialFeatureAccess: FeatureAccessConfig[];
 	hasEnv: boolean;
 }
 
@@ -75,10 +80,11 @@ export function AdminDashboard({
 	initialFolderSources,
 	initialFolderPath,
 	initialFeedbacks,
+	initialFeatureAccess,
 	hasEnv,
 }: AdminDashboardProps) {
 	const [tab, setTab] = useState<
-		"users" | "folderSources" | "converter" | "upload" | "questions" | "feedbacks"
+		"users" | "folderSources" | "converter" | "upload" | "questions" | "feedbacks" | "features"
 	>("folderSources");
 	const [users, setUsers] = useState<UserProfile[]>(initialUsers);
 	const [questions, setQuestions] = useState<Question[]>(initialQuestions);
@@ -141,6 +147,43 @@ export function AdminDashboard({
 		text: string;
 	} | null>(null);
 
+	// Feature access state
+	const [featureAccess, setFeatureAccess] = useState<FeatureAccessConfig[]>(initialFeatureAccess);
+	const [featureSaving, setFeatureSaving] = useState<LearningFeatureKey | null>(null);
+	const [featureMsg, setFeatureMsg] = useState<{
+		type: "ok" | "err";
+		text: string;
+	} | null>(null);
+
+	const handleFeatureAccessChange = async (featureKey: LearningFeatureKey, minDonorLevel: number) => {
+		if (featureSaving) return;
+		const previous = featureAccess;
+		setFeatureSaving(featureKey);
+		setFeatureMsg(null);
+		setFeatureAccess(current => current.map(feature =>
+			feature.key === featureKey ? { ...feature, minDonorLevel } : feature));
+		try {
+			const result = await updateFeatureAccess(featureKey, minDonorLevel);
+			if (!result.success) {
+				setFeatureAccess(previous);
+				setFeatureMsg({ type: "err", text: result.error || "Không thể lưu cấu hình." });
+				return;
+			}
+			const refreshed = await listFeatureAccess();
+			if (refreshed.error) {
+				setFeatureMsg({ type: "err", text: `Đã lưu nhưng chưa tải lại được cấu hình: ${refreshed.error}` });
+				return;
+			}
+			if (refreshed.features) setFeatureAccess(refreshed.features);
+			setFeatureMsg({ type: "ok", text: "Đã cập nhật cấp bậc yêu cầu." });
+		} catch {
+			setFeatureAccess(previous);
+			setFeatureMsg({ type: "err", text: "Mất kết nối. Vui lòng thử lại." });
+		} finally {
+			setFeatureSaving(null);
+		}
+	};
+
 	const handleRefreshFeedbacks = async () => {
 		setFeedbackLoading(true);
 		setFeedbackActionMsg(null);
@@ -197,6 +240,13 @@ export function AdminDashboard({
 	const [editingQuestion, setEditingQuestion] =
 		useState<Partial<Question> | null>(null);
 	const [isEditingNew, setIsEditingNew] = useState(false);
+	const [deleteSetTarget, setDeleteSetTarget] = useState<{
+		id: string;
+		title: string;
+		active: boolean;
+		questionCount: number;
+	} | null>(null);
+	const [deleteSetLoading, setDeleteSetLoading] = useState(false);
 
 	// Filtered Users
 	const filteredUsers = users.filter((u) => {
@@ -457,6 +507,45 @@ export function AdminDashboard({
 			alert("Lỗi xóa câu hỏi: " + res.error);
 		}
 	}, []);
+
+	// Handler: Delete Question Set
+	const handleDeleteSet = async () => {
+		if (!deleteSetTarget || deleteSetLoading) return;
+		setDeleteSetLoading(true);
+		try {
+			const res = await deleteQuizSet(deleteSetTarget.id);
+			if (!res.success) {
+				setUserActionMsg({
+					type: 'err',
+					text: res.error || 'Không thể xóa bộ đề.',
+				});
+				return;
+			}
+			const { id, title, questionCount } = deleteSetTarget;
+			setSets((previous) => previous.filter((set) => set.id !== id));
+			setQuestions((previous) => previous.filter((q) => q.setId !== id));
+			setFolderSources((previous) =>
+				previous.map((source) =>
+					source.syncedSet?.id === id
+						? { ...source, syncedSet: null }
+						: source,
+				),
+			);
+			setQSetFilter((current) => (current === id ? 'all' : current));
+			setUserActionMsg({
+				type: 'ok',
+				text: `Đã xóa bộ đề "${title}" và ${questionCount} câu hỏi.`,
+			});
+			setDeleteSetTarget(null);
+		} catch {
+			setUserActionMsg({
+				type: 'err',
+				text: 'Không thể xóa bộ đề. Kiểm tra kết nối và thử lại.',
+			});
+		} finally {
+			setDeleteSetLoading(false);
+		}
+	};
 
 	// Handler: Scan Folder
 	const handleScanFolder = async () => {
@@ -734,6 +823,16 @@ export function AdminDashboard({
 								{feedbacks.filter(f => f.status === 'pending').length}
 							</span>
 						)}
+					</button>
+					<button
+						onClick={() => setTab("features")}
+						className={`tab gap-2 text-xs font-display font-bold rounded-xl transition-all ${
+							tab === "features"
+								? "tab-active !bg-primary !text-white"
+								: ""
+						}`}>
+						<ShieldCheck className="w-4 h-4" />
+						Phân quyền tính năng
 					</button>
 				</div>
 
@@ -1058,6 +1157,74 @@ export function AdminDashboard({
 				)}
 
 				{/* ==============================================================
+            TAB: FEATURE ACCESS
+            ============================================================== */}
+				{tab === "features" && (
+					<section className="space-y-4">
+						<div className="card bg-base-200/50 border border-base-300 p-4 sm:p-5 rounded-3xl shadow-sm">
+							<div className="flex items-start gap-3">
+								<div className="p-2 rounded-xl bg-primary/10 text-primary">
+									<ShieldCheck className="w-5 h-5" />
+								</div>
+								<div className="min-w-0">
+									<h2 className="font-display font-bold text-sm">Cấp bậc tối thiểu cho từng tính năng</h2>
+									<p className="text-xs text-base-content/70 leading-relaxed mt-1">
+										Cấp 0 là miễn phí cho mọi học viên. Cấp 1–3 tương ứng Hiếu Học, Uyên Bác và Tinh Hoa.
+										Thay đổi có hiệu lực ngay sau khi lưu.
+									</p>
+								</div>
+							</div>
+						</div>
+
+						{featureMsg && (
+							<div className={`alert ${featureMsg.type === "ok" ? "alert-success text-success-content" : "alert-error text-white"} text-xs py-2.5 rounded-2xl shadow-sm`}>
+								<span>{featureMsg.text}</span>
+							</div>
+						)}
+
+						<div className="grid gap-3 md:grid-cols-2">
+							{featureAccess.map((feature) => {
+								const tier = feature.minDonorLevel > 0 ? getDonorTierByLevel(feature.minDonorLevel) : null;
+								const saving = featureSaving === feature.key;
+								return (
+									<article key={feature.key} className="card bg-base-200/50 border border-base-300 p-4 rounded-3xl shadow-sm space-y-3">
+										<div className="flex items-start justify-between gap-3">
+											<div className="min-w-0">
+												<h3 className="font-display font-bold text-sm">{feature.label}</h3>
+												<p className="text-[11px] text-base-content/65 leading-relaxed mt-1">{feature.description}</p>
+											</div>
+											<span className={`badge badge-sm shrink-0 ${tier ? "badge-primary" : "badge-ghost"}`}>
+												{tier ? `${tier.icon} ${tier.shortLabel}` : "Miễn phí"}
+											</span>
+										</div>
+										<label className="form-control gap-1">
+											<span className="label-text text-[11px] font-semibold">Cấp bậc tối thiểu</span>
+											<select
+												value={feature.minDonorLevel}
+												onChange={(event) => void handleFeatureAccessChange(feature.key, Number(event.target.value))}
+												disabled={Boolean(featureSaving)}
+												className="select select-sm select-bordered rounded-xl text-xs">
+												<option value={0}>0 · Miễn phí cho mọi học viên</option>
+												<option value={1}>1 · 🌱 Hiếu Học trở lên</option>
+												<option value={2}>2 · 🎓 Uyên Bác trở lên</option>
+												<option value={3}>3 · 👑 Tinh Hoa</option>
+											</select>
+										</label>
+										{saving && <p role="status" className="text-[11px] text-base-content/60">Đang lưu…</p>}
+									</article>
+								);
+							})}
+						</div>
+
+						{featureAccess.length === 0 && (
+							<div className="alert alert-warning text-xs rounded-2xl">
+								<span>Chưa tải được cấu hình tính năng. Kiểm tra kết nối Supabase.</span>
+							</div>
+						)}
+					</section>
+				)}
+
+				{/* ==============================================================
             TAB 1: USERS
             ============================================================== */}
 				{tab === "users" && (
@@ -1081,7 +1248,7 @@ export function AdminDashboard({
 									onChange={(e) => setUserTierFilter(e.target.value)}
 									className="select select-sm select-bordered rounded-xl text-xs w-full sm:w-auto">
 									<option value="all">Tất cả cấp bậc</option>
-									<option value="donor">Tất cả Donor (Cấp 1–3)</option>
+									<option value="donor">Tất cả Donor</option>
 									<option value="none">Học viên thường</option>
 									<option value="hieu_hoc">🌱 Hiếu Học</option>
 									<option value="uyen_bac">🎓 Uyên Bác</option>
@@ -1467,7 +1634,13 @@ export function AdminDashboard({
 											count={`${filteredQuestions.filter(q => (q.setId || 'preview') === groupId).length}/${questions.filter(q => (q.setId || 'preview') === groupId).length}`}
 											active={Boolean(sets.find(set => set.id === groupId)?.isActive)} disabled={setStatusSaving || folderLoading || questionsLoading}
 											onRenamed={title => setSets(previous => previous.map(set => set.id === groupId ? { ...set, title } : set))}
-											onActive={active => handleSetActive(groupId, sets.find(set => set.id === groupId)?.title || '', active)} />
+											onActive={active => handleSetActive(groupId, sets.find(set => set.id === groupId)?.title || '', active)}
+											onDelete={() => setDeleteSetTarget({
+												id: groupId,
+												title: sets.find(set => set.id === groupId)?.title || 'Bộ đề xem trước',
+												active: Boolean(sets.find(set => set.id === groupId)?.isActive),
+												questionCount: questions.filter(q => q.setId === groupId).length,
+											})} />
 										<details open>
 										<summary className="cursor-pointer text-xs font-semibold">Danh sách câu hỏi</summary>
 										<div className="mt-4 space-y-3">
@@ -1805,9 +1978,9 @@ export function AdminDashboard({
 									onChange={(e) => setNewDonorTier(e.target.value)}
 									className="select select-sm select-bordered rounded-xl text-xs">
 									<option value="">Không có (Học viên thường)</option>
-									<option value="hieu_hoc">🌱 Hiếu Học (Cấp 1)</option>
-									<option value="uyen_bac">🎓 Uyên Bác (Cấp 2)</option>
-									<option value="tinh_hoa">👑 Tinh Hoa (Cấp 3)</option>
+									<option value="hieu_hoc">🌱 Hiếu Học</option>
+									<option value="uyen_bac">🎓 Uyên Bác</option>
+									<option value="tinh_hoa">👑 Tinh Hoa</option>
 								</select>
 							</div>
 
@@ -1903,6 +2076,38 @@ export function AdminDashboard({
 								finally { setBanLoading(false); }
 							}} className={`btn btn-sm flex-1 rounded-xl ${banConfirmUser.isBanned ? "btn-success" : "btn-error"}`}>
 								{banLoading ? <span className="loading loading-spinner loading-xs" /> : banConfirmUser.isBanned ? "Mở khóa" : "Tạm khóa"}
+							</button>
+						</div>
+					</section>
+				</div>
+			)}
+
+			{/* ==============================================================
+          MODAL: DELETE QUESTION SET
+          ============================================================== */}
+			{deleteSetTarget && (
+				<div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-xs" role="presentation"
+					onKeyDown={event => { if (event.key === 'Escape' && !deleteSetLoading) setDeleteSetTarget(null); }}>
+					<section role="alertdialog" aria-modal="true" aria-labelledby="delete-set-title" aria-describedby="delete-set-description" className="w-full max-w-sm bg-base-100 rounded-3xl p-6 border border-base-300 shadow-2xl space-y-4">
+						<div className="flex justify-between items-start gap-3">
+							<h3 id="delete-set-title" className="font-display font-bold text-base">Xóa bộ đề?</h3>
+							<button type="button" disabled={deleteSetLoading} onClick={() => setDeleteSetTarget(null)} className="btn btn-circle btn-xs btn-ghost" aria-label="Đóng hộp thoại">✕</button>
+						</div>
+						<p id="delete-set-description" className="text-sm text-base-content/70">
+							Bộ đề <b>{deleteSetTarget.title}</b> cùng <b>{deleteSetTarget.questionCount} câu hỏi</b> và các bài học đi kèm sẽ bị xóa vĩnh viễn. Lịch sử làm bài của học viên được giữ lại nhưng không còn gắn với bộ đề này.
+						</p>
+						{deleteSetTarget.active && (
+							<p className="alert alert-warning text-xs py-2 px-3 rounded-xl flex items-start gap-2">
+								<AlertTriangle className="w-4 h-4 shrink-0" aria-hidden="true" />
+								<span>Bộ đề đang kích hoạt. Học viên sẽ không còn thấy bộ đề này sau khi xóa.</span>
+							</p>
+						)}
+						<p className="text-xs text-base-content/60">Không thể hoàn tác thao tác này.</p>
+						<div className="flex gap-2">
+							<button autoFocus type="button" disabled={deleteSetLoading} onClick={() => setDeleteSetTarget(null)} className="btn btn-ghost btn-sm flex-1 rounded-xl">Hủy</button>
+							<button type="button" disabled={deleteSetLoading} onClick={handleDeleteSet} className="btn btn-error btn-sm flex-1 rounded-xl text-white gap-2">
+								{deleteSetLoading ? <span className="loading loading-spinner loading-xs" /> : <Trash2 className="w-4 h-4" aria-hidden="true" />}
+								{deleteSetLoading ? 'Đang xóa…' : 'Xóa bộ đề'}
 							</button>
 						</div>
 					</section>

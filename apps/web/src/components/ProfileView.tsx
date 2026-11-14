@@ -2,10 +2,11 @@
 
 import React, { useState } from 'react';
 import Link from 'next/link';
-import { ArrowLeft, KeyRound, Lock, CheckCircle2, ShieldAlert, HeartHandshake, Sparkles } from 'lucide-react';
+import { ArrowLeft, KeyRound, Lock, CheckCircle2, ShieldAlert, HeartHandshake, Sparkles, Target, BarChart3 } from 'lucide-react';
 import { ThemeToggle, DonorBadge } from '@qna/ui';
 import { getDonorTierByLevel, getDonorTierBySlug } from '@qna/types';
 import { updatePassword } from '@/app/actions/auth';
+import { setDailyGoal } from '@/app/actions/learning';
 import { LogoutButton } from './LogoutButton';
 
 interface ProfileViewProps {
@@ -17,6 +18,7 @@ interface ProfileViewProps {
     donorLevel?: number;
     donorTier?: string | null;
     donorSince?: string | null;
+    dailyGoal?: number;
   };
 }
 
@@ -27,6 +29,27 @@ export function ProfileView({ user }: ProfileViewProps) {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState(false);
+  const [goal, setGoal] = useState(user.dailyGoal ?? 20);
+  const [goalSaving, setGoalSaving] = useState(false);
+  const [goalMessage, setGoalMessage] = useState<{ type: 'ok' | 'err'; text: string } | null>(null);
+
+  const handleGoalSave = async () => {
+    if (goalSaving) return;
+    setGoalSaving(true);
+    setGoalMessage(null);
+    try {
+      const result = await setDailyGoal(goal);
+      if (!result.success) {
+        setGoalMessage({ type: 'err', text: result.error || 'Chưa lưu được mục tiêu.' });
+        return;
+      }
+      setGoalMessage({ type: 'ok', text: `Đã đặt mục tiêu ${result.goal} câu mỗi ngày.` });
+    } catch {
+      setGoalMessage({ type: 'err', text: 'Chưa lưu được mục tiêu. Kiểm tra kết nối và thử lại.' });
+    } finally {
+      setGoalSaving(false);
+    }
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -151,6 +174,72 @@ export function ProfileView({ user }: ProfileViewProps) {
             </section>
           );
         })() : null}
+
+        {/* Daily Goal & Stats Card */}
+        <section className="card bg-base-200/60 backdrop-blur-sm border border-base-300 shadow-md p-6 rounded-3xl">
+          <div className="flex items-center gap-2 mb-4">
+            <Target className="w-5 h-5 text-primary" aria-hidden="true" />
+            <h2 className="font-display font-bold text-base">Mục tiêu học tập mỗi ngày</h2>
+          </div>
+
+          <div className="flex items-center gap-3 mb-3">
+            <input
+              type="range"
+              min={5}
+              max={100}
+              step={5}
+              value={goal}
+              disabled={goalSaving}
+              onChange={e => setGoal(parseInt(e.target.value, 10))}
+              className="range range-primary range-sm flex-1"
+              aria-label="Mục tiêu số câu mỗi ngày"
+            />
+            <input
+              type="number"
+              min={5}
+              max={100}
+              value={goal}
+              disabled={goalSaving}
+              onChange={e => setGoal(Math.max(5, Math.min(100, parseInt(e.target.value, 10) || 5)))}
+              className="input input-sm input-bordered w-20 text-center font-bold text-sm rounded-xl bg-base-100"
+              aria-label="Mục tiêu số câu mỗi ngày (nhập số)"
+            />
+          </div>
+          <p className="text-[11px] text-base-content/60 mb-4">
+            Đạt mục tiêu mỗi ngày để duy trì chuỗi ngày học liên tiếp. Từ 5 đến 100 câu.
+          </p>
+
+          {goalMessage && (
+            <div
+              role={goalMessage.type === 'err' ? 'alert' : 'status'}
+              className={`alert text-xs py-2.5 px-3.5 mb-4 rounded-2xl flex items-center gap-2 ${
+                goalMessage.type === 'err' ? 'alert-error' : 'alert-success text-success-content'
+              }`}
+            >
+              {goalMessage.type === 'err' ? <ShieldAlert className="w-4 h-4 shrink-0" /> : <CheckCircle2 className="w-4 h-4 shrink-0" />}
+              <span>{goalMessage.text}</span>
+            </div>
+          )}
+
+          <button
+            type="button"
+            onClick={() => void handleGoalSave()}
+            disabled={goalSaving}
+            className="btn btn-primary w-full rounded-2xl font-display font-bold text-primary-content shadow-md shadow-primary/20"
+          >
+            {goalSaving ? <span className="loading loading-spinner loading-sm"></span> : `Lưu mục tiêu ${goal} câu`}
+          </button>
+
+          <div className="divider my-4"></div>
+
+          <Link href="/stats" className="btn btn-outline w-full rounded-2xl gap-2 font-display font-bold">
+            <BarChart3 className="w-4 h-4" aria-hidden="true" />
+            Xem thống kê học tập
+          </Link>
+          <p className="mt-2 text-[11px] text-base-content/60">
+            Thống kê chi tiết có thể yêu cầu cấp bậc tri ân tùy cấu hình.
+          </p>
+        </section>
 
         {/* Password Update Card */}
         <section className="card bg-base-200/60 backdrop-blur-sm border border-base-300 shadow-md p-6 rounded-3xl">
