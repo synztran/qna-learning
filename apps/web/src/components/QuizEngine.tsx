@@ -437,14 +437,12 @@ export function QuizEngine({
 			if (it.done || it.tries.includes(chosenKey)) return prev;
 
 			const tries = [...it.tries, chosenKey];
-			const first = it.first === null ? chosenKey : it.first;
 			const isCorrect = chosenKey === it.q.ans;
+			const forceCorrect = !isCorrect && tries.length === OPTION_KEYS.length - 1;
 
-			it.tries = tries;
-			it.first = first;
-			if (isCorrect) {
-				it.done = true;
-			}
+			it.tries = forceCorrect ? [...tries, it.q.ans] : tries;
+			it.first = it.first ?? (forceCorrect ? it.q.ans : chosenKey);
+			if (isCorrect || forceCorrect) it.done = true;
 			next[itemIndex] = it;
 			return next;
 		});
@@ -1093,7 +1091,7 @@ export function QuizEngine({
 				{/* Sticky Mobile Bar with Rabbit Ear Clearance */}
 				<div
 					safe_top=""
-					className="sticky  top-0 z-30 bg-base-100/95 backdrop-blur-md border-b border-base-300/80 py-2 px-2 -mx-1 mb-4 shadow-sm rounded-md w-full">
+					className="sticky  top-0 z-30 bg-base-100/95 backdrop-blur-md border-b border-base-300/80 py-2 px-2 mb-4 shadow-sm rounded-md w-full">
 					<div className="flex justify-between items-center mb-2">
 						<div className="flex items-center gap-2">
 							<button
@@ -1198,10 +1196,10 @@ export function QuizEngine({
 
 									{done ? (
 										<span
-											className={`badge badge-sm text-[10px] font-bold ${
+											className={`badge badge-sm text-[10px] font-bold py-1 ${
 												isFirstRight
 													? "badge-success text-white"
-													: "badge-warning text-base-content"
+													: "badge-warning text-base-100"
 											}`}>
 											{isFirstRight
 												? "✓ Đúng ngay"
@@ -1246,7 +1244,7 @@ export function QuizEngine({
 													mark = "✗";
 											} else {
 												btnClass =
-													"opacity-40 border-base-300";
+													"opacity-60 border-base-300";
 											}
 						} else if (isTried) {
 							btnClass =
@@ -1295,20 +1293,24 @@ export function QuizEngine({
 										initial={{ opacity: 0, height: 0 }}
 										animate={{ opacity: 1, height: "auto" }}
 										transition={reduceMotion ? { duration: 0 } : undefined}
-										className="mt-4 pt-3 border-t border-base-300/80 text-xs space-y-2 bg-base-200/40 p-3 rounded-2xl">
-										<div>
-											<b className="text-primary font-display">
-												Giải thích:{" "}
-											</b>
-											<span className="text-base-content/90 leading-relaxed select-text">
-												{q.exp}
-											</span>
-										</div>
-										{q.src && (
+										className="mt-4 text-xs space-y-2">
+										{
+                      q.exp ? (
+                          <div>
+                            <b className="text-primary font-display">
+                              Giải thích:{" "}
+                            </b>
+                            <span className="text-base-content/90 leading-relaxed select-text">
+                              {q.exp}
+                            </span>
+                          </div>
+                        ) : null
+                    }
+										{/* {q.src && (
 											<div className="text-[11px] text-base-content/60 italic border-t border-base-300/40 pt-1.5">
 												<b>Nguồn: </b> {q.src}
 											</div>
-										)}
+										)} */}
 										{idx < items.length - 1 && (
 											<div className="pt-2 text-right">
 												<button
