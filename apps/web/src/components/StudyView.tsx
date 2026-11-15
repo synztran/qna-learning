@@ -398,6 +398,7 @@ export function StudyView({
 								<p className="font-semibold text-sm sm:text-base leading-snug text-base-content select-text">
 									{q.q}
 								</p>
+								{q.images?.map((src, imageIndex) => <img key={`${src}-${imageIndex}`} src={src} alt={`Ảnh ${imageIndex + 1} câu ${q.n}`} loading="lazy" className="mb-3 max-h-44 max-w-full rounded-xl object-contain sm:max-h-56" />)}
 
 								{/* Options List */}
 								<div className="grid grid-cols-1 gap-2 pt-1">

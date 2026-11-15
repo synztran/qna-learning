@@ -41,6 +41,7 @@ function mapQuestion(row: any): Question {
     ansText: row.answer_text,
     exp: row.explanation || '',
     src: row.source_ref || '',
+    images: row.images || [],
     isActive: row.is_active,
   };
 }

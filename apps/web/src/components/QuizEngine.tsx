@@ -1089,11 +1089,11 @@ export function QuizEngine({
      ============================================================== */
 	if (view === "quiz") {
 		return (
-			<div safe_bot="" className="min-h-[100dvh] pb-48 pt-2">
+			<div safe_bot="" className="min-h-[100dvh] pb-48">
 				{/* Sticky Mobile Bar with Rabbit Ear Clearance */}
 				<div
 					safe_top=""
-					className="sticky top-0 z-30 bg-base-100/95 backdrop-blur-md border-b border-base-300/80 pb-2.5 px-1 -mx-1 mb-4 shadow-sm">
+					className="sticky  top-0 z-30 bg-base-100/95 backdrop-blur-md border-b border-base-300/80 py-2 px-2 -mx-1 mb-4 shadow-sm rounded-md w-full">
 					<div className="flex justify-between items-center mb-2">
 						<div className="flex items-center gap-2">
 							<button
@@ -1112,7 +1112,7 @@ export function QuizEngine({
 										);
 									}
 								}}
-								className={`btn btn-xs rounded-xl font-medium transition-all ${
+								className={`btn btn-xs rounded-xl font-medium transition-all px-0 ${
 									quitConfirm
 										? "btn-error text-white"
 										: "btn-ghost text-base-content/70"
@@ -1222,6 +1222,7 @@ export function QuizEngine({
 								<p className="font-semibold text-sm sm:text-base leading-snug mb-4 text-base-content select-text">
 									{q.q}
 								</p>
+								{q.images?.map((src, imageIndex) => <img key={`${src}-${imageIndex}`} src={src} alt={`Ảnh ${imageIndex + 1} câu ${q.n}`} loading="lazy" className="mb-4 max-h-44 max-w-full rounded-xl object-contain sm:max-h-56" />)}
 
 								{/* Options List */}
 								<div className="grid grid-cols-1 gap-2.5">
@@ -1237,20 +1238,20 @@ export function QuizEngine({
 										if (done) {
 											if (isCorrectAnswer) {
 												btnClass =
-													"bg-success/20 border-success text-success-content font-bold shadow-sm";
-												mark = "✓ Đúng";
-											} else if (isTried) {
-												btnClass =
-													"bg-error/15 border-error text-error line-through opacity-70";
-												mark = "✗";
+													"bg-success/20 border-success text-success font-bold shadow-sm";
+												mark = "✓";
+												} else if (isTried) {
+													btnClass =
+														"bg-error/15 border-error text-error [html:not([data-theme='dark'])_&]:!bg-error/40";
+													mark = "✗";
 											} else {
 												btnClass =
 													"opacity-40 border-base-300";
 											}
-										} else if (isTried) {
-											btnClass =
-												"bg-error/15 border-error text-error line-through opacity-75";
-											mark = "✗ Sai";
+						} else if (isTried) {
+							btnClass =
+													"bg-error/15 border-error text-error [html:not([data-theme='dark'])_&]:!bg-error/40";
+											mark = "✗";
 										}
 
 										return (
@@ -1267,8 +1268,10 @@ export function QuizEngine({
 														className={`w-6 h-6 rounded-xl flex items-center justify-center font-display font-bold text-xs shrink-0 ${
 															done &&
 															isCorrectAnswer
-																? "bg-success text-white"
-																: "bg-base-300 text-base-content/80"
+											? "bg-success text-white"
+											: isTried && !isCorrectAnswer
+												? "bg-error text-white"
+												: "bg-base-300 text-base-content/80"
 														}`}>
 														{OPTION_KEYS[optIdx]}
 													</span>
@@ -1277,7 +1280,7 @@ export function QuizEngine({
 													</span>
 												</div>
 												{mark && (
-													<span className="text-[11px] font-bold shrink-0 ml-2">
+												<span className={`text-[11px] font-bold shrink-0 ml-2 ${isCorrectAnswer && done ? "text-success" : ""}`}>
 														{mark}
 													</span>
 												)}

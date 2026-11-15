@@ -319,6 +319,11 @@ export async function uploadQuestionsToStorageAndSync(formData: FormData) {
 
     const textContent = await file.text();
     const parsedData: QuizRawData = JSON.parse(textContent);
+    if (!Array.isArray(parsedData.lessons) || !Array.isArray(parsedData.qs) || !parsedData.qs.length || parsedData.qs.some(q => q.images !== undefined && (!Array.isArray(q.images) || q.images.some(image => typeof image !== 'string' || !image)))) return { success: false, error: 'JSON câu hỏi hoặc danh sách ảnh không hợp lệ.' };
+    if (parsedData.unassignedImages?.length) return { success: false, error: 'JSON còn ảnh chưa gán. Gán ảnh cho câu hoặc xóa ảnh chưa dùng trước khi upload.' };
+    const { questions: validatedQuestions } = parseQuizJson(parsedData);
+    if (validatedQuestions.some(question => question.images?.some(image => !/^https:\/\//i.test(image)))) return { success: false, error: 'Ảnh câu hỏi cần là URL HTTPS đã upload lên Storage.' };
+    const canonicalJson = new Blob([JSON.stringify(parsedData, null, 2)], { type: 'application/json' });
 
     const supabase = getAdmin();
     const fileName = `${slug}-${Date.now()}.json`;
@@ -326,7 +331,7 @@ export async function uploadQuestionsToStorageAndSync(formData: FormData) {
     // 1. Upload to Supabase Storage
     const { error: uploadError } = await supabase.storage
       .from('quiz-files')
-      .upload(fileName, file, {
+      .upload(fileName, canonicalJson, {
         contentType: 'application/json',
         upsert: true,
       });
@@ -380,7 +385,8 @@ export async function uploadQuestionsToStorageAndSync(formData: FormData) {
     }
 
     // 4. Delete old questions of this set and insert new ones
-    await supabase.from('questions').delete().eq('set_id', setRecord.id);
+    const { error: deleteError } = await supabase.from('questions').delete().eq('set_id', setRecord.id);
+    if (deleteError) throw deleteError;
 
     const questionsToInsert = questions.map((q) => ({
       set_id: setRecord.id,
@@ -393,14 +399,12 @@ export async function uploadQuestionsToStorageAndSync(formData: FormData) {
       answer_text: q.ansText || q.opts[q.ans],
       explanation: q.exp,
       source_ref: q.src,
+      images: q.images || [],
       is_active: true,
     }));
 
     const { error: qError } = await supabase.from('questions').insert(questionsToInsert);
-    if (qError) {
-      return { success: false, error: qError.message };
-    }
-
+    if (qError) return { success: false, error: qError.message };
     revalidatePath('/');
     return {
       success: true,
@@ -463,6 +467,7 @@ export async function seedDefaultSc5Data() {
       answer_text: q.ansText || q.opts[q.ans],
       explanation: q.exp,
       source_ref: q.src,
+      images: q.images || [],
       is_active: true,
     }));
 
@@ -574,6 +579,7 @@ export async function listQuestions(setId?: string): Promise<{ questions: Questi
       exp: q.explanation || '',
       src: q.source_ref || '',
       isActive: q.is_active,
+      images: q.images || [],
     }));
 
     return { questions };
@@ -595,6 +601,7 @@ export async function saveQuestion(question: Partial<Question>) {
       answer_text: question.ans ? question.opts?.[question.ans] : '',
       explanation: question.exp,
       source_ref: question.src,
+      images: question.images || [],
       is_active: question.isActive !== undefined ? question.isActive : true,
     };
 
@@ -616,6 +623,36 @@ export async function saveQuestion(question: Partial<Question>) {
     return { success: true };
   } catch (err: any) {
     return { success: false, error: err.message };
+  }
+}
+
+export async function uploadQuestionImage(formData: FormData): Promise<{ success: boolean; url?: string; error?: string }> {
+  try {
+    const file = formData.get('file');
+    if (!(file instanceof File) || !file.type.match(/^image\/(jpeg|png|gif|webp)$/) || file.size < 1 || file.size > 8 * 1024 * 1024) {
+      return { success: false, error: 'Chọn ảnh JPEG, PNG, GIF hoặc WebP tối đa 8 MB.' };
+    }
+    const setId = String(formData.get('setId') || 'unassigned');
+    const ext = ({ 'image/jpeg': 'jpg', 'image/png': 'png', 'image/gif': 'gif', 'image/webp': 'webp' } as Record<string, string>)[file.type];
+    const objectPath = `${setId}/${crypto.randomUUID()}.${ext}`;
+    const supabase = getAdmin();
+    const { error } = await supabase.storage.from('question-images').upload(objectPath, Buffer.from(await file.arrayBuffer()), { contentType: file.type, upsert: false });
+    if (error) return { success: false, error: error.message };
+    return { success: true, url: supabase.storage.from('question-images').getPublicUrl(objectPath).data.publicUrl };
+  } catch (error) {
+    return { success: false, error: error instanceof Error ? error.message : 'Không thể tải ảnh lên.' };
+  }
+}
+
+export async function deleteQuestionImage(url: string): Promise<{ success: boolean; error?: string }> {
+  try {
+    const supabase = getAdmin();
+    const publicPrefix = `${process.env.NEXT_PUBLIC_SUPABASE_URL || process.env.SUPABASE_URL}/storage/v1/object/public/question-images/`;
+    if (!url.startsWith(publicPrefix)) return { success: false, error: 'Ảnh không thuộc kho question-images.' };
+    const { error } = await supabase.storage.from('question-images').remove([decodeURIComponent(url.slice(publicPrefix.length))]);
+    return error ? { success: false, error: error.message } : { success: true };
+  } catch (error) {
+    return { success: false, error: error instanceof Error ? error.message : 'Không thể xóa ảnh.' };
   }
 }
 
@@ -799,16 +836,12 @@ export async function buildSetFromFolderSource(fileName: string, customPath?: st
       parsedData = docRes.data;
 
       // Auto-save the JSON counterpart to folder as well
-      const jsonDest = fullPath.replace(/\.docx$/i, '.json');
-      try {
-        await fs.promises.writeFile(jsonDest, JSON.stringify(parsedData, null, 2), 'utf-8');
-      } catch (err) {
-        console.warn('Could not auto-save JSON file:', err);
-      }
+      return { success: false, error: 'Hãy chuyển DOCX sang JSON trong công cụ chuyển đổi để trích ảnh và upload trước khi build set.' };
     } else {
       const content = await fs.promises.readFile(fullPath, 'utf-8');
       parsedData = JSON.parse(content);
     }
+    if (parsedData.unassignedImages?.length) return { success: false, error: 'Nguồn còn ảnh chưa gán. Gán ảnh cho câu hoặc xóa ảnh chưa dùng trước khi build set.' };
 
     const slug = fileName
       .replace(/\.(json|docx)$/i, '')
@@ -885,6 +918,7 @@ export async function buildSetFromFolderSource(fileName: string, customPath?: st
       answer_text: q.ansText || q.opts[q.ans],
       explanation: q.exp,
       source_ref: q.src,
+      images: q.images || [],
       is_active: true,
     }));
 
@@ -938,7 +972,7 @@ export async function previewFolderSource(fileName: string, customPath?: string)
         return { success: false, error: res.error || 'Lỗi parse DOCX' };
       }
       const { lessons, questions } = parseQuizJson(res.data);
-      return { success: true, lessons, questions, warnings: res.warnings };
+      return { success: true, lessons, questions, warnings: res.warnings, images: res.images };
     }
 
     const content = await fs.promises.readFile(fullPath, 'utf-8');
@@ -974,6 +1008,7 @@ export async function convertUploadedDocAction(formData: FormData): Promise<{
   jsonFileName?: string;
   totalQuestions?: number;
   warnings?: string[];
+  images?: Array<{ id: string; fileName: string; contentType: string; data: string }>;
   error?: string;
 }> {
   try {
@@ -1004,11 +1039,34 @@ export async function convertUploadedDocAction(formData: FormData): Promise<{
       return { success: false, error: res.error || 'Lỗi đọc tài liệu', warnings: res.warnings };
     }
 
+    const supabase = getAdmin();
+    const uploadedPaths: string[] = [];
+    for (const image of res.images || []) {
+      const bytes = Buffer.from(image.data, 'base64');
+      if (bytes.length > 8 * 1024 * 1024) return { success: false, error: `Ảnh ${image.fileName} vượt quá 8 MB.`, warnings: res.warnings };
+      const ext = ({ 'image/jpeg': 'jpg', 'image/png': 'png', 'image/gif': 'gif', 'image/webp': 'webp', 'image/bmp': 'bmp', 'image/tiff': 'tif', 'image/svg+xml': 'svg' } as Record<string, string>)[image.contentType];
+      if (!ext) continue;
+      const objectPath = `docx/${crypto.randomUUID()}.${ext}`;
+      const { error } = await supabase.storage.from('question-images').upload(objectPath, bytes, { contentType: image.contentType, upsert: false });
+      if (error) {
+        if (uploadedPaths.length) await supabase.storage.from('question-images').remove(uploadedPaths);
+        return { success: false, error: error.message, warnings: res.warnings };
+      }
+      uploadedPaths.push(objectPath);
+      image.data = supabase.storage.from('question-images').getPublicUrl(objectPath).data.publicUrl;
+    }
+
     // Save JSON to standard question sources folders
     const jsonFileName = `${res.data.slug || 'question-source'}-${crypto.randomUUID().slice(0, 8)}.json`;
     const targetDir = resolveSourceFolder(formData.get('folderPath')?.toString());
     await fs.promises.mkdir(targetDir, { recursive: true });
-    await fs.promises.writeFile(path.join(targetDir, jsonFileName), JSON.stringify(res.data, null, 2), { flag: 'wx' });
+    res.data.unassignedImages = (res.images || []).map(image => image.data);
+    try {
+      await fs.promises.writeFile(path.join(targetDir, jsonFileName), JSON.stringify(res.data, null, 2), { flag: 'wx' });
+    } catch (error) {
+      if (uploadedPaths.length) await supabase.storage.from('question-images').remove(uploadedPaths);
+      throw error;
+    }
 
     revalidatePath('/');
     return {
@@ -1017,9 +1075,25 @@ export async function convertUploadedDocAction(formData: FormData): Promise<{
       jsonFileName,
       totalQuestions: res.totalQuestions,
       warnings: res.warnings,
+      images: res.images,
     };
   } catch (err: any) {
     return { success: false, error: err.message };
+  }
+}
+
+export async function saveConvertedQuestionSource(fileName: string, data: QuizRawData, folderPath?: string) {
+  try {
+    if (!/^[\w.-]+\.json$/i.test(fileName)) return { success: false, error: 'Tên JSON không hợp lệ.' };
+    if (!Array.isArray(data.lessons) || !Array.isArray(data.qs) || data.qs.some(question => question.images?.some(image => !/^https:\/\//i.test(image)))) {
+      return { success: false, error: 'Dữ liệu nguồn hoặc URL ảnh không hợp lệ.' };
+    }
+    const destination = path.join(resolveSourceFolder(folderPath), fileName);
+    await fs.promises.writeFile(destination, JSON.stringify(data, null, 2) + '\n', { flag: 'w' });
+    revalidatePath('/');
+    return { success: true };
+  } catch (error) {
+    return { success: false, error: error instanceof Error ? error.message : 'Không lưu được JSON.' };
   }
 }
 

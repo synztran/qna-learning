@@ -82,6 +82,7 @@ export async function getQuizData(setId?: string): Promise<{
       ansText: q.answer_text,
       exp: q.explanation || '',
       src: q.source_ref || '',
+      images: q.images || [],
     }));
 
     return { lessons, questions, sets: availableSets, selectedSetId: activeSetId };

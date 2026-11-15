@@ -1,4 +1,5 @@
 import mammoth from 'mammoth';
+import JSZip from 'jszip';
 import type { QuizRawData } from '@qna/types';
 
 export interface ConvertDocOptions {
@@ -13,6 +14,7 @@ export interface ConvertDocResult {
   rawText?: string;
   totalQuestions: number;
   warnings: string[];
+  images?: Array<{ id: string; fileName: string; contentType: string; data: string }>;
   error?: string;
 }
 
@@ -35,7 +37,21 @@ export async function convertDocxBufferToQuizData(
   try {
     const mammothRes = await mammoth.extractRawText({ buffer });
     const rawText = mammothRes.value || '';
-    return parseTextToQuizData(rawText, options);
+    const result = parseTextToQuizData(rawText, options);
+    const archive = await JSZip.loadAsync(buffer);
+    const mediaFiles = Object.values(archive.files)
+      .filter(file => !file.dir && /^word\/media\//i.test(file.name))
+      .sort((a, b) => a.name.localeCompare(b.name, undefined, { numeric: true }));
+    const images = await Promise.all(mediaFiles.map(async (file, index) => {
+      const bytes = await file.async('nodebuffer');
+      const ext = file.name.split('.').pop()?.toLowerCase() || '';
+      const contentType = ({ jpg: 'image/jpeg', jpeg: 'image/jpeg', png: 'image/png', gif: 'image/gif', webp: 'image/webp', bmp: 'image/bmp', tif: 'image/tiff', tiff: 'image/tiff', svg: 'image/svg+xml' } as Record<string, string>)[ext];
+      if (!contentType) return null;
+      return { id: `docx-image-${index + 1}`, fileName: file.name.split('/').pop() || `image-${index + 1}.${ext}`, contentType, data: bytes.toString('base64') };
+    }));
+    result.images = images.filter((image): image is NonNullable<typeof image> => image !== null);
+    if (images.some(image => image === null)) result.warnings.push('Một số media trong DOCX không phải định dạng ảnh được hỗ trợ và đã bỏ qua.');
+    return result;
   } catch (err: any) {
     return {
       success: false,

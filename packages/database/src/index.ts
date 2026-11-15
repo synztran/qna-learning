@@ -30,6 +30,7 @@ export function parseQuizJson(jsonContent: string | QuizRawData): { lessons: Les
     ansText: q.ansText,
     exp: q.exp || '',
     src: q.src || '',
+    images: q.images || [],
   }));
 
   return { lessons, questions };

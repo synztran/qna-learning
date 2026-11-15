@@ -12,6 +12,8 @@ import {
 	seedDefaultSc5Data,
 	saveQuestion,
 	deleteQuestion,
+	deleteQuestionImage,
+	uploadQuestionImage,
 	deleteQuizSet,
 	listQuestionSourcesFromFolder,
 	buildSetFromFolderSource,
@@ -22,6 +24,7 @@ import {
 	listQuestionSets,
 	type AdminQuizSet,
 	convertUploadedDocAction,
+	saveConvertedQuestionSource,
 	type FolderQuestionSource,
 	listFeedbacks,
 	updateFeedbackStatus,
@@ -101,12 +104,15 @@ export function AdminDashboard({
 		fileName: string;
 		lessons: Lesson[];
 		questions: Question[];
+		images?: Array<{ id: string; fileName: string; contentType: string; data: string }>;
 	} | null>(null);
 
 	// Converter Tool State
 	const [converterFile, setConverterFile] = useState<File | null>(null);
 	const [converting, setConverting] = useState(false);
 	const [convertedResult, setConvertedResult] = useState<QuizRawData | null>(null);
+	const [convertedImages, setConvertedImages] = useState<Array<{ id: string; fileName: string; contentType: string; data: string }>>([]);
+	const [convertedJsonFileName, setConvertedJsonFileName] = useState<string | null>(null);
 	const [converterMsg, setConverterMsg] = useState<{
 		type: "ok" | "err";
 		text: string;
@@ -128,6 +134,7 @@ export function AdminDashboard({
 		type: "ok" | "err";
 		text: string;
 	} | null>(null);
+	const [questionSaveToast, setQuestionSaveToast] = useState<string | null>(null);
 
 	// Password Modal
 	const [pwdModalUser, setPwdModalUser] = useState<UserProfile | null>(null);
@@ -228,6 +235,7 @@ export function AdminDashboard({
 	const [uploadSlug, setUploadSlug] = useState("");
 	const [uploadReading, setUploadReading] = useState(false);
 	const [uploadPreview, setUploadPreview] = useState<QuizRawData | null>(null);
+	const [uploadImageFiles, setUploadImageFiles] = useState<File[]>([]);
 	const [uploadMsg, setUploadMsg] = useState<{
 		type: "ok" | "err";
 		text: string;
@@ -240,6 +248,7 @@ export function AdminDashboard({
 	const [editingQuestion, setEditingQuestion] =
 		useState<Partial<Question> | null>(null);
 	const [isEditingNew, setIsEditingNew] = useState(false);
+	const [questionImageFile, setQuestionImageFile] = useState<File | null>(null);
 	const [deleteSetTarget, setDeleteSetTarget] = useState<{
 		id: string;
 		title: string;
@@ -379,6 +388,7 @@ export function AdminDashboard({
 		setUploadTitle("");
 		setUploadSlug("");
 		setUploadPreview(null);
+		setUploadImageFiles([]);
 		setUploadMsg(null);
 		setUploadReading(false);
 	};
@@ -390,6 +400,7 @@ export function AdminDashboard({
 		setUploadSlug("");
 		setUploadMsg(null);
 		setUploadPreview(null);
+		setUploadImageFiles([]);
 		input.setCustomValidity("");
 		setUploadReading(Boolean(file));
 		if (!file) return;
@@ -412,7 +423,8 @@ export function AdminDashboard({
 					Object.keys(question.opts).length > 0 && Object.values(question.opts).every(option => typeof option === "string") &&
 					typeof question.ans === "string" && ["A", "B", "C", "D"].includes(question.ans) &&
 					Object.hasOwn(question.opts, question.ans) &&
-					(question.exp === undefined || typeof question.exp === "string"))) {
+					(question.exp === undefined || typeof question.exp === "string") &&
+					(question.images === undefined || (Array.isArray(question.images) && question.images.every(image => typeof image === 'string'))))) {
 				throw new Error("Invalid question structure");
 			}
 			setUploadPreview(data as QuizRawData);
@@ -434,6 +446,7 @@ export function AdminDashboard({
 		setUploadLoading(true);
 		setUploadMsg(null);
 		const fd = new FormData(e.currentTarget);
+		for (const image of uploadImageFiles) fd.append('images', image);
 		const res = await uploadQuestionsToStorageAndSync(fd);
 		setUploadLoading(false);
 		if (res.success) {
@@ -474,22 +487,35 @@ export function AdminDashboard({
 	const handleSaveQuestion = async (e: React.FormEvent) => {
 		e.preventDefault();
 		if (!editingQuestion) return;
-		const res = await saveQuestion(editingQuestion);
-		if (res.success) {
-			if (editingQuestion.id) {
-				setQuestions((prev) =>
-					prev.map((q) =>
-						q.id === editingQuestion.id
-							? ({ ...q, ...editingQuestion } as Question)
-							: q,
-					),
-				);
-			} else {
-				setQuestions((prev) => [editingQuestion as Question, ...prev]);
+		setQuestionSaveToast(null);
+		let questionToSave = editingQuestion;
+		if (questionImageFile) {
+			const imageForm = new FormData();
+			imageForm.append('file', questionImageFile);
+			imageForm.append('setId', editingQuestion.setId || qSetFilter);
+			const uploaded = await uploadQuestionImage(imageForm);
+			if (!uploaded.success || !uploaded.url) {
+				setUserActionMsg({ type: 'err', text: uploaded.error || 'Không thể tải ảnh lên.' });
+				return;
 			}
+			questionToSave = { ...editingQuestion, images: [...(editingQuestion.images || []), uploaded.url] };
+		}
+		const res = await saveQuestion(questionToSave);
+		if (res.success) {
 			setEditingQuestion(null);
+			setQuestionImageFile(null);
+			setQuestionSaveToast('Đã lưu câu hỏi. Đang làm mới danh sách…');
+			try {
+				const result = await listQuestions();
+				if (result.error) throw new Error(result.error);
+				setQuestions(result.questions);
+				setQuestionSaveToast('Đã lưu câu hỏi và cập nhật danh sách.');
+				window.setTimeout(() => setQuestionSaveToast(null), 3500);
+			} catch {
+				setQuestionSaveToast('Đã lưu câu hỏi, nhưng chưa tải lại được danh sách. Bấm “Làm mới danh sách” để thử lại.');
+			}
 		} else {
-			alert("Lỗi lưu câu hỏi: " + res.error);
+			setUserActionMsg({ type: 'err', text: `Lỗi lưu câu hỏi: ${res.error || 'Vui lòng thử lại.'}` });
 		}
 	};
 
@@ -645,6 +671,7 @@ export function AdminDashboard({
 				fileName,
 				lessons: res.lessons,
 				questions: res.questions,
+				images: res.images,
 			});
 		} else {
 			setUserActionMsg({
@@ -662,6 +689,7 @@ export function AdminDashboard({
 		setConverterMsg(null);
 		setConverterWarnings([]);
 		setConvertedResult(null);
+		setConvertedImages([]);
 
 		const fd = new FormData();
 		fd.append("file", converterFile);
@@ -671,6 +699,9 @@ export function AdminDashboard({
 		const res = await convertUploadedDocAction(fd);
 		if (res.success && res.data) {
 			setConvertedResult(res.data);
+			setConvertedImages(res.images || []);
+			setConvertedJsonFileName(res.jsonFileName || null);
+			setConverterFile(null);
 			setConverterWarnings(res.warnings || []);
 			setConverterMsg({
 				type: "ok",
@@ -705,6 +736,13 @@ export function AdminDashboard({
 		a.download = `${convertedResult.slug || "question_source"}.json`;
 		a.click();
 		URL.revokeObjectURL(url);
+	};
+
+	const handleSaveConvertedJson = async () => {
+		if (!convertedResult || !convertedJsonFileName) return;
+		const result = await saveConvertedQuestionSource(convertedJsonFileName, convertedResult, folderPath);
+		setConverterMsg({ type: result.success ? 'ok' : 'err', text: result.success ? 'Đã lưu JSON sau khi gán ảnh. Có thể build set từ nguồn JSON này.' : result.error || 'Không thể lưu JSON.' });
+		if (result.success) await handleScanFolder();
 	};
 
 	// Handler: Refresh Users from Auth & Database
@@ -849,8 +887,10 @@ export function AdminDashboard({
 					</div>
 				)}
 
+				{questionSaveToast && <div role="status" aria-live="polite" className="toast toast-top toast-end z-[70]"><div className="alert alert-success shadow-lg"><span>{questionSaveToast}</span></div></div>}
+
 				{/* Global Feedback Banner */}
-				{userActionMsg && (
+			{userActionMsg && (
 					<div
 						className={`alert ${
 							userActionMsg.type === "ok"
@@ -1142,14 +1182,17 @@ export function AdminDashboard({
 						{convertedResult && <div className="space-y-4">
 							<div className="flex flex-wrap items-center justify-between gap-3">
 								<div><h3 className="font-display font-bold">{convertedResult.title}</h3><p className="text-sm text-base-content/70">{convertedResult.lessons.length} bài · {convertedResult.qs.length} câu hỏi</p></div>
-								<button type="button" onClick={handleDownloadJson} className="btn btn-outline btn-sm"><Download className="w-4 h-4" />Tải JSON</button>
+								<div className="flex gap-2"><button type="button" onClick={handleSaveConvertedJson} disabled={!convertedJsonFileName} className="btn btn-primary btn-sm">Lưu JSON đã gán ảnh</button><button type="button" onClick={handleDownloadJson} className="btn btn-outline btn-sm"><Download className="w-4 h-4" />Tải JSON</button></div>
 							</div>
 							<details open className="space-y-3"><summary className="cursor-pointer font-semibold text-sm">Xem trước câu hỏi</summary>
 								<div className="max-h-[60vh] overflow-y-auto space-y-4 pr-2">{convertedResult.qs.map((question, index) => <article key={index} className="border-b border-base-300 pb-4 text-sm">
-									<h4 className="font-semibold">Câu {question.n}. {question.q}</h4>
+										<h4 className="font-semibold">Câu {question.n}. {question.q}</h4>
+										<div className="mt-2 flex flex-wrap gap-2">{convertedImages.map(image => <figure key={image.id} className="w-36 rounded-lg border border-base-300 p-2"><img className="h-24 w-full object-contain" src={image.data} alt={image.fileName} /><figcaption className="truncate text-[10px]">{image.fileName}</figcaption><button type="button" disabled={(question.images || []).includes(image.data)} className="btn btn-xs btn-primary mt-1" onClick={() => setConvertedResult(data => data ? ({ ...data, qs: data.qs.map((q, i) => i === index ? { ...q, images: [...(q.images || []), image.data] } : q), unassignedImages: data.unassignedImages?.filter(url => url !== image.data) }) : data)}>Gán ảnh này</button></figure>)}</div>
+										{question.images?.map((src, imageIndex) => <img key={imageIndex} src={src} alt={`Ảnh ${imageIndex + 1} của câu ${question.n}`} className="mt-2 max-h-48 max-w-full object-contain" />)}
 									<ul className="mt-2 space-y-1">{(["A", "B", "C", "D"] as const).map(key => <li key={key}><b>{key}.</b> {question.opts[key]} {key === question.ans && <span className="font-bold text-primary">(Đáp án)</span>}</li>)}</ul>
 									{question.exp && <p className="mt-2 text-base-content/70">Giải thích: {question.exp}</p>}
 								</article>)}</div>
+								{convertedResult.unassignedImages?.length ? <div className="rounded-xl border border-warning/40 p-3"><p className="mb-2 text-xs font-semibold">Ảnh chưa gán cho câu (được giữ trong JSON):</p><div className="flex flex-wrap gap-2">{convertedResult.unassignedImages.map((url, index) => <img key={`${url}-${index}`} src={url} alt={`Ảnh chưa gán ${index + 1}`} className="h-20 max-w-32 rounded object-contain" />)}</div></div> : null}
 							</details>
 							<button type="button" onClick={() => setTab("folderSources")} className="btn btn-ghost btn-sm">Mở nguồn đề để kiểm tra và xuất bản</button>
 						</div>}
@@ -1450,15 +1493,17 @@ export function AdminDashboard({
 											File JSON câu hỏi
 										</span>
 									</label>
-									<input
-										type="file"
+											<input
+												type="file"
 										name="file"
 										onChange={handleUploadFileChange}
 										disabled={uploadLoading}
 										accept=".json"
 										required
-										className="file-input file-input-bordered file-input-sm bg-base-100 rounded-xl text-xs w-full"
-									/>
+											className="file-input file-input-bordered file-input-sm bg-base-100 rounded-xl text-xs w-full"
+										/>
+										<label className="label py-1"><span className="label-text text-xs font-semibold">Ảnh bổ sung (nếu JSON có tham chiếu ảnh cục bộ)</span></label>
+										<input type="file" accept="image/*" multiple disabled={uploadLoading} onChange={event => setUploadImageFiles(Array.from(event.target.files || []))} className="file-input file-input-bordered file-input-sm w-full" />
 									<label className="label py-1">
 										<span className="label-text-alt text-[11px] text-base-content/50">
 											Cấu trúc JSON chuẩn:{" "}
@@ -1497,13 +1542,14 @@ export function AdminDashboard({
 									<p className="text-xs text-base-content/60 break-all">Slug: {uploadSlug || "Chưa nhập"}</p>
 									<p className="text-xs">{uploadPreview.lessons.length} bài học · {uploadPreview.qs.length} câu hỏi</p>
 									<div className="max-h-96 overflow-y-auto space-y-2">
-										{uploadPreview.qs.map((question, index) => (
-											<details key={index} className="rounded-xl border border-base-300 p-3 text-sm">
-												<summary className="cursor-pointer whitespace-pre-wrap break-words">Câu {question.n}: {question.q}</summary>
+												{uploadPreview.qs.map((question, index) => (
+													<details key={index} className="rounded-xl border border-base-300 p-3 text-sm">
+														<summary className="cursor-pointer whitespace-pre-wrap break-words">Câu {question.n}: {question.q}</summary>
+														{question.images?.map((image, imageIndex) => <img key={imageIndex} src={image} alt={`Ảnh ${imageIndex + 1} câu ${question.n}`} className="mt-2 max-h-48 max-w-full object-contain" />)}
 												<p className="mt-2 text-xs text-base-content/60">{uploadPreview.lessons.find(lesson => lesson.n === question.lesson)?.title}</p>
 												<ul className="mt-2 space-y-1">
 													{Object.entries(question.opts).map(([key, text]) => (
-														<li key={key} className="whitespace-pre-wrap break-words">{key}. {text}{key === question.ans ? " ✓ (Đáp án đúng)" : ""}</li>
+												<li key={key} className="whitespace-pre-wrap break-words">{key}. {text}{key === question.ans ? " ✓ (Đáp án đúng)" : ""}</li>
 													))}
 												</ul>
 											</details>
@@ -2001,7 +2047,6 @@ export function AdminDashboard({
 					</div>
 				</div>
 			)}
-
 			{/* ==============================================================
           MODAL: RESET PASSWORD
           ============================================================== */}
@@ -2264,6 +2309,12 @@ export function AdminDashboard({
 								)}
 							</div>
 
+							<div className="form-control">
+								<label className="label py-1"><span className="label-text text-xs font-semibold">Ảnh câu hỏi (thứ tự từ trái sang phải)</span></label>
+								<div className="flex flex-wrap gap-2">{(editingQuestion.images || []).map((url, index) => <figure key={`${url}-${index}`} className="w-28 rounded-lg border border-base-300 p-2"><img src={url} alt={`Ảnh ${index + 1}`} className="h-16 w-full object-contain" /><div className="mt-1 flex justify-between"><button type="button" className="btn btn-xs" disabled={index === 0} onClick={() => setEditingQuestion({ ...editingQuestion, images: editingQuestion.images!.map((image, i, all) => i === index - 1 ? all[index] : i === index ? all[index - 1] : image) })} aria-label="Di chuyển ảnh sang trái">←</button><button type="button" className="btn btn-xs btn-error" onClick={() => setEditingQuestion({ ...editingQuestion, images: editingQuestion.images!.filter((_, i) => i !== index) })} aria-label={`Xóa ảnh ${index + 1}`}>×</button><button type="button" className="btn btn-xs" disabled={index === editingQuestion.images!.length - 1} onClick={() => setEditingQuestion({ ...editingQuestion, images: editingQuestion.images!.map((image, i, all) => i === index ? all[index + 1] : i === index + 1 ? all[index] : image) })} aria-label="Di chuyển ảnh sang phải">→</button></div></figure>)}</div>
+								<input type="file" accept="image/jpeg,image/png,image/gif,image/webp" onChange={event => setQuestionImageFile(event.target.files?.[0] || null)} className="file-input file-input-bordered file-input-sm mt-2" />
+								{questionImageFile && <figure className="mt-2 flex w-fit items-center gap-3 rounded-lg border border-primary/30 bg-base-200/40 p-2"><img src={URL.createObjectURL(questionImageFile)} alt={`Xem trước ảnh mới: ${questionImageFile.name}`} className="h-20 w-28 rounded object-contain" /><figcaption className="max-w-48 break-all text-xs">Ảnh mới: {questionImageFile.name}</figcaption></figure>}
+							</div>
 							<div className="form-control">
 								<label className="label py-1">
 									<span className="label-text text-xs font-semibold">

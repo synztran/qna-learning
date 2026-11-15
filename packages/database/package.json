@@ -13,6 +13,7 @@
     "@qna/types": "workspace:*",
     "@supabase/ssr": "^0.5.2",
     "@supabase/supabase-js": "^2.49.1",
+    "jszip": "^3.10.2",
     "mammoth": "^1.13.0"
   },
   "devDependencies": {

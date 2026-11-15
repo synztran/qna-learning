@@ -170,6 +170,7 @@ export function FlashcardView({ questions, setTitle, onBack, onGraded }: {
                   <span className="inline-flex items-center gap-1"><Sparkles className="w-3.5 h-3.5 text-primary" />Nhấn để lật</span>
                 </div>
                 <p className="text-base sm:text-lg font-semibold leading-relaxed select-text">{card.q}</p>
+                {card.images?.map((src, imageIndex) => <img key={`${src}-${imageIndex}`} src={src} alt={`Ảnh ${imageIndex + 1} câu ${card.n}`} loading="lazy" className="mx-auto mt-3 max-h-44 max-w-full rounded-xl object-contain sm:max-h-56" />)}
                 <ul className="grid gap-1.5 text-xs sm:text-sm text-base-content/70">
                   {(["A", "B", "C", "D"] as const).map(key => (
                     <li key={key} className="rounded-xl border border-base-300/60 bg-base-200/40 px-3 py-2">

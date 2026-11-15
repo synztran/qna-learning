@@ -19,6 +19,9 @@ export const EditorQuestionCard = memo(function EditorQuestionCard({ question: q
 			</div>
 		</div>
 		<p className="font-semibold text-base-content text-sm select-text">{q.q}</p>
+		{q.images?.length ? <div className="flex flex-wrap gap-2" aria-label={`Ảnh minh họa câu ${q.n}`}>
+			{q.images.map((src, index) => <img key={`${src}-${index}`} src={src} alt={`Ảnh ${index + 1} của câu ${q.n}`} loading="lazy" className="h-20 max-w-36 rounded-lg border border-base-300 bg-base-100 object-contain" />)}
+		</div> : null}
 		<div className="grid grid-cols-1 sm:grid-cols-2 gap-1.5 text-[11px] pt-1">
 			{(["A", "B", "C", "D"] as OptionKey[]).map(key => <div key={key} className={`p-1.5 px-2.5 rounded-lg border flex items-center gap-2 ${key === q.ans ? "bg-success/80 border-success/40 text-success-content font-bold" : "bg-base-100 border-base-300/60"}`}>
 				<span className="font-display font-bold w-4">{key}.</span><span className="truncate">{q.opts[key]}</span>

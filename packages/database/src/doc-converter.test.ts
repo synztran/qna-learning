@@ -1,6 +1,7 @@
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
 import { readFileSync, readdirSync } from 'node:fs';
+import JSZip from 'jszip';
 import { convertDocxBufferToQuizData, parseTextToQuizData } from './doc-converter';
 
 const question = 'Câu 1. Chọn phương án đúng?\nA. Một\nB. Hai\nC. Ba\nD. Bốn';
@@ -54,6 +55,18 @@ test('multiline options, parenthesized labels and explanations retain text', () 
   assert.equal(result.data!.qs[0].opts.A, 'Một dòng hai');
   assert.equal(result.data!.qs[0].ans, 'B');
   assert.equal(result.data!.qs[0].exp, 'Vì vậy thêm lý do');
+});
+
+test('DOCX extraction returns embedded images separately and never guesses question assignments', async () => {
+	const docDir = new URL('../../../wrong_docx/', import.meta.url);
+	const doc = readdirSync(docDir).find(name => name.endsWith('.docx'))!;
+	const archive = await JSZip.loadAsync(readFileSync(new URL(doc, docDir)));
+	archive.file('word/media/test-image.png', Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+j8ioAAAAASUVORK5CYII=', 'base64'));
+	const fixtureBuffer = await archive.generateAsync({ type: 'nodebuffer' });
+	const result = await convertDocxBufferToQuizData(fixtureBuffer);
+	assert.equal(result.success, true, result.error);
+	assert.ok(result.images?.some(image => image.fileName === 'test-image.png'));
+	assert.ok(result.images!.every(image => image.data && image.contentType.startsWith('image/')));
 });
 
 test('invalid answer option and duplicate question numbers fail', () => {

@@ -118,6 +118,7 @@ export interface Database {
           answer_text: string | null;
           explanation: string | null;
           source_ref: string | null;
+          images: string[];
           is_active: boolean;
           created_at: string;
         };
@@ -133,6 +134,7 @@ export interface Database {
           answer_text?: string | null;
           explanation?: string | null;
           source_ref?: string | null;
+          images?: string[];
           is_active?: boolean;
           created_at?: string;
         };
@@ -148,6 +150,7 @@ export interface Database {
           answer_text?: string | null;
           explanation?: string | null;
           source_ref?: string | null;
+          images?: string[];
           is_active?: boolean;
           created_at?: string;
         };

@@ -26,6 +26,7 @@ export interface Question {
   ansText?: string;
   exp: string;
   src?: string;
+  images?: string[];
   isActive?: boolean;
 }
 
@@ -182,6 +183,7 @@ export interface QuizSet {
 export interface QuizRawData {
   title?: string;
   slug?: string;
+  unassignedImages?: string[];
   lessons: Array<{
     n: number;
     title: string;
@@ -196,6 +198,7 @@ export interface QuizRawData {
     ansText?: string;
     exp: string;
     src?: string;
+    images?: string[];
   }>;
 }
 
