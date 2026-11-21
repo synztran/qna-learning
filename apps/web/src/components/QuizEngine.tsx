@@ -22,7 +22,6 @@ import {
 	BookOpen,
 	Brain,
 	CalendarClock,
-	Check,
 	ChevronDown,
 	ChevronUp,
 	Clock,
@@ -38,18 +37,16 @@ import {
 	X,
 } from "lucide-react";
 import Link from "next/link";
-import { motion, AnimatePresence, useReducedMotion } from "motion/react";
+import { motion, useReducedMotion } from "motion/react";
 import { getQuizData, saveQuizAttempt } from "../app/actions/quiz";
 import { LogoutButton } from './LogoutButton';
-import { FloatingLearningMenu } from './FloatingLearningMenu';
 import { createLeaderboardCache } from '@/lib/leaderboard-cache';
 import { PerfectScoreCelebration } from './PerfectScoreCelebration';
 import { DonorWelcomeModal } from './DonorWelcomeModal';
-import { StreakBadge } from './StreakBadge';
-import { HomeGuide } from './HomeGuide';
 import { StudyView } from './StudyView';
 import { FlashcardView } from './FlashcardView';
-import { PullToRefresh } from './PullToRefresh';
+import { QuizSessionView } from './QuizSessionView';
+import { QuizSetupView } from './QuizSetupView';
 import { getStudyProgress } from '../app/actions/study';
 import { getDueQuestions, getFlashcardQuestions, getLearningSummary, getWrongQuestions } from '../app/actions/learning';
 import type { QuizSubmission } from '@/lib/submissions';
@@ -71,13 +68,6 @@ function formatDuration(ms: number): string {
 	const seconds = totalSeconds % 60;
 	if (minutes === 0) return `${seconds} giây`;
 	return `${minutes} phút ${seconds} giây`;
-}
-
-function formatClock(ms: number): string {
-	const totalSeconds = Math.ceil(ms / 1000);
-	const minutes = Math.floor(totalSeconds / 60);
-	const seconds = totalSeconds % 60;
-	return `${minutes}:${String(seconds).padStart(2, "0")}`;
 }
 
 interface QuizEngineProps {
@@ -459,6 +449,18 @@ export function QuizEngine({
 		}
 	};
 
+	const handleQuizQuit = () => {
+		if (quitConfirm) {
+			deadlineRef.current = null;
+			setRemainingMs(null);
+			setView("setup");
+			setQuitConfirm(false);
+		} else {
+			setQuitConfirm(true);
+			setTimeout(() => setQuitConfirm(false), 3500);
+		}
+	};
+
 	// Quiz Stats
 	const stats = useMemo(() => {
 		const total = items.length;
@@ -470,7 +472,8 @@ export function QuizEngine({
 		// Unanswered questions are left out of the score, matching the server submission.
 		const score =
 			scoredTotal > 0 ? Math.round((okCount / scoredTotal) * 1000) / 100 : 0;
-		return { total, doneCount, scoredTotal, okCount, badCount, score };
+		const progressPercent = total ? (doneCount / total) * 100 : 0;
+		return { total, doneCount, scoredTotal, okCount, badCount, score, progressPercent };
 	}, [items]);
 
 	const persistSubmission = async () => {
@@ -545,6 +548,25 @@ export function QuizEngine({
 		return () => window.clearInterval(interval);
 	}, [view]);
 
+	const handleSetupRefresh = async () => {
+		if (activeMode === 'study') setStudyProgressLoading(true);
+		try {
+			const data = await getQuizData(selectedSetId);
+			const fresh = data.error && data.sets.length > 0 ? await getQuizData() : data;
+			if (fresh.error) throw new Error(fresh.error);
+			setAvailableSets(fresh.sets);
+			setSelectedSetId(fresh.selectedSetId);
+			setSetId(fresh.selectedSetId);
+			setPool(fresh.questions);
+			setLessons(fresh.lessons);
+			setStartError('');
+			if (activeMode === 'study' && fresh.sets.length && !await refreshStudyProgress(true)) throw new Error('Không thể tải tiến độ ôn tập.');
+		} catch (error) {
+			if (activeMode === 'study') setStudyProgressError('Không thể tải dữ liệu ôn tập. Vui lòng thử lại.');
+			throw error;
+		} finally { setStudyProgressLoading(false); }
+	};
+
 	// Retry Wrong Only
 	const handleRetryWrong = () => {
 		const wrongQs = items
@@ -560,493 +582,21 @@ export function QuizEngine({
 	if (view === "setup") {
 		return (
 			<>
-			<DonorWelcomeModal user={user} />
-			<div
-				safe_top=""
-				safe_bot=""
-				className="fixed inset-0 z-20 flex flex-col overflow-hidden bg-base-100">
-			<div className="mx-auto flex min-h-0 w-full max-w-md flex-1 flex-col md:max-w-xl lg:max-w-2xl">
-			<PullToRefresh
-				scrollable
-				className="px-4 pb-4 sm:px-6"
-				disabled={starting || saveState === 'saving' || studyProgressLoading}
-				onRefresh={async () => {
-				if (activeMode === 'study') setStudyProgressLoading(true);
-				try {
-				const data = await getQuizData(selectedSetId);
-				// A set may have been deactivated since selection. Reload available sets.
-				const fresh = data.error && data.sets.length > 0 ? await getQuizData() : data;
-				if (fresh.error) throw new Error(fresh.error);
-				setAvailableSets(fresh.sets);
-				setSelectedSetId(fresh.selectedSetId);
-				setSetId(fresh.selectedSetId);
-				setPool(fresh.questions);
-				setLessons(fresh.lessons);
-				setStartError('');
-				if (activeMode === 'study' && fresh.sets.length) {
-					if (!await refreshStudyProgress(true)) throw new Error('Không thể tải tiến độ ôn tập.');
-				}
-				} catch (error) {
-					if (activeMode === 'study') setStudyProgressError('Không thể tải dữ liệu ôn tập. Vui lòng thử lại.');
-					throw error;
-				} finally {
-					setStudyProgressLoading(false);
-				}
-			}}>
-			<div className="home-setup flex flex-col gap-4">
-				<HomeGuide userId={user?.id} />
-				{/* Sticky Header & Mode Switcher */}
-				<div className="sticky top-0 z-30 bg-base-100/95 backdrop-blur-md pt-1 pb-3 space-y-3 -mx-4 px-4 sm:-mx-6 sm:px-6 border-b border-base-300/80 shadow-xs">
-					{/* Header */}
-					<header className="flex flex-wrap justify-between items-center gap-3">
-						<div className="flex min-w-0 items-center gap-3">
-							{/* <div className="w-10 h-10 rounded-2xl bg-primary/10 flex items-center justify-center text-primary shadow-sm">
-								<BookOpen className="w-5 h-5" />
-							</div> */}
-							<div className="min-w-0">
-								<h1 className="font-display font-bold text-lg sm:text-xl leading-tight">
-									QnA Learning
-								</h1>
-								<div className="flex items-center gap-1.5 flex-wrap">
-									<p className="break-words text-xs leading-relaxed text-base-content/75">
-										{user?.displayName
-											? `Học viên: ${user.displayName}`
-											: "Study with QNA Learning"}
-									</p>
-									<DonorBadge level={user?.donorLevel} tier={user?.donorTier} compact />
-									{learningSummary && canStreak && (
-										<StreakBadge
-											streak={learningSummary.streak}
-											todayAnswered={learningSummary.todayAnswered}
-											dailyGoal={learningSummary.dailyGoal}
-										/>
-									)}
-								</div>
-							</div>
-						</div>
-						<div className="ml-auto flex shrink-0 items-center gap-1.5">
-							<Link
-								href="/profile"
-								title="Hồ sơ & Đổi mật khẩu"
-								className="btn btn-ghost btn-circle btn-xs text-base-content/70 hover:text-primary">
-								<User className="w-5 h-5" />
-							</Link>
-							<ThemeToggle />
-							<LogoutButton size="xs" />
-						</div>
-					</header>
-
-					{/* Mode Switcher Tabs */}
-					<div role="group" aria-label="Chế độ học" data-home-guide="mode" data-mode={activeMode}
-						className="home-mode-switch relative isolate grid grid-cols-2 gap-1 rounded-2xl border border-base-300 bg-base-200/90 p-1">
-						<button
-							type="button"
-							aria-pressed={activeMode === 'exam'}
-							disabled={starting}
-							onClick={() => {
-								if (!canExam) {
-									setLockedFeature('exam');
-									return;
-								}
-								setActiveMode("exam");
-								setStartError("");
-							}}
-							className={`home-mode-button btn rounded-xl font-display text-sm border-0 ${
-								activeMode === "exam"
-									? "text-primary-content"
-									: "text-base-content/75"
-							}`}>
-							<ThiingsTarget className="w-5 h-5 mr-1" />
-							Thi thử
-							{!canExam && (
-								<span className="badge badge-warning badge-xs px-1.5 py-0.5 text-[9px] gap-0.5 ml-1 font-semibold">
-									<Lock className="w-2.5 h-2.5" /> Khóa
-								</span>
-							)}
-						</button>
-						<button
-							type="button"
-							aria-pressed={activeMode === 'study'}
-							disabled={starting}
-							onClick={() => {
-								if (!canStudy) {
-									setLockedFeature('srs_review');
-									return;
-								}
-								setActiveMode("study");
-								setStartError("");
-							}}
-							className={`home-mode-button btn rounded-xl font-display text-sm border-0 ${
-								activeMode === "study"
-									? "text-primary-content"
-									: "text-base-content/75"
-							}`}>
-							<BookOpen className="w-5 h-5 mr-1" />
-							Ôn tập
-							{!canStudy && (
-								<span className="badge badge-warning badge-sm px-1.5 py-1 text-[10px] gap-0.5 text-white font-bold">
-									<Lock className="w-2.5 h-2.5" /> Khóa
-								</span>
-							)}
-						</button>
-					</div>
-				</div>
-
-				{/* Content */}
-				<main className="space-y-4">
-					{/* Lessons Selector */}
-					<section data-home-guide="sets" className="bg-base-200/50 backdrop-blur-sm p-4 sm:p-5 rounded-3xl border border-base-300 shadow-sm">
-						<div className="flex justify-between items-center mb-3">
-							<div className="flex items-center gap-2">
-								<span className="w-2 h-2 rounded-full bg-primary" />
-								<h2 className="font-display font-bold text-sm tracking-tight">
-									Chọn bài ôn tập
-								</h2>
-							</div>
-						</div>
-
-						<div
-							role="region"
-							aria-label="Danh sách bộ đề ôn tập"
-							aria-busy={studySetsLoading}
-							tabIndex={0}
-							className="overscroll-contain [scrollbar-width:none] [&::-webkit-scrollbar]:hidden space-y-3 rounded-xl focus-visible:outline focus-visible:outline-2 focus-visible:outline-primary">
-							{studySetsLoading ? <>
-								<span role="status" className="sr-only">Đang tải bộ đề và tiến độ ôn tập…</span>
-								{availableSets.map(set => <div key={set.id} aria-hidden="true"
-									className="flex items-center gap-3 rounded-xl border border-base-300 p-3.5 motion-safe:animate-pulse">
-									<div className="h-5 w-5 shrink-0 rounded bg-base-300" />
-									<div className="min-w-0 flex-1 space-y-2">
-										<div className="h-5 w-4/5 rounded bg-base-300" />
-										<div className="h-4 w-1/2 rounded bg-base-300" />
-										<div className="h-1.5 w-full rounded bg-base-300" />
-									</div>
-									<div className="h-4 w-10 shrink-0 rounded bg-base-300" />
-								</div>)}
-							</> : activeMode === 'study' && studyProgressError && !studyProgress ? null : availableSets.map((set) => (
-									<label key={set.id}
-										className={`home-set-option relative flex cursor-pointer items-center gap-3 rounded-xl border p-3.5 ${set.id === selectedSetId ? "border-primary bg-primary/5" : "border-base-300 bg-base-100"}`}>
-										<input type="checkbox" checked={set.id === selectedSetId} disabled={starting}
-											onChange={() => { setSelectedSetId(set.id === selectedSetId ? undefined : set.id); setStartError(""); }}
-											className="checkbox checkbox-primary checkbox-sm shrink-0" />
-										<span className="min-w-0 flex-1 break-words text-xs font-semibold leading-relaxed">
-											<span className="line-clamp-3">{set.title}</span>
-											{activeMode === 'study' && studyProgress?.[set.id] && (() => {
-												const { reviewed, total } = studyProgress[set.id];
-												return <span className="mt-2 block space-y-1">
-													<span className="flex flex-wrap items-center justify-between gap-1 text-[11px] text-base-content/70">
-														<span>Đã ôn {reviewed}/{total} câu</span>
-														{total > 0 && reviewed === total && <span className="badge badge-success badge-sm">Đã ôn tập</span>}
-													</span>
-													<progress className="progress progress-success block h-1.5 w-full" value={reviewed} max={Math.max(1, total)} aria-label={`Tiến độ ôn tập ${set.title}`} />
-												</span>;
-											})()}
-										</span>
-                    <div className="absolute -top-3.5 right-2">
-                      <span className="badge badge-sm badge-neutral px-2 py-1 rounded-md">
-                        {set.questionCount} câu
-                      </span>
-                    </div>
-									</label>
-							))}
-							{availableSets.length === 0 && <p className="text-sm">Bộ câu hỏi mẫu — {poolCount} câu</p>}
-						</div>
-						{activeMode === 'study' && !studySetsLoading && studyProgressError && <div role="alert" className="mt-2 text-xs text-error">
-							{studyProgressError} <button type="button" onClick={() => void refreshStudyProgress(true)} className="btn btn-xs btn-ghost">Thử lại</button>
-						</div>}
-					</section>
-
-					{/* Question Count Selector (Exam Mode) or Study Info Box (Study Mode) */}
-					<div className="home-mode-options">
-					{activeMode === "exam" ? (
-						<section className="bg-base-200/50 backdrop-blur-sm p-4 sm:p-5 rounded-3xl border border-base-300 shadow-sm">
-							<h2 className="font-display font-bold text-sm mb-3 tracking-tight">
-								Số câu hỏi mỗi lượt
-							</h2>
-
-							<div className="grid grid-cols-4 gap-2 mb-3">
-								{(["20", "25", "all", "custom"] as const).map(
-									(mode) => {
-										const label =
-											mode === "20"
-												? "20 câu"
-												: mode === "25"
-													? "25 câu"
-													: mode === "all"
-														? "Toàn bộ"
-														: "Tự chọn";
-										const disabled =
-											starting || (mode === "20" && poolCount < 20) ||
-											(mode === "25" && poolCount < 25) ||
-											poolCount === 0;
-
-										return (
-											<button
-												key={mode}
-												type="button"
-												disabled={disabled}
-												onClick={() => setCountMode(mode)}
-												className={`btn btn-sm rounded-xl font-display text-xs border ${
-													countMode === mode
-														? "btn-primary text-primary-content border-primary shadow-sm"
-														: "btn-ghost bg-base-100 border-base-300"
-												}`}>
-												{label}
-											</button>
-										);
-									},
-								)}
-							</div>
-
-							{countMode === "custom" && (
-								<div className="p-3 bg-base-100 rounded-2xl border border-base-300 flex items-center gap-3">
-									<input
-										type="range"
-										min="1"
-										max={Math.max(1, poolCount)}
-										disabled={starting}
-										value={customCount}
-										onChange={(e) =>
-											setCustomCount(
-												parseInt(e.target.value, 10),
-											)
-										}
-										className="range range-primary range-xs flex-1"
-									/>
-									<input
-										type="number"
-										min="1"
-										max={Math.max(1, poolCount)}
-										disabled={starting}
-										value={customCount}
-										onChange={(e) =>
-											setCustomCount(
-												Math.max(
-													1,
-													parseInt(e.target.value, 10) ||
-														1,
-												),
-											)
-										}
-										className="input input-sm input-bordered w-16 text-center font-bold text-xs rounded-xl"
-									/>
-								</div>
-							)}
-
-							<div className="mt-3 pt-3 border-t border-base-300/70">
-								<div className="mb-2 flex items-center gap-1.5 text-xs font-semibold">
-									<Clock aria-hidden="true" className="h-3.5 w-3.5 text-primary" />
-									Giới hạn thời gian
-								</div>
-								<div className="grid grid-cols-5 gap-1.5" role="group" aria-label="Giới hạn thời gian làm bài">
-									{([0, 15, 30, 45, 60] as const).map(minutes => (
-										<button
-											key={minutes}
-											type="button"
-											disabled={starting}
-											aria-pressed={examMinutes === minutes}
-											onClick={() => setExamMinutes(minutes)}
-											className={`btn btn-xs rounded-xl font-display text-[11px] border ${
-												examMinutes === minutes
-													? "btn-primary text-primary-content border-primary"
-													: "btn-ghost bg-base-100 border-base-300"
-											}`}>
-											{minutes === 0 ? "Không" : `${minutes} phút`}
-										</button>
-									))}
-								</div>
-								{examMinutes > 0 && (
-									<p className="mt-1.5 text-[11px] text-base-content/60">Hết giờ tự động nộp bài; câu chưa làm không được tính điểm.</p>
-								)}
-							</div>
-
-							<div className="mt-3 pt-3 border-t border-base-300/80 flex flex-wrap gap-2 justify-between items-center text-xs text-base-content/70">
-								<span>
-									Ngân hàng đã chọn:{" "}
-									<b className="text-base-content">
-										{poolCount}
-									</b>{" "}
-									câu
-								</span>
-								<span>
-									Lượt này:{" "}
-									<b className="text-primary text-sm font-display">
-										{targetCount}
-									</b>{" "}
-									câu
-								</span>
-							</div>
-						</section>
-					) : (
-						<section className="bg-base-200/50 backdrop-blur-sm p-4 sm:p-5 rounded-3xl border border-base-300 shadow-sm space-y-2">
-							<div className="flex items-center gap-2">
-								<span className="w-2 h-2 rounded-full bg-primary" />
-								<h2 className="font-display font-bold text-sm tracking-tight">
-									Chế độ Ôn tập
-								</h2>
-							</div>
-							<p className="text-xs text-base-content/70 leading-relaxed">
-								Đọc toàn bộ câu hỏi theo từng bài học. Đáp án mặc định được ẩn để bạn tự nhẩm trước, chạm vào từng câu hoặc phương án để xem đáp án chính xác và lời giải chi tiết.
-							</p>
-							<div className="pt-2 border-t border-base-300/80 flex justify-between items-center text-xs text-base-content/70">
-								<span>Tổng số câu hỏi trong bộ đề:</span>
-								<b className="text-primary text-sm font-display">
-									{poolCount} câu
-								</b>
-							</div>
-						</section>
-					)}
-					</div>
-
-					{/* Extra practice: wrong answers, due review, flashcards, daily goal */}
-					<section data-home-guide="practice" className="bg-base-200/50 backdrop-blur-sm p-4 sm:p-5 rounded-3xl border border-base-300 shadow-sm space-y-3" aria-labelledby="practice-heading">
-						<div className="flex flex-wrap items-center justify-between gap-2">
-							<div className="flex items-center gap-2">
-								<span className="w-2 h-2 rounded-full bg-primary" />
-								<h2 id="practice-heading" className="font-display font-bold text-sm tracking-tight">Luyện tập thêm</h2>
-							</div>
-							{learningSummary && (
-								<span className="text-[11px] text-base-content/70">
-									Mục tiêu hôm nay: <b className="text-base-content">{learningSummary.todayAnswered}/{learningSummary.dailyGoal}</b> câu
-									{learningSummary.streak > 0 && <span className="ml-1 inline-flex items-center gap-0.5 font-semibold text-warning"><Flame aria-hidden="true" className="h-3 w-3" />{learningSummary.streak} ngày</span>}
-								</span>
-							)}
-						</div>
-						{learningSummary && (
-							<progress className="progress progress-warning block h-1.5 w-full" value={Math.min(learningSummary.todayAnswered, learningSummary.dailyGoal)} max={Math.max(1, learningSummary.dailyGoal)}
-								aria-label={`Mục tiêu hôm nay ${learningSummary.todayAnswered} trên ${learningSummary.dailyGoal} câu`} />
-						)}
-						<div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
-							<button type="button" disabled={Boolean(reviewLoading) || starting || !selectedSetId}
-								onClick={() => void startReview("wrong")}
-								className="btn btn-outline btn-sm h-auto min-h-12 justify-start gap-2 rounded-2xl px-3 py-2.5 text-left">
-								<ListChecks aria-hidden="true" className="h-4 w-4 shrink-0 text-error" />
-								<span className="min-w-0">
-									<span className="flex items-center gap-1 font-display font-bold text-xs">
-										{reviewLoading === "wrong" ? "Đang tải…" : "Ôn câu sai"}
-										{!canWrong && <Lock aria-hidden="true" className="h-3 w-3" />}
-									</span>
-									<span className="block text-[10px] font-normal text-base-content/60">Câu làm sai chưa sửa</span>
-								</span>
-							</button>
-							<button type="button" disabled={Boolean(reviewLoading) || starting || !selectedSetId}
-								onClick={() => void startReview("due")}
-								className="btn btn-outline btn-sm h-auto min-h-12 justify-start gap-2 rounded-2xl px-3 py-2.5 text-left">
-								<CalendarClock aria-hidden="true" className="h-4 w-4 shrink-0 text-primary" />
-								<span className="min-w-0">
-									<span className="flex items-center gap-1 font-display font-bold text-xs">
-										{reviewLoading === "due" ? "Đang tải…" : "Câu đến hạn"}
-										{learningSummary && learningSummary.due > 0 && <span className="badge badge-primary badge-xs text-white">{learningSummary.due}</span>}
-										{!canStudy && <Lock aria-hidden="true" className="h-3 w-3" />}
-									</span>
-									<span className="block text-[10px] font-normal text-base-content/60">Theo lịch Leitner</span>
-								</span>
-							</button>
-							<button type="button" disabled={flashcardLoading || starting || !selectedSetId}
-								onClick={() => void openFlashcards()}
-								className="btn btn-outline btn-sm h-auto min-h-12 justify-start gap-2 rounded-2xl px-3 py-2.5 text-left">
-								<Brain aria-hidden="true" className="h-4 w-4 shrink-0 text-success" />
-								<span className="min-w-0">
-									<span className="flex items-center gap-1 font-display font-bold text-xs">
-										{flashcardLoading ? "Đang tải…" : "Flashcard"}
-										{!canFlashcards && <Lock aria-hidden="true" className="h-3 w-3" />}
-									</span>
-									<span className="block text-[10px] font-normal text-base-content/60">Lật thẻ & tự chấm</span>
-								</span>
-							</button>
-						</div>
-						{reviewError && <p role="alert" className="text-xs text-error">{reviewError}</p>}
-					</section>
-				</main>
-
-			</div>
-			</PullToRefresh>
-			<div className="shrink-0 px-4 pb-2 sm:px-6">
-				<div className="relative flex w-full flex-col items-end">
-					<div className="absolute bottom-full right-0 z-10 mb-2">
-						<FloatingLearningMenu leaderboardCache={leaderboardCache.current} />
-					</div>
-					<footer className="w-full rounded-3xl border border-base-300 bg-base-100/95 p-3 backdrop-blur-md">
-						<div className="mb-2 flex min-w-0 items-center justify-between gap-3 px-1 text-[11px]">
-							<p className="truncate font-medium text-base-content/70">
-								{/* {activeMode === "exam" ? "Thi thử" : "Ôn tập"} */}
-								{/* <span aria-hidden="true"> · </span> */}
-								{footerSetTitle || "Chưa chọn bộ đề"}
-							</p>
-							<span className="shrink-0 font-semibold tabular-nums text-base-content/80">
-								{activeMode === "exam"
-									? `${targetCount} câu${examMinutes > 0 ? ` · ${examMinutes} phút` : ""}`
-									: `${poolCount} câu`}
-							</span>
-						</div>
-						{startError && <p role="alert" className="mb-2 px-1 text-xs text-error">{startError}</p>}
-						<button
-							data-home-guide="start"
-							type="button"
-							disabled={activeMode === "exam" ? targetCount === 0 || starting : poolCount === 0 || starting}
-							aria-busy={starting}
-							onClick={() => activeMode === "exam"
-								? (canExam ? startQuiz() : setLockedFeature('exam'))
-								: startStudy()}
-							className="btn btn-primary w-full min-h-12 rounded-2xl py-3.5 font-display text-base font-bold leading-[1] text-primary-content">
-							{starting
-								? "Đang tải bộ đề…"
-								: activeMode === "exam"
-									? !canExam
-										? "Tính năng Thi thử đang khóa"
-										: `Bắt đầu làm bài (${targetCount} câu${examMinutes > 0 ? ` · ${examMinutes} phút` : ""})`
-									: `Bắt đầu ôn tập (${poolCount} câu)`}
-						</button>
-					</footer>
-				</div>
-			</div>
-			</div>
-			</div>
-			{lockedFeature && lockedConfig && (
-				<div
-					role="dialog"
-					aria-modal="true"
-					aria-labelledby="lock-feature-title"
-					className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
-					<div className="relative w-full max-w-sm rounded-3xl border border-warning/30 bg-base-100 p-6 shadow-2xl space-y-4 text-center">
-						<button
-							type="button"
-							onClick={() => setLockedFeature(null)}
-							aria-label="Đóng"
-							className="btn btn-circle btn-ghost btn-xs absolute right-3 top-3 text-base-content/60 hover:text-base-content">
-							<X className="w-4 h-4" />
-						</button>
-						<div className="flex justify-center pt-2">
-							<div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-warning/20 text-warning ring-4 ring-warning/10">
-								<Lock className="h-7 w-7" />
-							</div>
-						</div>
-						<div className="space-y-1">
-							<h3 id="lock-feature-title" className="font-display text-lg font-bold">
-								Đặc quyền {lockedConfig.label}
-							</h3>
-							<p className="text-xs text-base-content/70">
-								Dành riêng cho học viên có cấp bậc tri ân
-							</p>
-						</div>
-						<div className="rounded-2xl border border-base-300 bg-base-200/50 p-3.5 text-xs text-base-content/85 leading-relaxed space-y-1.5 text-left">
-							<p>
-								<b>{lockedConfig.label}</b> yêu cầu cấp <b>{lockedTier ? `${lockedTier.icon} ${lockedTier.label}` : 'học viên'}</b> trở lên.
-							</p>
-							<p className="text-[11px] text-base-content/60">{lockedConfig.description}</p>
-							<p className="text-[11px] text-base-content/60">
-								Vui lòng liên hệ quản trị viên hoặc ủng hộ nền tảng để mở khóa đặc quyền này!
-							</p>
-						</div>
-						<button
-							type="button"
-							onClick={() => setLockedFeature(null)}
-							className="btn btn-primary w-full rounded-2xl font-display font-bold text-sm text-primary-content shadow-md shadow-primary/20">
-							Đã hiểu
-						</button>
-					</div>
-				</div>
-			)}
+				<DonorWelcomeModal user={user} />
+				<QuizSetupView
+					availableSets={availableSets} selectedSetId={selectedSetId} setSelectedSetId={setSelectedSetId}
+					user={user} canExam={canExam} canStudy={canStudy} canWrong={canWrong} canFlashcards={canFlashcards} canStreak={canStreak}
+					activeMode={activeMode} setActiveMode={setActiveMode} starting={starting} saveState={saveState}
+					studyProgressLoading={studyProgressLoading} onRefresh={handleSetupRefresh} studySetsLoading={studySetsLoading}
+					studyProgressError={studyProgressError} studyProgress={studyProgress} refreshStudyProgress={refreshStudyProgress}
+					setStartError={setStartError} setLockedFeature={setLockedFeature} poolCount={poolCount} learningSummary={learningSummary}
+					countMode={countMode} setCountMode={setCountMode} customCount={customCount} setCustomCount={setCustomCount}
+					examMinutes={examMinutes} setExamMinutes={setExamMinutes} targetCount={targetCount} reviewLoading={reviewLoading}
+					flashcardLoading={flashcardLoading} reviewError={reviewError} startReview={startReview} openFlashcards={openFlashcards}
+					footerSetTitle={footerSetTitle} startError={startError} startQuiz={startQuiz} startStudy={startStudy}
+					leaderboardCache={leaderboardCache.current} lockedFeature={lockedFeature} lockedConfig={lockedConfig}
+					lockedTier={lockedTier} onCloseLockedFeature={() => setLockedFeature(null)}
+				/>
 			</>
 		);
 	}
@@ -1087,355 +637,22 @@ export function QuizEngine({
      ============================================================== */
 	if (view === "quiz") {
 		return (
-			<div safe_bot="" className="min-h-[100dvh] pb-48">
-				{/* Sticky Mobile Bar with Rabbit Ear Clearance */}
-				<div
-					safe_top=""
-					className="sticky  top-0 z-30 bg-base-100/95 backdrop-blur-md border-b border-base-300/80 py-2 px-2 mb-4 shadow-sm rounded-md w-full">
-					<div className="flex justify-between items-center mb-2">
-						<div className="flex items-center gap-2">
-							<button
-								type="button"
-								onClick={() => {
-									if (quitConfirm) {
-										deadlineRef.current = null;
-										setRemainingMs(null);
-										setView("setup");
-										setQuitConfirm(false);
-									} else {
-										setQuitConfirm(true);
-										setTimeout(
-											() => setQuitConfirm(false),
-											3500,
-										);
-									}
-								}}
-								className={`btn btn-xs rounded-xl font-medium transition-all px-0 ${
-									quitConfirm
-										? "btn-error text-white"
-										: "btn-ghost text-base-content/70"
-								}`}>
-								{quitConfirm
-									? "Chắc chắn thoát?"
-									: "← Chọn lại"}
-							</button>
-							{sessionKind !== "quiz" && (
-								<span className="badge badge-warning badge-xs text-[10px] font-semibold">
-									{sessionKind === "wrong" ? "Làm lại câu sai" : "Ôn theo lịch"}
-								</span>
-							)}
-						</div>
-
-						<div className="flex items-center gap-2">
-							{sessionModeRef.current === "exam" && remainingMs !== null && (
-								<span className={`badge badge-sm gap-1 tabular-nums font-bold ${remainingMs <= 60_000 ? "badge-error text-white" : "badge-neutral text-neutral-content"}`}
-									role="timer" aria-label={`Thời gian còn lại ${formatClock(remainingMs)}`}>
-									<Clock aria-hidden="true" className="h-3.5 w-3.5" />
-									{formatClock(remainingMs)}
-								</span>
-							)}
-							<div className="flex items-center gap-1.5 text-xs font-bold font-display">
-								<span className="text-success font-semibold flex items-center gap-0.5">
-									<Check className="w-3.5 h-3.5" />{" "}
-									{stats.okCount}
-								</span>
-								<span className="text-base-content/30">/</span>
-								<span className="text-error font-semibold flex items-center gap-0.5">
-									<X className="w-3.5 h-3.5" />{" "}
-									{stats.badCount}
-								</span>
-							</div>
-							<button
-								type="button"
-								onClick={() => setShowGridModal(true)}
-								className="btn btn-xs btn-outline btn-primary rounded-xl font-display">
-								Bảng câu ({stats.doneCount}/{stats.total})
-							</button>
-						</div>
-					</div>
-
-					{/* Progress fill */}
-					<div className="w-full bg-base-300 h-1.5 rounded-full overflow-hidden">
-						<div
-							className="bg-primary h-full transition-all duration-300 ease-out"
-							style={{
-								width: `${(stats.doneCount / stats.total) * 100}%`,
-							}}
-						/>
-					</div>
-				</div>
-
-				{/* Questions Cards List */}
-				<div className="space-y-4">
-					{items.map((item, idx) => {
-						const { q, order, first, tries, done } = item;
-						const isFirstRight = first === q.ans;
-						const isWrongFirst = first !== null && first !== q.ans;
-
-						return (
-							<article
-								key={idx}
-								id={`q-card-${idx}`}
-								className={`card bg-base-100 border transition-all duration-200 p-4 sm:p-5 rounded-3xl shadow-sm ${
-									done
-										? isFirstRight
-											? "border-success/30 bg-success/5"
-											: "border-warning/30 bg-warning/5"
-										: "border-base-300"
-								}`}>
-								{/* Card Header */}
-								<div className="flex justify-between items-center mb-3">
-									<div className="flex items-center gap-2">
-										<span className="font-display font-bold text-sm text-primary">
-											Câu {idx + 1}
-										</span>
-										<span className="text-[11px] px-2 py-0.5 rounded-md bg-base-200 text-base-content/70 font-medium">
-											Bài {q.lesson} · Câu {q.n}
-										</span>
-									</div>
-
-									{done ? (
-										<span
-											className={`badge badge-sm text-[10px] font-bold py-1 ${
-												isFirstRight
-													? "badge-success text-white"
-													: "badge-warning text-base-100"
-											}`}>
-											{isFirstRight
-												? "✓ Đúng ngay"
-												: "Đúng sau khi chọn lại"}
-										</span>
-									) : isWrongFirst ? (
-										<span className="badge badge-error badge-sm text-white text-[10px] font-bold">
-											Sai · chọn lại
-										</span>
-									) : (
-										<span className="badge badge-ghost badge-sm text-[10px] text-base-content/50">
-											Chưa hoàn thành
-										</span>
-									)}
-								</div>
-
-								{/* Question Text */}
-								<p className="font-semibold text-sm sm:text-base leading-snug mb-4 text-base-content select-text">
-									{q.q}
-								</p>
-								{q.images?.map((src, imageIndex) => <img key={`${src}-${imageIndex}`} src={src} alt={`Ảnh ${imageIndex + 1} câu ${q.n}`} loading="lazy" className="mb-4 max-h-44 max-w-full rounded-xl object-contain sm:max-h-56" />)}
-
-								{/* Options List */}
-								<div className="grid grid-cols-1 gap-2.5">
-									{order.map((key, optIdx) => {
-										const text = q.opts[key];
-										const isTried = tries.includes(key);
-										const isCorrectAnswer = key === q.ans;
-
-										let btnClass =
-											"bg-base-200/60 border-base-300 text-base-content hover:bg-base-200";
-										let mark = null;
-
-										if (done) {
-											if (isCorrectAnswer) {
-												btnClass =
-													"bg-success/20 border-success text-success font-bold shadow-sm";
-												mark = "✓";
-												} else if (isTried) {
-													btnClass =
-														"bg-error/15 border-error text-error [html:not([data-theme='dark'])_&]:!bg-error/40";
-													mark = "✗";
-											} else {
-												btnClass =
-													"opacity-60 border-base-300";
-											}
-						} else if (isTried) {
-							btnClass =
-													"bg-error/15 border-error text-error [html:not([data-theme='dark'])_&]:!bg-error/40";
-											mark = "✗";
-										}
-
-										return (
-											<button
-												key={key}
-												type="button"
-												disabled={done || isTried}
-												onClick={() =>
-													handleSelectOption(idx, key)
-												}
-												className={`quiz-opt-btn flex items-center justify-between text-left p-3.5 rounded-2xl border text-xs sm:text-sm font-medium ${btnClass}`}>
-												<div className="flex items-center gap-3 pr-2">
-													<span
-														className={`w-6 h-6 rounded-xl flex items-center justify-center font-display font-bold text-xs shrink-0 ${
-															done &&
-															isCorrectAnswer
-											? "bg-success text-white"
-											: isTried && !isCorrectAnswer
-												? "bg-error text-white"
-												: "bg-base-300 text-base-content/80"
-														}`}>
-														{OPTION_KEYS[optIdx]}
-													</span>
-													<span className="leading-snug select-text">
-														{text}
-													</span>
-												</div>
-												{mark && (
-												<span className={`text-[11px] font-bold shrink-0 ml-2 ${isCorrectAnswer && done ? "text-success" : ""}`}>
-														{mark}
-													</span>
-												)}
-											</button>
-										);
-									})}
-								</div>
-
-								{/* Explanation Box (Revealed on correct) */}
-								{done && (
-									<motion.div
-										initial={{ opacity: 0, height: 0 }}
-										animate={{ opacity: 1, height: "auto" }}
-										transition={reduceMotion ? { duration: 0 } : undefined}
-										className="mt-4 text-xs space-y-2">
-										{
-                      q.exp ? (
-                          <div>
-                            <b className="text-primary font-display">
-                              Giải thích:{" "}
-                            </b>
-                            <span className="text-base-content/90 leading-relaxed select-text">
-                              {q.exp}
-                            </span>
-                          </div>
-                        ) : null
-                    }
-										{/* {q.src && (
-											<div className="text-[11px] text-base-content/60 italic border-t border-base-300/40 pt-1.5">
-												<b>Nguồn: </b> {q.src}
-											</div>
-										)} */}
-										{idx < items.length - 1 && (
-											<div className="pt-2 text-right">
-												<button
-													type="button"
-													onClick={() =>
-														scrollToQuestion(
-															idx + 1,
-														)
-													}
-													className="btn btn-xs btn-ghost text-primary font-display font-bold">
-													Câu tiếp theo ↓
-												</button>
-											</div>
-										)}
-									</motion.div>
-								)}
-							</article>
-						);
-					})}
-
-					{/* Spacer so last question card scrolls well above fixed footer on iOS */}
-					<div className="h-32 sm:h-36 w-full" aria-hidden="true" />
-				</div>
-
-				{/* Floating Bottom Action Bar with Browser / Control Center Clearance */}
-				<div
-					safe_bot=""
-					className="fixed bottom-0 left-0 right-0 px-4 pt-3 pb-[max(calc(env(safe-area-inset-bottom,0px)+1.5rem),2.5rem)] bg-base-100/95 backdrop-blur-md border-t border-base-300 z-30 flex justify-center shadow-lg">
-					<div className="w-full max-w-md flex items-center justify-between gap-3">
-						<button
-							type="button"
-							onClick={() => setShowGridModal(true)}
-							className="btn btn-ghost btn-sm rounded-xl font-display text-xs">
-							Xem {stats.doneCount}/{stats.total} câu
-						</button>
-						<button
-							type="button"
-							disabled={stats.doneCount < stats.total}
-							onClick={() => void handleFinishQuiz()}
-							className="btn btn-primary btn-sm px-5 rounded-xl font-display font-bold text-primary-content shadow-md shadow-primary/25 disabled:opacity-50">
-							{stats.doneCount < stats.total
-								? `Còn ${stats.total - stats.doneCount} câu chưa làm`
-								: "Nộp bài & xem điểm →"}
-						</button>
-					</div>
-				</div>
-
-				{/* Question Grid Modal */}
-				<AnimatePresence>
-					{showGridModal && (
-						<div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-0 sm:p-4 bg-black/50 backdrop-blur-xs">
-							<motion.div
-								initial={{ y: "100%", opacity: 0 }}
-								animate={{ y: 0, opacity: 1 }}
-								transition={reduceMotion ? { duration: 0 } : undefined}
-								exit={{ y: "100%", opacity: 0 }}
-								safe_bot=""
-								className="w-full max-w-lg bg-base-100 rounded-t-3xl sm:rounded-3xl p-5 border border-base-300 shadow-2xl max-h-[85vh] flex flex-col">
-								<div className="flex justify-between items-center pb-3 border-b border-base-300">
-									<h3 className="font-display font-bold text-base">
-										Bảng danh sách câu hỏi
-									</h3>
-									<button
-										type="button"
-										onClick={() => setShowGridModal(false)}
-										className="btn btn-circle btn-xs btn-ghost">
-										<X className="w-5 h-5" />
-									</button>
-								</div>
-
-								<div className="flex items-center gap-4 py-2 text-[11px] text-base-content/70">
-									<span className="flex items-center gap-1.5">
-										<span className="w-3 h-3 rounded-full bg-success" />{" "}
-										Đúng ngay ({stats.okCount})
-									</span>
-									<span className="flex items-center gap-1.5">
-										<span className="w-3 h-3 rounded-full bg-warning" />{" "}
-										Chọn lại ({stats.badCount})
-									</span>
-									<span className="flex items-center gap-1.5">
-										<span className="w-3 h-3 rounded-full bg-base-300" />{" "}
-										Chưa làm
-									</span>
-								</div>
-
-								<div className="grid grid-cols-6 sm:grid-cols-8 gap-2 py-4 overflow-y-auto">
-									{items.map((it, i) => {
-										let dotStyle =
-											"bg-base-200 text-base-content/70 border border-base-300";
-										if (it.done) {
-											if (it.first === it.q.ans) {
-												dotStyle =
-													"bg-success text-white font-bold border-success";
-											} else {
-												dotStyle =
-													"bg-warning text-base-content font-bold border-warning";
-											}
-										}
-										return (
-											<button
-												key={i}
-												type="button"
-												onClick={() =>
-													scrollToQuestion(i)
-												}
-												className={`h-10 rounded-xl flex items-center justify-center font-display text-xs active:scale-95 transition-transform ${dotStyle}`}>
-												{i + 1}
-											</button>
-										);
-									})}
-								</div>
-
-								<div className="pt-2 border-t border-base-300">
-									<button
-										type="button"
-										onClick={() => setShowGridModal(false)}
-										className="btn btn-outline btn-sm w-full rounded-xl font-display">
-										Đóng bảng câu
-									</button>
-								</div>
-							</motion.div>
-						</div>
-					)}
-				</AnimatePresence>
-			</div>
+			<QuizSessionView
+				items={items}
+				stats={stats}
+				sessionKind={sessionKind}
+				isExam={sessionModeRef.current === "exam"}
+				remainingMs={remainingMs}
+				quitConfirm={quitConfirm}
+				showGridModal={showGridModal}
+				reduceMotion={Boolean(reduceMotion)}
+				onQuit={handleQuizQuit}
+				onOpenGrid={() => setShowGridModal(true)}
+				onCloseGrid={() => setShowGridModal(false)}
+				onSelectOption={handleSelectOption}
+				onScrollToQuestion={scrollToQuestion}
+				onFinish={() => void handleFinishQuiz()}
+			/>
 		);
 	}
 
